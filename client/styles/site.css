@@ -1,0 +1,570 @@
+/*
+ * Styles of the out-of-game pages (home, login, register, character select).
+ * Uses the same blue window look as the in-game interface.
+ */
+@import "./characters.css";
+
+:root {
+  --win-top: #2a4a9a;
+  --win-bottom: #101d4a;
+  --win-border: #e8ecff;
+  --win-border-dark: #1a1f3a;
+  --text: #ffffff;
+  --text-dim: #b9c3ec;
+  --accent: #ffd966;
+  --danger: #ff8080;
+  --bg: #0b0f22;
+  --font: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; min-height: 100%; }
+
+body.site {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at top, #1d2c66 0%, transparent 60%),
+    repeating-linear-gradient(45deg, #0e1430 0 12px, #0b0f22 12px 24px);
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Top room for the fixed account / language bars so they never overlap content. */
+  padding: 60px 16px 16px;
+}
+
+/* Blue window: gradient fill, light outer border, dark inner line. */
+.window {
+  background: linear-gradient(180deg, var(--win-top), var(--win-bottom));
+  border: 3px solid var(--win-border);
+  box-shadow: 0 0 0 2px var(--win-border-dark), 0 8px 24px rgba(0, 0, 0, 0.5);
+  border-radius: 6px;
+  padding: 20px 24px;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.hero { text-align: center; max-width: 480px; width: 100%; }
+.hero h1 { margin: 0 0 8px; font-size: 2.4rem; letter-spacing: 0.04em; color: var(--accent); }
+.hero p { color: var(--text-dim); margin: 0 0 16px; }
+
+a { color: var(--accent); }
+
+/* Buttons in the window style. */
+.actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 16px; }
+.button {
+  display: inline-block;
+  min-width: 140px;
+  padding: 10px 18px;
+  border: 2px solid var(--win-border);
+  border-radius: 4px;
+  background: linear-gradient(180deg, #3b5fc0, #1c2f73);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  text-shadow: 1px 1px 0 #000;
+}
+.button:hover, .button:focus-visible { background: linear-gradient(180deg, #5078e0, #2a44a0); outline: none; }
+.button.primary { border-color: var(--accent); }
+
+/* Language selector, in the top-right corner of every page (scrolls with the page: a fixed bar would cover long forms on phones). */
+.lang-switch {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  right: max(10px, env(safe-area-inset-right));
+  display: flex;
+  gap: 6px;
+  z-index: 100;
+}
+.lang-option {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background: rgba(16, 29, 74, 0.8);
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.lang-option.active { border-color: var(--win-border); color: var(--text); }
+.lang-option .flag { width: 21px; height: 14px; display: block; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6); }
+
+.site-footer { margin-top: 18px; font-size: 0.8rem; color: var(--text-dim); text-shadow: 1px 1px 0 #000; }
+
+/* Forms (login, register, character creation). */
+.form-window { width: 100%; max-width: 420px; }
+.form-window h1 { margin: 0 0 14px; font-size: 1.5rem; color: var(--accent); text-align: center; }
+.stacked-form { display: flex; flex-direction: column; gap: 12px; }
+.stacked-form label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+.stacked-form small { font-weight: 400; color: var(--text-dim); font-size: 0.78rem; }
+.stacked-form input, .stacked-form select {
+  font: inherit;
+  padding: 9px 10px;
+  border: 2px solid #6b7cc4;
+  border-radius: 3px;
+  background: rgba(5, 10, 35, 0.75);
+  color: var(--text);
+}
+.stacked-form input:focus, .stacked-form select:focus { outline: none; border-color: var(--accent); }
+.stacked-form .button { margin-top: 6px; }
+.form-error {
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border: 2px solid var(--danger);
+  border-radius: 3px;
+  background: rgba(120, 20, 30, 0.45);
+  color: #ffe0e0;
+}
+.form-notice { color: var(--text-dim); margin: 0 0 12px; text-align: center; }
+.form-footer { margin: 14px 0 0; text-align: center; color: var(--text-dim); }
+.form-success {
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border: 2px solid #4fb36a;
+  border-radius: 3px;
+  background: rgba(20, 90, 40, 0.45);
+  color: #e0ffe6;
+}
+
+/* "My account" page. */
+.account-page { max-width: 520px; }
+.account-details { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0 0 6px; }
+.account-details dt { color: var(--text-dim); }
+.account-details dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.account-section { margin-top: 18px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.2); }
+.account-section h2 { margin: 0 0 10px; font-size: 1.1rem; color: var(--accent); }
+.account-section input[name="username"][type="hidden"] { display: none; }
+.danger-zone h2 { color: #ff9c9c; }
+.account-page .delete-box .stacked-form { max-width: none; }
+
+/* Logged-in bar (top-left), scrolls with the page like the language selector. */
+.account-bar {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(16, 29, 74, 0.8);
+  font-size: 0.85rem;
+  z-index: 100;
+}
+.account-name { font-weight: 700; }
+.role-badge { padding: 1px 7px; border-radius: 3px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.02em; }
+.role-admin { background: #c9a227; color: #1a1300; text-shadow: none; }
+.role-moderator { background: #3f9a5c; color: #fff; }
+.inline-form { display: inline; margin: 0; }
+.link-button { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; }
+
+/* Resource inspection page (/dev/assets). */
+body.dev-assets { justify-content: flex-start; padding-top: 56px; }
+.dev-toolbar { width: 100%; max-width: 1200px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 14px; }
+.dev-toolbar h1 { margin: 0 12px 0 0; font-size: 1.3rem; color: var(--accent); }
+.toolbar-group { display: flex; gap: 6px; align-items: center; }
+.button.small { min-width: 0; padding: 4px 10px; font-size: 0.85rem; }
+.dev-groups { width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 14px; }
+.dev-group h2 { margin: 0 0 10px; font-size: 1.1rem; }
+.dev-items { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+.dev-item { margin: 0; max-width: 100%; }
+.dev-image { position: relative; display: inline-block; max-width: 100%; overflow: auto; border: 1px solid #6b7cc4; }
+.dev-image img, .char-preview { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+.char-preview { margin-top: 6px; border: 1px solid #6b7cc4; }
+.dev-item figcaption { display: flex; flex-direction: column; font-size: 0.8rem; color: var(--text-dim); margin-top: 4px; }
+.dev-item figcaption strong { color: var(--text); }
+body[data-bg="dark"] .dev-image, body[data-bg="dark"] .char-preview { background: #1a1424; }
+body[data-bg="light"] .dev-image, body[data-bg="light"] .char-preview { background: #d8dce8; }
+body[data-bg="checker"] .dev-image, body[data-bg="checker"] .char-preview {
+  background: repeating-conic-gradient(#9a9aa8 0% 25%, #c8c8d4 0% 50%) 0 0 / 16px 16px;
+}
+/* Tile grid: 48 px cells scaled with the zoom level. */
+body.show-grid .dev-item[data-kind="tilesets"] .dev-image::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(to right, rgba(255,255,255,0.35) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255,255,255,0.35) 1px, transparent 1px);
+  background-size: calc(48px * var(--zoom, 1)) calc(48px * var(--zoom, 1));
+}
+body[data-zoom="2"] { --zoom: 2; }
+body[data-zoom="3"] { --zoom: 3; }
+
+/* Administration panel. */
+.admin-root { width: 100%; max-width: 1100px; margin: 0 auto 24px; padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+/* `clip`, not `auto`: a scrolling box would stop the sticky parts (player of the tools, list of the accounts)
+   from sticking under the bar. Wide tables scroll in their own `.admin-table-wrap`. */
+.admin-content { padding: 12px 16px; overflow-x: clip; }
+.admin-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.admin-card { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 6px; background: rgba(0, 0, 0, 0.25); }
+.admin-card strong { font-size: 1.3rem; color: #ffd66b; }
+.admin-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0; }
+.admin-row input { min-width: 0; width: 9em; }
+.admin-table-wrap { overflow-x: auto; }
+.admin-table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+.admin-table th, .admin-table td { padding: 4px 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); text-align: left; vertical-align: top; overflow-wrap: break-word; }
+.admin-table th { color: #b9d3ff; white-space: nowrap; }
+.admin-table .link-button { padding: 0; border: 0; background: none; color: #9cc4ff; font: inherit; text-decoration: underline; text-align: left; cursor: pointer; }
+/* Accounts: a card per account (name, role, sanctions in force; e-mail under it). */
+.admin-account { display: flex; flex-direction: column; justify-content: center; gap: 3px; width: 100%; min-height: 58px; margin: 0 0 6px; padding: 8px 10px; text-align: left; background: rgba(0, 0, 0, 0.22); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; color: inherit; font: inherit; cursor: pointer; }
+.admin-account:hover, .admin-account.current { border-color: #ffd66b; }
+.admin-account.current { background: rgba(255, 214, 107, 0.12); }
+.admin-account-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.admin-account-name { font-size: 1rem; }
+.admin-account-mail { overflow: hidden; color: var(--text-dim); font-size: 0.82rem; text-overflow: ellipsis; white-space: nowrap; }
+.admin-chip { padding: 1px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; }
+.chip-banned { background: #b42318; color: #fff; }
+.chip-muted { background: #b54708; color: #fff; }
+/* `minmax(0, …)`: a long e-mail is cut with "…" instead of widening the column past the screen. */
+.admin-accounts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.admin-accounts-list, .admin-detail { min-width: 0; }
+.admin-back { display: none; }
+/* Wide screens (and phones held sideways): the list on the left, the sheet on the right, each scrolling alone. */
+@media (min-width: 800px) {
+  .admin-accounts { grid-template-columns: 300px minmax(0, 1fr); align-items: start; }
+  .admin-accounts-list { position: sticky; top: 64px; max-height: calc(100vh - 80px); overflow-y: auto; padding-right: 4px; }
+}
+/* Phones: the list, or the sheet with a "← Accounts" button, like the screens of a mobile app. */
+@media (max-width: 799px) {
+  .admin-accounts:not(.has-detail) .admin-detail, .admin-accounts.has-detail .admin-accounts-list { display: none; }
+  .admin-back { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: 8px; }
+}
+/* Logs: "Load more" under the lines. */
+.admin-more { width: 100%; min-height: 44px; margin-top: 8px; }
+.admin-more[hidden] { display: none; }
+.admin-log-count { margin: 8px 0 0; }
+.admin-log { margin: 6px 0; }
+.admin-log summary { cursor: pointer; color: #ffd66b; }
+.admin-content fieldset { border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; margin: 8px 0; }
+
+/* Admin panel: style the controls built by client/pages/admin.ts, and don't centre the page vertically. */
+body.admin-panel { justify-content: flex-start; padding-top: 0; }
+.admin-root input, .admin-root select, .admin-root textarea {
+  font: inherit;
+  padding: 6px 8px;
+  border: 2px solid #6b7cc4;
+  border-radius: 3px;
+  background: rgba(5, 10, 35, 0.75);
+  color: var(--text);
+}
+.admin-root input:focus, .admin-root select:focus, .admin-root textarea:focus { outline: none; border-color: var(--accent); }
+.admin-row > input[type='search'], .admin-row > input[type='text'] { flex: 1 1 9em; }
+/* A field under its label (column): never stretched in height, full width of its column. */
+.admin-field > input, .admin-field > select, .admin-field > textarea { flex: none; width: 100%; }
+
+/* Phones: the account bar (name, role, admin link, logout) wraps, so give it its own row under the language switch. */
+@media (max-width: 520px) {
+  body.site { padding-top: 100px; }
+  .account-bar { top: calc(54px + env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); flex-wrap: wrap; row-gap: 2px; }
+  /* The bar can take two lines of 44 px (touch hit areas): keep the page content below it. */
+  body.site:has(.account-bar) { padding-top: 156px; }
+  .admin-root { margin-top: 0; }
+}
+
+/* Touch screens: links and buttons need a finger-sized hit area (about 44 px). */
+@media (pointer: coarse), (max-width: 1024px) {
+  .lang-option { min-height: 44px; padding: 4px 12px; }
+  .link-button, .form-footer a, .site-footer a, .account-bar a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; }
+  .account-bar { padding: 0 10px; column-gap: 12px; }
+  .button { min-height: 44px; }
+  .button.small { min-height: 44px; min-width: 44px; }
+  input[type='checkbox'], input[type='radio'] { width: 22px; height: 22px; }
+  .stacked-form input:not([type='checkbox']):not([type='radio']), .stacked-form select { min-height: 40px; }
+  .admin-root input, .admin-root select, .admin-root textarea { min-height: 40px; }
+}
+
+/* Landscape phones: a short screen. Tighter spacing and two columns so the form, its footer
+   and the "back home" link fit without scrolling. */
+@media (max-height: 520px) {
+  body.site { padding-top: 60px; padding-bottom: 6px; }
+  .window { padding: 8px 16px; }
+  .stacked-form label { gap: 2px; }
+  .stacked-form small { font-size: 0.72rem; line-height: 1.2; }
+  .form-window { max-width: 620px; }
+  .form-window h1 { margin: 0 0 8px; font-size: 1.2rem; }
+  .form-error { margin-bottom: 8px; padding: 4px 8px; }
+  /* Two columns for the forms of the form pages only (not the small delete form of a character card: it overflowed). */
+  .form-window .stacked-form { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; }
+  .stacked-form input, .stacked-form select { padding: 4px 8px; }
+  .form-window .stacked-form > .button, .form-window .stacked-form > p { grid-column: 1 / -1; margin-top: 2px; }
+  .form-footer { margin: 4px 0 0; }
+  .site-footer { margin: 4px 0 0; }
+}
+
+/* Admin panel: a control with its label above it. */
+.admin-field { display: flex; flex-direction: column; gap: 2px; font-size: 0.78rem; color: var(--text-dim); }
+.admin-field > span { font-weight: 600; }
+.admin-row { align-items: flex-end; }
+.admin-backup-list { max-height: 14em; overflow: auto; margin: 4px 0; padding-left: 1.4em; }
+
+/* ---- Clearer administration panel (UX review of 2026-11) ------------------------------- */
+/* Health of the server: green, orange, red. */
+.admin-card.health-ok { box-shadow: inset 4px 0 0 #4fbf6a; }
+.admin-card.health-warn { box-shadow: inset 4px 0 0 #f0b040; }
+.admin-card.health-warn strong { color: #f0b040; }
+.admin-card.health-bad { box-shadow: inset 4px 0 0 #e0503f; background: rgba(90, 20, 16, 0.45); }
+.admin-card.health-bad strong { color: #ff8a7a; }
+.admin-actions { display: flex; flex-wrap: wrap; gap: 4px; }
+/* Durations and reasons in one click. */
+.admin-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.admin-pill { padding: 4px 10px; border-radius: 14px; border: 1px solid rgba(185, 211, 255, 0.45); background: rgba(0, 0, 0, 0.25); color: inherit; font: inherit; font-size: 0.85rem; cursor: pointer; }
+.admin-pill:hover { border-color: #ffd66b; }
+.admin-pill.selected { border-color: #ffd66b; background: rgba(255, 214, 107, 0.2); color: #ffd66b; font-weight: 700; }
+.admin-sanctions { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; padding: 8px; border-radius: 6px; background: rgba(0, 0, 0, 0.18); }
+/* A dangerous action said in words, in red. */
+.admin-warning { padding: 8px 10px; border-radius: 6px; border: 1px solid #c04040; background: rgba(60, 14, 14, 0.6); color: #ffb3a8; }
+.admin-content p, .admin-content li, .admin-content .hint { overflow-wrap: anywhere; }
+.admin-backup-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 8px; padding: 6px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
+.admin-backup-list li > span { flex: 1 1 14em; min-width: 0; }
+.admin-backup-list li > .button { flex: none; }
+/* Teleport: the destination map, clickable. */
+.admin-map { margin: 6px 0; }
+/* The drawing scrolls in its frame (a finger slides it) instead of shrinking to cells of 5 px. */
+.admin-map-frame { width: fit-content; max-width: 100%; max-height: 520px; overflow: auto; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 4px; overscroll-behavior: contain; }
+.admin-map-canvas { display: block; max-width: none; image-rendering: pixelated; cursor: crosshair; }
+.admin-map-zoom { display: flex; gap: 6px; margin-bottom: 4px; }
+.admin-search-select { display: flex; flex-direction: column; gap: 2px; }
+.admin-search-select select { min-width: 16em; }
+.admin-target { padding: 6px 8px; border-radius: 6px; background: rgba(255, 214, 107, 0.08); }
+@media (pointer: coarse) {
+  .admin-pill, .admin-row .button { min-height: 40px; }
+}
+
+/* ---- Administration panel on phones (UI review of 2026-11-07) ---------------------------- */
+/* A fieldset is min-content wide by default: long rows pushed it past the screen edge. */
+.admin-content fieldset { min-width: 0; }
+/* The filter box sits in a column: its "flex: 1 1 9em" became a 9em height. */
+.admin-search-select input[type='text'], .admin-search-select input[type='search'] { flex: none; }
+.admin-search-select select { max-width: 100%; }
+.admin-root select, .admin-root input:not([type='checkbox']):not([type='radio']) { max-width: 100%; }
+@media (max-width: 600px) {
+  .admin-root { padding: 0 6px; gap: 8px; }
+  .admin-root .window { padding: 10px 12px; }
+  .admin-content { padding: 8px 10px; }
+  .admin-content fieldset { padding: 6px 8px; margin: 6px 0; }
+  .admin-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-search-select select { min-width: 0; width: 100%; }
+  .admin-row > .admin-field { flex: 1 1 8em; min-width: 0; }
+  .admin-row > .admin-field input, .admin-row > .admin-field select { width: 100%; }
+  .admin-table { font-size: 0.8rem; }
+}
+
+/* ---- Frame of the administration panel (fixes F02, F03, F36, F08) --------------------------
+   One sticky bar of 52 px: title, tabs and a ☰ menu holding the account bar and the language switch
+   (moved there by admin.ts). On a phone the tabs go to a bar at the bottom of the screen, within thumb
+   reach. Results show in a toast at the bottom, over the content. */
+body.site.admin-panel, body.site.admin-panel:has(.account-bar) { padding: 0 0 24px; justify-content: flex-start; }
+body.admin-panel > .account-bar, body.admin-panel > .lang-switch { display: none; }
+.admin-bar {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  margin: 0 -16px;
+  padding: 4px max(10px, env(safe-area-inset-right)) 4px max(12px, env(safe-area-inset-left));
+  background: rgba(10, 16, 42, 0.97);
+  border-bottom: 1px solid var(--win-border);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+.admin-bar h1 { margin: 0; font-size: 1.1rem; white-space: nowrap; }
+.admin-tabs { display: flex; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.admin-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.admin-tab:hover { color: var(--text); background: rgba(90, 120, 230, 0.2); }
+.admin-tab[aria-current="page"] { color: var(--accent); background: rgba(255, 214, 107, 0.14); border-color: var(--accent); }
+.admin-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.admin-tab .tab-short { display: none; }
+.admin-menu-button { flex: none; width: 44px; height: 44px; margin-left: auto; border: 1px solid var(--win-border); border-radius: 6px; background: rgba(16, 29, 74, 0.9); color: var(--text); font-size: 1.3rem; cursor: pointer; }
+.admin-menu-button[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
+.admin-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 8px;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(320px, calc(100vw - 16px));
+  padding: 12px;
+  border: 2px solid var(--win-border);
+  border-radius: 8px;
+  background: #101a44;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+}
+.admin-menu[hidden] { display: none; }
+.admin-menu .account-bar, .admin-menu .lang-switch { position: static; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 0; background: none; }
+.admin-menu .button { align-self: stretch; text-align: center; }
+/* Result of an action: at the bottom, over the content; errors in red. */
+.admin-toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: min(92vw, 560px);
+  padding: 8px 6px 8px 14px;
+  border: 1px solid #3f9a5c;
+  border-radius: 8px;
+  background: rgba(8, 40, 20, 0.97);
+  color: #c8f5c0;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+.admin-toast.shown { display: flex; }
+.admin-toast.error { border-color: #c04040; background: rgba(60, 14, 14, 0.97); color: #ffc2b8; }
+.admin-toast-text { overflow-wrap: anywhere; user-select: text; }
+.admin-toast-close { flex: none; width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: inherit; font-size: 1rem; cursor: pointer; }
+.admin-toast-close:hover { background: rgba(255, 255, 255, 0.1); }
+@media (max-width: 600px) {
+  .admin-bar { margin: 0 -6px; }
+  /* The tabs in a bar fixed at the bottom of the screen: icon over a short name, all five always visible. */
+  .admin-tabs {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    justify-content: space-around;
+    gap: 0;
+    padding: 4px 4px max(4px, env(safe-area-inset-bottom));
+    background: rgba(10, 16, 42, 0.98);
+    border-top: 1px solid var(--win-border);
+    box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.4);
+  }
+  /* No side padding: "Sauvegardes" (the longest short name) was cut by one pixel on a 375 px phone (UI test of 2026-11-08). */
+  .admin-tab { flex: 1 1 0; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; min-height: 54px; padding: 4px 0; font-size: 0.75rem; }
+  .admin-tab .tab-icon { font-size: 1.25rem; line-height: 1; }
+  .admin-tab .tab-label { display: none; }
+  .admin-tab .tab-short { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  body.site.admin-panel, body.site.admin-panel:has(.account-bar) { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .admin-toast { bottom: calc(70px + env(safe-area-inset-bottom)); }
+}
+
+/* Between the phone bar (600 px and less) and wide screens, the five full tab names did not fit in the top bar:
+   a phone held sideways (667 px) hid "Logs" and "Backups" past the edge (UI test of 2026-11-08). Icon over the
+   short name there too. */
+@media (min-width: 601px) and (max-width: 900px) {
+  .admin-tab { flex-direction: column; justify-content: center; gap: 2px; min-height: 48px; padding: 3px 8px; font-size: 0.75rem; }
+  .admin-tab .tab-icon { font-size: 1.15rem; line-height: 1; }
+  .admin-tab .tab-label { display: none; }
+  .admin-tab .tab-short { display: block; }
+}
+
+/* ---- Tables as cards on a phone (fixes F01, F18) -----------------------------------------------
+   A line = a card: its name or date as the title, then one "Column: value" line per field (the label
+   comes from `data-label`), the action buttons at the bottom. Empty fields and line numbers are left out. */
+@media (max-width: 600px) {
+  .admin-table-wrap { overflow: visible; }
+  .admin-table, .admin-table tbody { display: block; width: 100%; }
+  .admin-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .admin-table tr { display: flex; flex-direction: column; gap: 2px; margin: 0 0 8px; padding: 8px 10px; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 6px; background: rgba(0, 0, 0, 0.22); }
+  .admin-table td { display: grid; grid-template-columns: minmax(84px, 36%) minmax(0, 1fr); align-items: baseline; gap: 8px; padding: 1px 0; border: 0; overflow-wrap: anywhere; }
+  /* A name that opens an account: its label on the same line, its whole height still easy to tap. */
+  .admin-table td .link-button { justify-self: start; align-items: flex-start; min-height: 36px; }
+  .admin-table td::before { content: attr(data-label); color: #b9d3ff; font-size: 0.8rem; }
+  .admin-table td:empty, .admin-table td.col-id { display: none; }
+  .admin-table td.col-name, .admin-table td.col-at { order: -1; display: block; color: var(--accent); font-size: 0.95rem; font-weight: 700; }
+  .admin-table td.col-name::before, .admin-table td.col-at::before { content: none; }
+  .admin-table td.admin-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .admin-table td.admin-actions::before { content: none; }
+  .admin-table td.admin-actions .button { flex: 1 1 auto; min-height: 44px; }
+}
+
+/* ---- Forms of the panel on a phone (fixes F13, F09, F16, F12, F38) --------------------------------
+   One field per line with its label above, in 16 px (no zoom of the browser when a field is touched) and
+   44 px high; the buttons two by two, 48 px high. */
+.admin-log summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 0 10px; border-radius: 6px; background: rgba(0, 0, 0, 0.2); list-style: none; }
+.admin-log summary::-webkit-details-marker { display: none; }
+.admin-log summary::after { content: '▾'; flex: none; }
+.admin-log[open] summary::after { content: '▴'; }
+.admin-content textarea { width: 100%; resize: vertical; font: inherit; }
+/* The player the tools act on stays in sight under the bar while scrolling through the tools. */
+.admin-target { position: sticky; top: 58px; z-index: 20; background: #1a2864; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45); }
+@media (max-width: 600px) {
+  .admin-content .admin-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 8px; }
+  .admin-content .admin-row > .admin-field,
+  .admin-content .admin-row > .admin-search-select,
+  .admin-content .admin-row > .admin-pills,
+  .admin-content .admin-row > input,
+  .admin-content .admin-row > select,
+  .admin-content .admin-row > textarea,
+  .admin-content .admin-row > span { grid-column: 1 / -1; }
+  .admin-content .admin-row > .button { width: 100%; min-height: 48px; }
+  /* A field and its button side by side: the search of the accounts, the player of the tools. */
+  .admin-content .admin-accounts-list .admin-row, .admin-content .admin-target { grid-template-columns: minmax(0, 1fr) auto; }
+  .admin-content .admin-accounts-list .admin-row > input, .admin-content .admin-target > .admin-field { grid-column: auto; }
+  /* A field fills its cell: its desktop width (9em) left the account search at 144 px out of 234 (UI test of 2026-11-08). */
+  .admin-content .admin-row > input:not([type='checkbox']):not([type='radio']) { width: 100%; }
+  .admin-content .admin-target > .button { width: auto; }
+  .admin-target { top: 56px; margin: 0 -4px; }
+  .admin-root input:not([type='checkbox']):not([type='radio']):not([type='file']), .admin-root select, .admin-root textarea { min-height: 44px; font-size: 16px; }
+  .admin-field { font-size: 0.82rem; }
+  /* Durations and reasons: a grid of finger-sized buttons. */
+  .admin-pills { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+  .admin-pill { min-height: 44px; padding: 4px 6px; }
+  .admin-log summary { min-height: 48px; }
+  /* Teleport: a frame of 240 px that scrolls; the buttons stay just under it. */
+  .admin-map-frame { height: 240px; max-height: 240px; }
+  .admin-map-zoom .button { min-width: 48px; }
+}
+@media (max-height: 520px) {
+  .admin-map-frame { height: 200px; max-height: 200px; }
+}
+
+/* ---- New password: its own window, large, with a Copy button (fix F14) ------------------------- */
+.admin-dialog { width: min(92vw, 440px); padding: 16px 18px; color: var(--text); }
+.admin-dialog::backdrop { background: rgba(0, 0, 0, 0.65); }
+.admin-dialog h3 { margin: 0 0 10px; }
+.admin-dialog .admin-password { width: 100%; min-height: 52px; padding: 8px 10px; border: 2px solid var(--accent); border-radius: 6px; background: rgba(5, 10, 35, 0.9); color: #fff; font: 700 1.35rem ui-monospace, Consolas, monospace; letter-spacing: 0.08em; text-align: center; user-select: all; }
+.admin-dialog .admin-warning { margin: 10px 0; }
+.admin-dialog-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.admin-dialog-buttons .button { min-height: 48px; }
+
+/* ---- Resources page: a table of contents and folded sections (fix F35) ----------------------------- */
+.dev-summary { display: flex; flex-wrap: wrap; gap: 6px; }
+.dev-group > summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 48px; list-style: none; cursor: pointer; }
+.dev-group > summary::-webkit-details-marker { display: none; }
+.dev-group > summary::after { content: '▾'; color: var(--accent); font-size: 1.2rem; }
+.dev-group[open] > summary::after { content: '▴'; }
+.dev-group > summary h2 { margin: 0; }
+.dev-group[open] > summary { margin-bottom: 10px; }
+
+/* ---- Sections that fold: account sheet, tools on a phone, help of the backups (F11, F17, F22) ------ */
+.admin-section { margin: 8px 0; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 6px; background: rgba(0, 0, 0, 0.12); }
+.admin-section > summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 48px; padding: 0 12px; color: var(--accent); font-weight: 700; list-style: none; cursor: pointer; }
+.admin-section > summary::-webkit-details-marker { display: none; }
+.admin-section > summary::after { content: '▾'; flex: none; }
+.admin-section[open] > summary::after { content: '▴'; }
+.admin-section-body { padding: 0 10px 10px; min-width: 0; }
+.admin-sheet-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.admin-sheet-title .role-badge { font-size: 0.75rem; }
+@media (max-width: 799px) {
+  /* "← Accounts" stays in sight while the sheet scrolls. */
+  .admin-back { position: sticky; top: 58px; z-index: 15; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45); }
+}

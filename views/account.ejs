@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="<%= locale %>">
+<head>
+  <%- include('partials/head', { title: t('account.title') }) %>
+</head>
+<body class="site">
+  <%- include('partials/account-bar') %>
+  <%- include('partials/lang-switch') %>
+  <main class="window form-window account-page">
+    <h1><%= t('account.title') %></h1>
+    <% if (doneKey) { %>
+      <p class="form-success" role="status"><%= t(doneKey) %></p>
+    <% } %>
+    <dl class="account-details">
+      <dt><%= t('auth.field.username') %></dt><dd><%= details.username %></dd>
+      <dt><%= t('auth.field.email') %></dt><dd><%= details.email %></dd>
+      <dt><%= t('account.role') %></dt><dd><%= t('auth.role.' + details.role) %></dd>
+      <dt><%= t('account.created') %></dt><dd><%= String(details.createdAt).slice(0, 10) %></dd>
+    </dl>
+
+    <section class="account-section" id="password">
+      <h2><%= t('account.password.title') %></h2>
+      <% if (error && error.form === 'password') { %><%- include('partials/form-error', { errorKey: error.key, errorParams: error.params || {} }) %><% } %>
+      <form method="post" action="/account/password" class="stacked-form" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+        <input type="hidden" name="username" value="<%= details.username %>" autocomplete="username">
+        <label>
+          <span><%= t('account.current_password') %></span>
+          <input name="current" type="password" autocomplete="current-password" required maxlength="256">
+        </label>
+        <label>
+          <span><%= t('account.password.new') %></span>
+          <input name="password" type="password" autocomplete="new-password" required minlength="8" aria-describedby="new-password-hint">
+          <small id="new-password-hint"><%= t('auth.register.password_hint') %> <%= t('account.password.hint') %></small>
+        </label>
+        <label>
+          <span><%= t('auth.field.password_confirm') %></span>
+          <input name="passwordConfirm" type="password" autocomplete="new-password" required minlength="8">
+        </label>
+        <button type="submit" class="button primary"><%= t('account.password.submit') %></button>
+      </form>
+    </section>
+
+    <section class="account-section" id="email">
+      <h2><%= t('account.email.title') %></h2>
+      <% if (error && error.form === 'email') { %><%- include('partials/form-error', { errorKey: error.key, errorParams: error.params || {} }) %><% } %>
+      <form method="post" action="/account/email" class="stacked-form" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+        <label>
+          <span><%= t('account.email.new') %></span>
+          <input name="email" type="email" autocomplete="email" required maxlength="254" value="<%= details.email %>">
+        </label>
+        <label>
+          <span><%= t('account.current_password') %></span>
+          <input name="current" type="password" autocomplete="current-password" required maxlength="256">
+        </label>
+        <button type="submit" class="button primary"><%= t('account.email.submit') %></button>
+      </form>
+    </section>
+
+    <section class="account-section danger-zone" id="delete">
+      <h2><%= t('account.delete.title') %></h2>
+      <% if (isOwner) { %>
+        <p class="form-notice"><%= t('error.account.owner_delete') %></p>
+      <% } else { %>
+        <% if (error && error.form === 'delete') { %><%- include('partials/form-error', { errorKey: error.key, errorParams: error.params || {} }) %><% } %>
+        <details class="delete-box"<%= error && error.form === 'delete' ? ' open' : '' %>>
+          <summary><%= t('account.delete.open') %></summary>
+          <p class="form-notice"><%= t('account.delete.warning') %></p>
+          <form method="post" action="/account/delete" class="stacked-form" novalidate>
+            <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+            <label>
+              <span><%= t('account.delete.confirm_label', { name: details.username }) %></span>
+              <input name="confirmName" autocomplete="off" required>
+            </label>
+            <label>
+              <span><%= t('account.current_password') %></span>
+              <input name="current" type="password" autocomplete="current-password" required maxlength="256">
+            </label>
+            <button type="submit" class="button danger"><%= t('account.delete.submit') %></button>
+          </form>
+        </details>
+      <% } %>
+    </section>
+    <p class="form-footer"><a href="/characters"><%= t('account.back') %></a></p>
+  </main>
+</body>
+</html>

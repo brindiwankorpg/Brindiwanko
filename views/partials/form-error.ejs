@@ -1,0 +1,5 @@
+<%# Error banner for forms. Expects errorKey (translation key or null) and optional errorParams.
+    The key and its parameters let the page script show a date in the visitor's time zone. %>
+<% if (errorKey) { const params = typeof errorParams !== 'undefined' ? errorParams : {}; %>
+  <p class="form-error" role="alert" data-key="<%= errorKey %>" data-params="<%= JSON.stringify(params) %>"><%= t(errorKey, params) %></p>
+<% } %>

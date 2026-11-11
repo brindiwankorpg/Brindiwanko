@@ -1,0 +1,20 @@
+<%#
+  Common <head> content of out-of-game pages.
+  Expects: title (optional, page title shown before the game title).
+%><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title><%= typeof title !== 'undefined' && title ? title + ' - ' + gameTitle : gameTitle %></title>
+<meta name="description" content="<%= t('site.tagline') %>">
+<%# Link previews (messaging apps, social networks); the image needs the public address of the game. %>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="<%= gameTitle %>">
+<meta property="og:title" content="<%= typeof title !== 'undefined' && title ? title + ' - ' + gameTitle : gameTitle %>">
+<meta property="og:description" content="<%= t('site.tagline') %>">
+<% if (typeof publicUrl !== 'undefined' && publicUrl) { %><meta property="og:image" content="<%= publicUrl %>/img/system/AppIcon-512.png">
+<% } %>
+<link rel="icon" href="/img/system/AppIcon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/build/site.css">
+<%# The dictionary is a file of its own (kept by the browser), asked for at once; see client/i18n.ts. %>
+<link rel="preload" href="<%= i18nUrl %>" as="fetch" crossorigin>
+<script id="i18n-data" type="application/json" data-locale="<%= locale %>" data-src="<%= i18nUrl %>"></script>

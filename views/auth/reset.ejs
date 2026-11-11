@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="<%= locale %>">
+<head>
+  <%- include('../partials/head', { title: t('account.reset.title') }) %>
+  <meta name="referrer" content="no-referrer">
+</head>
+<body class="site">
+  <%- include('../partials/lang-switch') %>
+  <main class="window form-window">
+    <h1><%= t('account.reset.title') %></h1>
+    <% if (!valid) { %>
+      <p class="form-error" role="alert"><%= t('error.account.reset_invalid') %></p>
+      <p class="form-footer"><a href="/forgot-password"><%= t('account.forgot.title') %></a></p>
+    <% } else { %>
+      <%- include('../partials/form-error', { errorKey, errorParams }) %>
+      <form method="post" action="/reset-password" class="stacked-form" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+        <input type="hidden" name="token" value="<%= token %>">
+        <label>
+          <span><%= t('account.password.new') %></span>
+          <input name="password" type="password" autocomplete="new-password" required minlength="8" autofocus aria-describedby="password-hint">
+          <small id="password-hint"><%= t('auth.register.password_hint') %></small>
+        </label>
+        <label>
+          <span><%= t('auth.field.password_confirm') %></span>
+          <input name="passwordConfirm" type="password" autocomplete="new-password" required minlength="8">
+        </label>
+        <button type="submit" class="button primary"><%= t('account.reset.submit') %></button>
+      </form>
+    <% } %>
+  </main>
+  <p class="site-footer"><a href="/"><%= t('common.back_home') %></a></p>
+</body>
+</html>

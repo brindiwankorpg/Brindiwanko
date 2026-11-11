@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="<%= locale %>">
+<head>
+  <%- include('../partials/head', { title: t('account.forgot.title') }) %>
+</head>
+<body class="site">
+  <%- include('../partials/lang-switch') %>
+  <main class="window form-window">
+    <h1><%= t('account.forgot.title') %></h1>
+    <% if (!available) { %>
+      <p class="form-notice"><%= t('account.forgot.unavailable') %></p>
+    <% } else if (sent) { %>
+      <p class="form-success" role="status"><%= t('account.forgot.sent') %></p>
+    <% } else { %>
+      <p class="form-notice"><%= t('account.forgot.intro') %></p>
+      <%- include('../partials/form-error', { errorKey, errorParams }) %>
+      <form method="post" action="/forgot-password" class="stacked-form" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+        <label>
+          <span><%= t('account.forgot.identifier') %></span>
+          <input name="identifier" autocomplete="username" required autofocus maxlength="254" value="<%= values.identifier || '' %>">
+        </label>
+        <button type="submit" class="button primary"><%= t('account.forgot.submit') %></button>
+      </form>
+    <% } %>
+    <p class="form-footer"><a href="/login"><%= t('site.login') %></a></p>
+  </main>
+  <p class="site-footer"><a href="/"><%= t('common.back_home') %></a></p>
+</body>
+</html>

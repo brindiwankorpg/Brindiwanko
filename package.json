@@ -1,0 +1,62 @@
+{
+  "name": "brindiwanko",
+  "version": "1.0.0-beta.1",
+  "description": "brindiwanko - a browser-based 2D MMORPG engine with a built-in live world editor.",
+  "private": true,
+  "type": "module",
+  "main": "dist/server/index.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "npm run assets:build && npm run build:server && npm run build:client",
+    "build:server": "tsc -p tsconfig.server.json",
+    "build:client": "tsx scripts/build-client.ts",
+    "start": "node dist/server/index.js",
+    "restore": "node dist/server/restore.js",
+    "dev": "tsx scripts/dev.ts",
+    "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.client.json --noEmit && tsc -p tsconfig.tools.json --noEmit",
+    "test": "npm run lint:names && npm run i18n:check && node --import tsx --import ./tests/helpers/isolate.ts --test \"tests/**/*.test.ts\"",
+    "i18n:check": "tsx scripts/i18n-check.ts",
+    "lint:names": "tsx scripts/lint-names.ts",
+    "assets:build": "tsx assets/generators/build.ts",
+    "load-test": "tsx scripts/load-test.ts",
+    "demo:export": "tsx scripts/export-demo.ts"
+  },
+  "keywords": [
+    "mmorpg",
+    "game-engine",
+    "2d",
+    "tile-map",
+    "editor",
+    "socket.io"
+  ],
+  "author": "Jérémy C. (Brindiwanko)",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^13.0.3",
+    "compression": "^1.8.2",
+    "ejs": "^7.0.2",
+    "express": "^5.3.0",
+    "express-session": "^1.19.0",
+    "i18n": "^0.15.4",
+    "nodemailer": "^10.5.0",
+    "socket.io": "^4.8.4",
+    "socket.io-client": "^4.8.4"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/compression": "^1.8.1",
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^5.0.6",
+    "@types/express-session": "^1.19.0",
+    "@types/i18n": "^0.13.12",
+    "@types/node": "^26.6.6",
+    "@types/nodemailer": "^8.0.2",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
