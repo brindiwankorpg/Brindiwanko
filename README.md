@@ -7,7 +7,7 @@
   **Un moteur de MMORPG 2D web avec éditeur de monde en temps réel intégré**
 
   [![Version](https://img.shields.io/badge/version-1.0.0--beta.1-blue.svg?style=flat-square)](package.json)
-  [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22.0.0-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
+  [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D24.0.0-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![Socket.io](https://img.shields.io/badge/Socket.io-4.x-010101?style=flat-square&logo=socketdotio&logoColor=white)](https://socket.io/)
   [![SQLite](https://img.shields.io/badge/SQLite-better--sqlite3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://github.com/WiseLibs/better-sqlite3)
@@ -101,7 +101,7 @@ Tilesets, autotiles, personnages animés, visages (facesets), monstres, boss de 
 
 ### Prérequis
 
-* **Node.js 22** ou version ultérieure
+* **Node.js 26 LTS** recommandé (version minimale : **Node.js 24**)
 * Gestionnaire de paquets **npm**
 
 ```bash
@@ -483,7 +483,7 @@ Ce projet est distribué sous licence open-source **[Apache 2.0](LICENSE)**.
   **A browser-based 2D MMORPG engine with a built-in live world editor**
 
   [![Version](https://img.shields.io/badge/version-1.0.0--beta.1-blue.svg?style=flat-square)](package.json)
-  [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22.0.0-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
+  [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D24.0.0-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![Socket.io](https://img.shields.io/badge/Socket.io-4.x-010101?style=flat-square&logo=socketdotio&logoColor=white)](https://socket.io/)
   [![SQLite](https://img.shields.io/badge/SQLite-better--sqlite3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://github.com/WiseLibs/better-sqlite3)
@@ -577,7 +577,7 @@ Tilesets, autotiles, character spritesheets, facesets, monsters, raid bosses, in
 
 ### Prerequisites
 
-* **Node.js 22** or higher
+* **Node.js 26 LTS** recommended (minimum version: **Node.js 24**)
 * **npm** package manager
 
 ```bash
