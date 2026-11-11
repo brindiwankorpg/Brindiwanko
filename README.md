@@ -21,13 +21,13 @@
   <br />
 
   <p align="center">
-    <a href="#-en-un-coup-dœil">✨ Fonctionnalités</a> •
-    <a href="#-démarrage-rapide">🚀 Démarrage</a> •
-    <a href="#-commandes--guide-du-joueur">🕹️ Jouer</a> •
-    <a href="#-prise-en-main-de-léditeur">🗺️ Éditeur</a> •
-    <a href="#-administration--modération">🛡️ Administration</a> •
-    <a href="#-configuration">⚙️ Configuration</a> •
-    <a href="#-déploiement">🌐 Déploiement</a>
+    <a href="#fr-fonctionnalites">✨ Fonctionnalités</a> •
+    <a href="#fr-demarrage">🚀 Démarrage</a> •
+    <a href="#fr-jouer">🕹️ Jouer</a> •
+    <a href="#fr-editeur">🗺️ Éditeur</a> •
+    <a href="#fr-administration">🛡️ Administration</a> •
+    <a href="#fr-configuration">⚙️ Configuration</a> •
+    <a href="#fr-deploiement">🌐 Déploiement</a>
   </p>
 
 </div>
@@ -52,6 +52,8 @@ Le tout s'exécute dans **un seul processus Node.js** adossé à **une seule bas
 * ⚠️ **Mise en garde** : Comme pour toute réalisation générée, une relecture et des essais attentifs sont conseillés avant toute mise en production. Les signalements de bugs et contributions sont chaleureusement accueillis ! 🙏
 
 ---
+
+<a id="fr-fonctionnalites"></a>
 
 ## ✨ En un coup d'œil
 
@@ -93,6 +95,8 @@ Tilesets, autotiles, personnages animés, visages (facesets), monstres, boss de 
 
 ---
 
+<a id="fr-demarrage"></a>
+
 ## 📦 Installation & Démarrage rapide
 
 ### Prérequis
@@ -131,6 +135,8 @@ Le **tout premier utilisateur** qui s'enregistre sur la plateforme reçoit autom
 
 ---
 
+<a id="fr-jouer"></a>
+
 ## 🕹️ Commandes & Guide du Joueur
 
 ### 🚀 Vos premiers pas
@@ -167,6 +173,8 @@ Le **tout premier utilisateur** qui s'enregistre sur la plateforme reçoit autom
 
 ---
 
+<a id="fr-editeur"></a>
+
 ## 🗺️ Prise en main de l'éditeur de monde
 
 Pour les utilisateurs dotés des droits administrateurs, l'éditeur s'ouvre directement depuis le jeu via l'icône **Administration** 👑 de la barre de menus, puis **« Ouvrir l'éditeur de cartes »**. Toutes les modifications sauvegardées sont diffusées **en temps réel** aux joueurs connectés ! ⚡
@@ -201,6 +209,8 @@ Pour les utilisateurs dotés des droits administrateurs, l'éditeur s'ouvre dire
 * 🔑 **Interrupteurs locaux vs Instances** : Les interrupteurs locaux sont liés à l'identité du personnage (un coffre ouvert dans un donjon demeure ouvert pour lui lors de visites ultérieures). Pour un mécanisme propre à l'instance en cours, cochez l'option d'interrupteur d'instance sous l'onglet **Système**.
 
 ---
+
+<a id="fr-administration"></a>
 
 ## 🛡️ Administration & Modération
 
@@ -252,6 +262,8 @@ npm run demo:export
 
 ---
 
+<a id="fr-configuration"></a>
+
 ## ⚙️ Configuration
 
 Toutes les variables d'environnement suivantes sont optionnelles et disposent de valeurs par défaut saines :
@@ -297,6 +309,8 @@ npm run load-test -- 80 15
 > Les tests s'exécutent au sein d'un environnement temporaire sandboxé : vos dossiers opérationnels `data/` et `uploads/` ne sont jamais modifiés ni altérés lors des sessions de test.
 
 ---
+
+<a id="fr-deploiement"></a>
 
 ## 🚀 Déploiement en Production
 
@@ -483,13 +497,13 @@ Ce projet est distribué sous licence open-source **[Apache 2.0](LICENSE)**.
   <br />
 
   <p align="center">
-    <a href="#-highlights">✨ Highlights</a> •
-    <a href="#-installation--quick-start">🚀 Quick Start</a> •
-    <a href="#-playing-the-game">🕹️ Playing</a> •
-    <a href="#-world-editor-guide">🗺️ Editor</a> •
-    <a href="#-administration--moderation">🛡️ Administration</a> •
-    <a href="#-configuration-1">⚙️ Configuration</a> •
-    <a href="#-production-deployment">🌐 Deployment</a>
+    <a href="#en-highlights">✨ Highlights</a> •
+    <a href="#en-quick-start">🚀 Quick Start</a> •
+    <a href="#en-playing">🕹️ Playing</a> •
+    <a href="#en-editor">🗺️ Editor</a> •
+    <a href="#en-administration">🛡️ Administration</a> •
+    <a href="#en-configuration">⚙️ Configuration</a> •
+    <a href="#en-deployment">🌐 Deployment</a>
   </p>
 
 </div>
@@ -514,6 +528,8 @@ All powered by **a single Node.js process** backed by **a single SQLite database
 * ⚠️ **Disclaimer**: As with any generated software, careful review and staging tests are encouraged before going live in production. Issue reports and pull requests are warmly appreciated! 🙏
 
 ---
+
+<a id="en-highlights"></a>
 
 ## ✨ Highlights
 
@@ -555,6 +571,8 @@ Tilesets, autotiles, character spritesheets, facesets, monsters, raid bosses, in
 
 ---
 
+<a id="en-quick-start"></a>
+
 ## 📦 Installation & Quick Start
 
 ### Prerequisites
@@ -593,6 +611,8 @@ The **very first player** to register an account automatically gains full **admi
 
 ---
 
+<a id="en-playing"></a>
+
 ## 🕹️ Playing the Game
 
 ### 🚀 Getting Started
@@ -629,6 +649,8 @@ The **very first player** to register an account automatically gains full **admi
 
 ---
 
+<a id="en-editor"></a>
+
 ## 🗺️ World Editor Guide
 
 For accounts granted administrator privileges, the world editor is accessible directly in-game via the **Administration** 👑 menu icon, then selecting **"Open the map editor"**. All saved changes propagate **instantly** to active players! ⚡
@@ -663,6 +685,8 @@ For accounts granted administrator privileges, the world editor is accessible di
 * 🔑 **Self Switches vs Instance Switches**: Self switches belong to individual player characters (a opened chest in a dungeon stays opened for that specific player). For states bound to a specific dungeon run, declare an instance-bound switch under the **System** tab.
 
 ---
+
+<a id="en-administration"></a>
 
 ## 🛡️ Administration & Moderation
 
@@ -714,6 +738,8 @@ npm run demo:export
 
 ---
 
+<a id="en-configuration"></a>
+
 ## ⚙️ Configuration
 
 All environment variables are optional with sensible defaults:
@@ -759,6 +785,8 @@ npm run load-test -- 80 15
 > All automated tests execute in an isolated temporary directory: live files in `data/` and `uploads/` are never touched during testing runs.
 
 ---
+
+<a id="en-deployment"></a>
 
 ## 🚀 Production Deployment
 
