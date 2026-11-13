@@ -4,7 +4,7 @@
 
 Toutes les évolutions notables de Brindiwanko sont consignées dans ce fichier. Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
-## 1.0.0-beta.1 — date à compléter
+## 1.0.0-beta.1 — 11/11/2026
 
 🧪 **Première bêta de Brindiwanko 1.0** : un moteur de MMORPG 2D pour navigateur, avec son éditeur de monde en temps réel intégré. Le tout tourne dans un seul processus Node.js (26 LTS recommandé, 24 au minimum) adossé à une seule base SQLite, et est livré avec un monde de démonstration jouable.
 
@@ -43,7 +43,7 @@ Toutes les évolutions notables de Brindiwanko sont consignées dans ce fichier.
 
 All notable changes to Brindiwanko are recorded in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org/).
 
-## 1.0.0-beta.1 — date to be set
+## 1.0.0-beta.1 — 11/11/2026
 
 🧪 **First beta of Brindiwanko 1.0**: a browser-based 2D MMORPG engine with a built-in live world editor. Everything runs in a single Node.js process (26 LTS recommended, 24 at least) backed by a single SQLite database, and ships with a playable demonstration world.
 
