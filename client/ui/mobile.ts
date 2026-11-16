@@ -108,17 +108,19 @@ export class TouchControls {
   private cooldownNodes: HTMLElement[] = [];
   /** Options last applied (re-applied when the primary pointer changes). */
   private options: GameOptions | null = null;
+  private readonly onModeChange?: () => void;
 
   /**
    * @param layer - Container.
    * @param input - Input layer receiving the abstract actions.
-   * @param callbacks - Menu and fullscreen handlers.
+   * @param callbacks - Menu, chat, fullscreen and mode-change handlers.
    */
   constructor(
     layer: HTMLElement,
     private readonly input: Input,
-    callbacks: { onMenu: () => void; onFullscreen: () => void; onChat: () => void },
+    callbacks: { onMenu: () => void; onFullscreen: () => void; onChat: () => void; onModeChange?: () => void },
   ) {
+    this.onModeChange = callbacks.onModeChange;
     this.base = el('div', { className: 'stick-base' });
     this.knob = el('div', { className: 'stick-knob' });
     this.zone = localized(el('div', { className: 'stick-zone' }, [this.base, this.knob]), { label: 'touch.joystick' });
@@ -137,12 +139,17 @@ export class TouchControls {
     layer.append(this.element);
     this.bindStick();
     requestAnimationFrame(() => this.resetStick());
-    window.addEventListener('resize', () => this.resetStick());
+    const refreshMode = () => {
+      if (this.options?.touchControls === 'auto') this.apply(this.options);
+    };
+    window.addEventListener('resize', () => {
+      if (this.options?.touchControls === 'auto') this.apply(this.options);
+      else this.resetStick();
+    });
     document.addEventListener('fullscreenchange', () => this.refreshFullscreenIcon());
     // "Automatic" follows the device live (a convertible switched to tablet mode, an emulator).
-    window.matchMedia('(pointer: coarse)').addEventListener('change', () => {
-      if (this.options) this.apply(this.options);
-    });
+    window.matchMedia('(pointer: coarse)').addEventListener?.('change', refreshMode);
+    window.matchMedia('(hover: none)').addEventListener?.('change', refreshMode);
   }
 
   /**
@@ -290,10 +297,12 @@ export class TouchControls {
   apply(options: GameOptions): void {
     this.options = options;
     const visible = options.touchControls === 'on' || (options.touchControls === 'auto' && isTouchDevice());
+    const changed = visible !== document.body.classList.contains('touch-mode');
     this.element.classList.toggle('hidden', !visible);
     document.body.classList.toggle('touch-mode', visible);
     this.element.style.setProperty('--control-scale', String(options.controlSize));
     this.element.style.setProperty('--control-opacity', String(options.controlOpacity));
     requestAnimationFrame(() => this.resetStick());
+    if (changed) this.onModeChange?.();
   }
 }

@@ -9,7 +9,7 @@ import { after, before, test } from 'node:test';
 import { io as connect, type Socket } from 'socket.io-client';
 import type { DamageView } from '../shared/combat.js';
 import { checkFormula, evalFormula } from '../shared/formula.js';
-import { stepCell } from '../shared/map.js';
+import { REGION_LAYER, stepCell, tileAt } from '../shared/map.js';
 import { validateMap } from '../shared/map-validation.js';
 import { canMove } from '../shared/passability.js';
 import type { ClientToServerEvents, EnterWorldPayload, ServerToClientEvents } from '../shared/protocol.js';
@@ -445,5 +445,49 @@ test('the event command "Battle" makes the enemy appear next to the player and a
   assert.equal(m.mode, 'chase');
   assert.equal(m.targetId, hero.session.characterId);
   assert.ok(Math.abs(m.x - hero.session.x) <= 3 && Math.abs(m.y - hero.session.y) <= 3);
+  hero.socket.close();
+});
+
+test('monsters spawned in a region stay inside it while idle and break off when lured outside', async () => {
+  const hero = await newPlayer('Ranger');
+  const p = hero.session;
+  const world = server.ctx.world;
+  assert.ok(world.transfer(p, DEMO_MAPS.forest, 14, 28, 8));
+  p.combat.protectedUntil = 0;
+
+  // Region 1 in the forest spans X 8..18, Y 8..13. Place a slime on the west border (8, 10) and step it in idle mode.
+  const slime = monsters(1)[0]!;
+  type CombatInternals = { maps: Map<string, { place(m: Monster, x: number, y: number): void; map: typeof p & { width: number; height: number; data: number[] } }>; think(mc: unknown, m: Monster, now: number): void };
+  const combat = world.combat as unknown as CombatInternals;
+  const mc = combat.maps.get(`map:${DEMO_MAPS.forest}`)!;
+  mc.place(slime, 8, 10);
+  slime.homeX = 8;
+  slime.homeY = 10;
+  slime.mode = 'idle';
+  for (let i = 0; i < 40; i++) {
+    slime.nextMoveAt = 0;
+    combat.think(mc, slime, Date.now());
+    assert.equal(tileAt(mc.map, slime.x, slime.y, REGION_LAYER), 1, 'idle monster never leaves its region');
+  }
+
+  // An aggressive bat in Region 2 (X 19..26, Y 5..12) ignores a player walking far outside Region 2.
+  const bat = monsters(2)[0]!;
+  mc.place(bat, 19, 8);
+  bat.homeX = 19;
+  bat.homeY = 8;
+  bat.mode = 'idle';
+  bat.targetId = 0;
+  [p.x, p.y] = [16, 8];
+  bat.nextMoveAt = Number.MAX_SAFE_INTEGER;
+  combat.think(mc, bat, Date.now());
+  assert.equal(bat.mode, 'idle', 'aggressive monster does not aggro a player well outside its region');
+
+  // If pulled more than 2 cells outside its region while chasing, it breaks off and returns home.
+  bat.mode = 'chase';
+  bat.targetId = p.characterId;
+  mc.place(bat, 16, 8);
+  combat.think(mc, bat, Date.now());
+  assert.equal(bat.mode, 'return', 'chasing monster leashes back when lured past the region margin');
+  assert.equal(bat.targetId, 0);
   hero.socket.close();
 });

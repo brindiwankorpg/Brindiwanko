@@ -437,3 +437,83 @@ test('event command list: a click moves the highlight without rebuilding the row
   shown[2]!.dispatchEvent(new Event('dblclick'));
   assert.deepEqual(opened, ['edit', 'insert'], 'double click edits a command, or inserts one on the empty row');
 });
+
+test('tile palette preserves each tab selection and scroll position across tab switches', async (t) => {
+  class DomEl extends EventTarget {
+    className = '';
+    textContent = '';
+    title = '';
+    width = 0;
+    height = 0;
+    scrollTop = 0;
+    style: Record<string, string> = {};
+    children: DomEl[] = [];
+    private readonly attrs = new Map<string, string>();
+    setAttribute(name: string, value: string): void { this.attrs.set(name, value); }
+    append(...nodes: DomEl[]): void { this.children.push(...nodes); }
+    replaceChildren(...nodes: DomEl[]): void { this.children = nodes; }
+    getContext() {
+      return {
+        imageSmoothingEnabled: false,
+        fillStyle: '',
+        strokeStyle: '',
+        lineWidth: 1,
+        font: '',
+        textAlign: '',
+        textBaseline: '',
+        fillRect() {},
+        strokeRect() {},
+        clearRect() {},
+        fillText() {},
+        strokeText() {},
+        getImageData: () => ({ data: new Uint8ClampedArray(4) }),
+      };
+    }
+  }
+  const prevDoc = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  const prevWin = Object.getOwnPropertyDescriptor(globalThis, 'window');
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    writable: true,
+    value: { createElement: () => new DomEl(), getElementById: () => null, addEventListener() {}, removeEventListener() {} },
+  });
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    writable: true,
+    value: new EventTarget(),
+  });
+  t.after(() => {
+    if (prevDoc) Object.defineProperty(globalThis, 'document', prevDoc);
+    else Reflect.deleteProperty(globalThis, 'document');
+    if (prevWin) Object.defineProperty(globalThis, 'window', prevWin);
+    else Reflect.deleteProperty(globalThis, 'window');
+  });
+
+  const { TilePalette } = await import('../client/editor/palette.js');
+  const renderer = { tileSize: 48, drawTile() {} } as never;
+  const stamps: { tiles: number[][]; region?: boolean }[] = [];
+  const palette = new TilePalette(renderer, ['A1', 'A2', '', '', '', 'B', '', '', ''], (s) => stamps.push(s));
+
+  // Select cell (3, 1) on tab A and scroll down; switch to tab B (cell 2, 0), then back to A.
+  const internals = palette as unknown as {
+    selection: { c0: number; r0: number; c1: number; r1: number };
+    scroller: { scrollTop: number };
+    entries: number[];
+  };
+  const expectedTileA = internals.entries[1 * 8 + 3]!;
+  internals.selection = { c0: 3, r0: 1, c1: 3, r1: 1 };
+  internals.scroller.scrollTop = 120;
+  palette.setTab('B');
+  assert.deepEqual(internals.selection, { c0: 0, r0: 0, c1: 0, r1: 0 }, 'first visit to B starts at cell 0');
+  internals.selection = { c0: 2, r0: 0, c1: 2, r1: 0 };
+  palette.setTab('A');
+  assert.deepEqual(internals.selection, { c0: 3, r0: 1, c1: 3, r1: 1 }, 'tab A keeps its previous selection');
+  assert.equal(internals.scroller.scrollTop, 120, 'tab A keeps its scroll offset');
+  assert.deepEqual(stamps.at(-1)?.tiles, [[expectedTileA]]);
+  palette.setTab('B');
+  assert.deepEqual(internals.selection, { c0: 2, r0: 0, c1: 2, r1: 0 }, 'tab B also keeps its selection');
+
+  // Switching to a different tileset clears stale per-tab selections.
+  palette.setTileset(renderer, ['A1', '', '', '', '', '', '', '', '']);
+  assert.deepEqual(internals.selection, { c0: 0, r0: 0, c1: 0, r1: 0 }, 'tileset change resets selection');
+});

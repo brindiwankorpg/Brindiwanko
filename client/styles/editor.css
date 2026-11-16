@@ -434,6 +434,10 @@
 .db-list { display: grid; gap: 4px; }
 .db-list-item { display: flex; flex-wrap: wrap; gap: 6px; align-items: end; padding: 4px 6px; background: rgba(5, 10, 35, 0.45); border-radius: 3px; }
 .db-list-item label { display: grid; gap: 2px; font-size: 0.75rem; color: var(--text-dim); flex: 1; min-width: 110px; }
+.db-sublist { flex-basis: 100%; display: grid; gap: 4px; margin-top: 2px; }
+.db-sublist > span { color: var(--tc-16, #84aaff); font-size: 0.78rem; }
+.db-list-actions { display: flex; gap: 6px; }
+.db-list:not(.db-sublist .db-list) > .db-list-actions { position: sticky; bottom: 0; z-index: 1; padding: 6px 8px; background: rgba(18, 28, 82, 0.96); border-top: 1px solid #3a4a8a; border-radius: 4px; box-shadow: 0 -6px 10px -6px rgba(0, 0, 0, 0.6); }
 .param-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .param-grid label > span { overflow-wrap: anywhere; }
 .param-grid label { display: grid; gap: 2px; font-size: 0.75rem; color: var(--text-dim); }

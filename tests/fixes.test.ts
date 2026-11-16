@@ -291,4 +291,194 @@ test('monsters whose respawn timer expired while a map was empty are included wh
   p.socket.close();
 });
 
+test('player controller buffers an action pressed at the end of a step and drops expired or cancelled ones', (t) => {
+  let now = 1000;
+  t.mock.method(performance, 'now', () => now);
+  const player = new MapCharacter();
+  player.locate(5, 5);
+  const fakeScene = {
+    player,
+    map: { width: 10, height: 10, data: new Array(10 * 10 * 4).fill(0) },
+    tileset: { flags: [0] },
+    canStep: () => true,
+    bumpsEvent: () => false,
+    isBlockedByEvent: () => false,
+    monsterAt: () => false,
+    delta: (x1: number, y1: number, x2: number, y2: number) => ({ dx: x2 - x1, dy: y2 - y1 }),
+  } as unknown as MapScene;
+
+  let actionPressed = false;
+  const fakeInput = {
+    consume: (btn: string) => {
+      if (btn === 'action' && actionPressed) {
+        actionPressed = false;
+        return true;
+      }
+      return false;
+    },
+    dir4: () => 0 as const,
+  } as unknown as Input;
+
+  let actions = 0;
+  const ctrl = new PlayerController(fakeScene, fakeInput, {
+    move: () => {},
+    turn: () => {},
+    action: () => { actions++; },
+  });
+
+  // 1. Tap Space while still moving, and land 80 ms later: action fires on arrival.
+  player.moveStraight(6);
+  assert.equal(player.isMoving(), true);
+  actionPressed = true;
+  ctrl.update();
+  assert.equal(actions, 0, 'held until the step finishes');
+  now += 80;
+  while (player.isMoving()) player.update();
+  ctrl.update();
+  assert.equal(actions, 1, 'buffered action fires as soon as the player lands');
+
+  // 2. Tap Space while still moving, but land 200 ms later (past the 150 ms buffer): expired.
+  player.moveStraight(6);
+  actionPressed = true;
+  ctrl.update();
+  now += 200;
+  while (player.isMoving()) player.update();
+  ctrl.update();
+  assert.equal(actions, 1, 'expired buffer does not fire late');
+
+  // 3. Freezing the controller (menu/dialogue opened) discards any buffered action.
+  player.moveStraight(6);
+  actionPressed = true;
+  ctrl.update();
+  ctrl.frozen = true;
+  ctrl.update();
+  ctrl.frozen = false;
+  while (player.isMoving()) player.update();
+  ctrl.update();
+  assert.equal(actions, 1, 'buffered action is cleared when frozen');
+});
+
+test('touch controls track hover:none and resize changes live and notify when touch-mode flips', async (t) => {
+  class DomNode extends EventTarget {
+    className = '';
+    textContent = '';
+    title = '';
+    style = new Map<string, string>();
+    styleObj: Record<string, string> & { setProperty(k: string, v: string): void } = Object.assign(
+      {} as Record<string, string>,
+      { setProperty: (k: string, v: string) => { this.style.set(k, v); } },
+    );
+    children: DomNode[] = [];
+    clientHeight = 300;
+    offsetWidth = 128;
+    private readonly attrs = new Map<string, string>();
+    private readonly classes = new Set<string>();
+    readonly classList = {
+      add: (...names: string[]) => names.forEach((n) => this.classes.add(n)),
+      remove: (...names: string[]) => names.forEach((n) => this.classes.delete(n)),
+      toggle: (name: string, force?: boolean) => {
+        const next = force ?? !this.classes.has(name);
+        if (next) this.classes.add(name);
+        else this.classes.delete(name);
+        return next;
+      },
+      contains: (name: string) => this.classes.has(name),
+    };
+    setAttribute(name: string, value: string): void { this.attrs.set(name, value); }
+    getAttribute(name: string): string | null { return this.attrs.get(name) ?? null; }
+    append(...nodes: (DomNode | null | undefined)[]): void {
+      for (const n of nodes) if (n) this.children.push(n);
+    }
+    replaceChildren(...nodes: (DomNode | null | undefined)[]): void {
+      this.children = nodes.filter((n): n is DomNode => Boolean(n));
+    }
+    querySelector(): null { return null; }
+  }
+  const makeNode = () => {
+    const n = new DomNode();
+    return new Proxy(n, {
+      get(target, prop) {
+        if (prop === 'style') return target.styleObj;
+        return Reflect.get(target, prop);
+      },
+    });
+  };
+  const body = makeNode();
+  let coarse = true;
+  let hoverNone = true;
+  const mediaListeners = new Map<string, Set<() => void>>();
+  class FakeWindow extends EventTarget {
+    innerWidth = 390;
+    innerHeight = 844;
+    matchMedia(query: string) {
+      const listeners = mediaListeners.get(query) ?? new Set<() => void>();
+      mediaListeners.set(query, listeners);
+      return {
+        get matches() {
+          if (query === '(pointer: coarse)') return coarse;
+          if (query === '(hover: none)') return hoverNone;
+          return false;
+        },
+        addEventListener: (_type: string, fn: () => void) => listeners.add(fn),
+        removeEventListener: (_type: string, fn: () => void) => listeners.delete(fn),
+      };
+    }
+  }
+  const win = new FakeWindow();
+  const globals: Record<string, unknown> = {
+    document: {
+      body,
+      createElement: () => makeNode(),
+      getElementById: () => null,
+      addEventListener() {},
+      removeEventListener() {},
+      documentElement: { lang: 'en' },
+    },
+    window: win,
+    navigator: { maxTouchPoints: 5 },
+    requestAnimationFrame: () => 0,
+  };
+  for (const [k, v] of Object.entries(globals)) {
+    const prev = Object.getOwnPropertyDescriptor(globalThis, k);
+    Object.defineProperty(globalThis, k, { configurable: true, writable: true, value: v });
+    t.after(() => (prev ? Object.defineProperty(globalThis, k, prev) : Reflect.deleteProperty(globalThis, k)));
+  }
+
+  const { TouchControls } = await import('../client/ui/mobile.js');
+  const layer = makeNode();
+  let modeChanges = 0;
+  const touch = new TouchControls(layer as unknown as HTMLElement, { press() {}, hold() {}, touchDirection: 0 } as never, {
+    onMenu: () => {},
+    onFullscreen: () => {},
+    onChat: () => {},
+    onModeChange: () => { modeChanges++; },
+  });
+  touch.apply({ touchControls: 'auto', controlSize: 1, controlOpacity: 0.75 } as never);
+  assert.equal(body.classList.contains('touch-mode'), true);
+  assert.equal(modeChanges, 1);
+
+  // Switching to desktop (coarse false, hover none changes -> false) notifies on hover:none change without reload.
+  coarse = false;
+  for (const fn of mediaListeners.get('(pointer: coarse)') ?? []) fn();
+  assert.equal(body.classList.contains('touch-mode'), true, 'still coarse=false + hover=none + touchPoints>0');
+  hoverNone = false;
+  for (const fn of mediaListeners.get('(hover: none)') ?? []) fn();
+  assert.equal(body.classList.contains('touch-mode'), false, 'touch-mode turns off when hover:none clears');
+  assert.equal(modeChanges, 2);
+
+  // Even if matchMedia did not fire before a viewport resize, resize re-evaluates touch-mode.
+  coarse = true;
+  hoverNone = true;
+  win.dispatchEvent(new Event('resize'));
+  assert.equal(body.classList.contains('touch-mode'), true);
+  assert.equal(modeChanges, 3);
+  coarse = false;
+  hoverNone = false;
+  win.innerWidth = 1440;
+  win.innerHeight = 900;
+  win.dispatchEvent(new Event('resize'));
+  assert.equal(body.classList.contains('touch-mode'), false, 'resizing to 1440x900 drops touch-mode without F5');
+  assert.equal(modeChanges, 4);
+});
+
 

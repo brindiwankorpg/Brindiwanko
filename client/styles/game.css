@@ -980,3 +980,18 @@ body.touch-mode .keys-help { display: none; }
   touch-action: none;
   pointer-events: auto;
 }
+
+/* Active event dialogue: hide bottom bars, chat and touch controls so nothing overlaps or covers the dialogue box. */
+body.dialogue-active .hud.dimmed > .hotbar,
+body.dialogue-active .hud.dimmed > .menu-bar,
+body.dialogue-active .chat-box,
+body.dialogue-active.touch-mode .chat-box.open,
+body.dialogue-active .touch-controls {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+body.dialogue-active .hud.dimmed > :not(.toasts),
+body.dialogue-active .touch-controls * {
+  pointer-events: none;
+}

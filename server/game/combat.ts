@@ -52,6 +52,8 @@ const REGEN_DELAY_MS = 8000;
 const SKILL_MESSAGE_RADIUS = 10;
 /** How long the fight state of a player who left is kept for its return (page reload, dropped connection). */
 const CARRY_COMBAT_MS = 10 * 60 * 1000;
+/** Cells a monster spawning in a painted region may step outside it while chasing before returning home. */
+const REGION_CHASE_MARGIN = 2;
 
 /** Fight state of a player who left, found again when it comes back. */
 interface CarriedCombat {
@@ -178,6 +180,16 @@ class MapCombat {
     this.unplace(m);
     this.monsters.delete(m.id);
     this.moves.delete(m.id);
+  }
+
+  /** Region id of a monster's spawn (0 = whole map or summoned). */
+  spawnRegion(m: Monster): number {
+    return m.spawn >= 0 ? (this.spawns[m.spawn]?.region ?? 0) : 0;
+  }
+
+  /** Whether a monster's spawn defines a painted multi-cell hunting region (not a single-tile boss marker). */
+  hasRegionZone(m: Monster): boolean {
+    return this.spawnRegion(m) > 0 && (this.cells[m.spawn]?.length ?? 0) > 1;
   }
 }
 
@@ -1256,11 +1268,27 @@ export class CombatSystem {
 
   // --- Monster AI ----------------------------------------------------------------------
 
+  /** Tells whether `(x, y)` lies on or within `radius` cells of `region` on `mc.map`. */
+  private nearRegion(mc: MapCombat, region: number, x: number, y: number, radius: number): boolean {
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        const cell = wrapCell(mc.map, x + dx, y + dy);
+        if (tileAt(mc.map, cell.x, cell.y, REGION_LAYER) === region) return true;
+      }
+    }
+    return false;
+  }
+
   /** Can a monster step from its cell towards `d`? */
   private monsterCanStep(mc: MapCombat, m: Monster, d: Direction): boolean {
     const { x, y } = stepCell(mc.map, m.x, m.y, d);
     if (!isValidPosition(mc.map, x, y)) return false;
     if (!canMove(mc.map, mc.flags, m.x, m.y, d) || mc.blocked.has(y * mc.map.width + x)) return false;
+    const region = mc.spawnRegion(m);
+    if (region > 0 && (m.mode === 'idle' || (m.mode === 'flee' && mc.hasRegionZone(m)))) {
+      if (tileAt(mc.map, m.x, m.y, REGION_LAYER) === region && tileAt(mc.map, x, y, REGION_LAYER) !== region) return false;
+      if (m.mode === 'flee' && !this.nearRegion(mc, region, x, y, REGION_CHASE_MARGIN)) return false;
+    }
     if (mc.occupied(x, y)) return false;
     return !this.world.playersOn(mc.mapId, mc.instance).some((p) => p.x === x && p.y === y);
   }
@@ -1303,10 +1331,12 @@ export class CombatSystem {
 
   /** Nearest player within the aggro radius (players in a dialogue, or invisible, are left alone). */
   private spot(mc: MapCombat, m: Monster): PlayerSession | undefined {
+    const zoneRegion = mc.hasRegionZone(m) ? mc.spawnRegion(m) : 0;
     let best: PlayerSession | undefined;
     let bestDistance = m.def.aggroRadius + 1;
     for (const p of this.world.playersOn(mc.mapId, mc.instance)) {
       if (p.combat.dead || p.busy || p.invisible || this.protectedFromMonsters(p)) continue;
+      if (zoneRegion > 0 && !this.nearRegion(mc, zoneRegion, p.x, p.y, 1)) continue;
       const d = distance(mc.map, p.x, p.y, m.x, m.y);
       if (d < bestDistance) {
         best = p;
@@ -1322,7 +1352,10 @@ export class CombatSystem {
     const moveMs = stepMs(m.def.moveSpeed);
     const canMoveNow = now >= m.nextMoveAt && !this.restricted(m.states, 'move');
     const canAct = now >= m.nextActionAt && !this.restricted(m.states, 'act');
-    const tooFar = distance(mc.map, m.x, m.y, m.homeX, m.homeY) > COMBAT.leash;
+    const zoneRegion = mc.hasRegionZone(m) ? mc.spawnRegion(m) : 0;
+    const tooFar =
+      distance(mc.map, m.x, m.y, m.homeX, m.homeY) > COMBAT.leash ||
+      (zoneRegion > 0 && !this.nearRegion(mc, zoneRegion, m.x, m.y, REGION_CHASE_MARGIN));
     if (m.mode === 'idle') {
       if (m.def.ai !== 'passive') {
         const seen = this.spot(mc, m);
@@ -1332,9 +1365,15 @@ export class CombatSystem {
         }
       }
       if (m.mode === 'idle' && canMoveNow) {
-        // Wander around home.
-        const d = distance(mc.map, m.x, m.y, m.homeX, m.homeY) > 3 ? towards(mc.map, m.x, m.y, m.homeX, m.homeY) : DIRS[Math.floor(Math.random() * 4)]!;
-        this.stepMonster(mc, m, d);
+        // Wander around home, staying inside the spawn region when one is set.
+        const region = mc.spawnRegion(m);
+        const outOfRegion = region > 0 && tileAt(mc.map, m.x, m.y, REGION_LAYER) !== region;
+        if (outOfRegion || distance(mc.map, m.x, m.y, m.homeX, m.homeY) > 3) {
+          this.stepTowards(mc, m, m.homeX, m.homeY);
+        } else {
+          const choices = DIRS.filter((dir) => this.monsterCanStep(mc, m, dir));
+          if (choices.length > 0) this.stepMonster(mc, m, choices[Math.floor(Math.random() * choices.length)]!);
+        }
         m.nextMoveAt = now + moveMs + 1500 + Math.random() * 3000;
       }
       return;

@@ -225,6 +225,11 @@ export class Game implements MenuHost {
       onMenu: () => this.toggleMainMenu(),
       onFullscreen: () => this.toggleFullscreen(),
       onChat: () => this.chat.toggle(),
+      onModeChange: () => {
+        if (!document.body.classList.contains('touch-mode') && !this.chat.typing) this.chat.close();
+        this.windows.refreshLayout();
+        this.resize();
+      },
     });
     this.chat = new ChatBox(uiLayer, {
       send: (text, channel) => this.socket.emit('chat', text, channel),
@@ -658,8 +663,15 @@ export class Game implements MenuHost {
   }
 
   private refreshFreeze(): void {
-    this.controller.frozen = this.windows.hasOpen || this.message.active || this.transferring || this.serverBusy || Boolean(this.deathOverlay);
-    this.hud.setDimmed(this.message.active);
+    const dialogue = this.message.active;
+    this.controller.frozen = this.windows.hasOpen || dialogue || this.transferring || this.serverBusy || Boolean(this.deathOverlay);
+    this.hud.setDimmed(dialogue);
+    document.body.classList.toggle('dialogue-active', dialogue);
+    // An event dialogue hides the chat box: release focus from its input so keyboard controls can advance the dialogue.
+    if (dialogue) {
+      const active = document.activeElement as HTMLElement | null;
+      if (active && typeof active.blur === 'function' && active.closest?.('.chat-box')) active.blur();
+    }
   }
 
   // --- Network --------------------------------------------------------------
@@ -1180,6 +1192,11 @@ export class Game implements MenuHost {
 
   private bindPointer(): void {
     this.canvas.addEventListener('pointerdown', (e) => {
+      // Clicking the map returns keyboard focus from the chat input (or any HUD control) to the game.
+      const active = document.activeElement as HTMLElement | null;
+      if (active && active !== document.body && active !== this.canvas && typeof active.blur === 'function' && !active.closest?.('.game-window, .modal')) {
+        active.blur();
+      }
       // On a phone, a touch on the game closes the open chat first (it does not walk or target meanwhile).
       if (this.chat.openOnTouch) {
         this.chat.close();

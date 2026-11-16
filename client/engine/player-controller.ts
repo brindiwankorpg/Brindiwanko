@@ -24,6 +24,8 @@ export interface IntentSink {
 const BUMP_INTERVAL_MS = 500;
 /** Minimum delay before trying another step after the server rejected one. */
 const REJECT_COOLDOWN_MS = 200;
+/** How long an `action` press is kept while finishing a step, so tapping just before landing still fires. */
+const ACTION_BUFFER_MS = 150;
 
 /** Player movement controller. */
 export class PlayerController {
@@ -31,6 +33,7 @@ export class PlayerController {
   private path: Direction[] = [];
   private lastBump = 0;
   private rejectUntil = 0;
+  private actionUntil = -Infinity;
   /** When `true` (message or menu open), the player does not move. */
   frozen = false;
 
@@ -45,10 +48,12 @@ export class PlayerController {
     this.scene = scene;
     this.path = [];
     this.rejectUntil = 0;
+    this.actionUntil = -Infinity;
   }
 
   /** Walks to a cell with pathfinding. */
   walkTo(x: number, y: number): void {
+    this.actionUntil = -Infinity;
     const p = this.scene.player;
     // Offset to the cell clicked (through the edges of a looping map).
     const { dx, dy } = this.scene.delta(p.x, p.y, x, y);
@@ -76,6 +81,7 @@ export class PlayerController {
   /** Stops path following. */
   cancelPath(): void {
     this.path = [];
+    this.actionUntil = -Infinity;
   }
 
   private face(d: Direction): void {
@@ -89,8 +95,15 @@ export class PlayerController {
   /** Called every frame, before the scene update. */
   update(): void {
     const p = this.scene.player;
-    if (this.frozen || p.isMoving()) return;
-    if (this.input.consume('action')) {
+    if (this.frozen) {
+      this.actionUntil = -Infinity;
+      return;
+    }
+    const now = performance.now();
+    if (this.input.consume('action')) this.actionUntil = now + ACTION_BUFFER_MS;
+    if (p.isMoving()) return;
+    if (now <= this.actionUntil) {
+      this.actionUntil = -Infinity;
       this.path = [];
       this.sink.action();
       return;
@@ -98,7 +111,7 @@ export class PlayerController {
     const held = this.input.dir4();
     if (held) this.path = [];
     const d = held || this.path.shift();
-    if (!d || performance.now() < this.rejectUntil) return;
+    if (!d || now < this.rejectUntil) return;
     if (this.scene.canStep(p.x, p.y, d)) {
       p.moveStraight(d);
       this.sink.move(d, this.epoch);
@@ -106,7 +119,6 @@ export class PlayerController {
       this.face(d);
       this.path = [];
       // Walking into a solid event: let the server start it if it is touch-triggered (it refuses the step anyway).
-      const now = performance.now();
       if (this.scene.bumpsEvent(p.x, p.y, d) && now - this.lastBump >= BUMP_INTERVAL_MS) {
         this.lastBump = now;
         this.sink.move(d, this.epoch);
@@ -121,6 +133,7 @@ export class PlayerController {
   force(x: number, y: number, direction: Direction, epoch: number): void {
     this.epoch = epoch;
     this.path = [];
+    this.actionUntil = -Infinity;
     const p = this.scene.player;
     this.scene.moveCharacter(p, x, y);
     p.direction = direction;
@@ -133,6 +146,7 @@ export class PlayerController {
     p.locate(x, y);
     p.direction = direction;
     this.path = [];
+    this.actionUntil = -Infinity;
     this.rejectUntil = performance.now() + REJECT_COOLDOWN_MS;
   }
 }

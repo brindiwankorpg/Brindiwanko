@@ -95,6 +95,8 @@ export class TilePalette {
   private entries: number[] = [];
   private selStart: { c: number; r: number } | null = null;
   private selection = { c0: 0, r0: 0, c1: 0, r1: 0 };
+  /** Last selection and scroll offset per tab, so switching tabs keeps what was picked there. */
+  private readonly tabSelections = new Map<PaletteTab, { c0: number; r0: number; c1: number; r1: number; scrollTop: number }>();
   /** Flag overlay (tileset editor). */
   flagView: FlagView = null;
   /** Tiles that draw nothing (empty slots, missing sheet): they carry no flag symbol. */
@@ -127,6 +129,7 @@ export class TilePalette {
 
   /** Changes the tileset shown. */
   setTileset(renderer: TilemapRenderer, tilesetNames: readonly string[], flags: readonly number[] = []): void {
+    if (tilesetNames.join('\0') !== this.tilesetNames.join('\0')) this.tabSelections.clear();
     this.renderer = renderer;
     this.tilesetNames = tilesetNames;
     this.flags = flags;
@@ -145,8 +148,11 @@ export class TilePalette {
     return this.tab;
   }
 
-  /** Switches tab (and resets the selection to the first cell). */
+  /** Switches tab, restoring its previous selection (or the first tile on a first visit). */
   setTab(tab: PaletteTab, regionTabAllowed = true): void {
+    if (this.entries.length > 0) {
+      this.tabSelections.set(this.tab, { ...this.selection, scrollTop: this.scroller.scrollTop });
+    }
     this.tab = tab;
     this.entries =
       tab === 'R' ? paletteEntries(tab, this.tilesetNames)
@@ -163,12 +169,22 @@ export class TilePalette {
         }),
       ),
     );
-    // Tab A starts with the blank tile (the eraser): a new tab selects the first real tile instead.
-    const first = tab === 'A' && (this.entries[1] ?? -1) >= 0 ? 1 : 0;
-    this.selection = { c0: first, r0: 0, c1: first, r1: 0 };
+    const saved = this.tabSelections.get(tab);
+    const maxRow = Math.max(0, Math.ceil(this.entries.length / COLS) - 1);
+    const savedValid =
+      saved !== undefined &&
+      saved.r1 <= maxRow &&
+      saved.c1 < COLS &&
+      (this.entries[saved.r0 * COLS + saved.c0] ?? -1) >= 0;
+    if (savedValid) {
+      this.selection = { c0: saved.c0, r0: saved.r0, c1: saved.c1, r1: saved.r1 };
+    } else {
+      // Tab A starts with the blank tile (the eraser): a new tab selects the first real tile instead.
+      const first = tab === 'A' && (this.entries[1] ?? -1) >= 0 ? 1 : 0;
+      this.selection = { c0: first, r0: 0, c1: first, r1: 0 };
+    }
     this.draw();
-    // A new tab shows its first rows (the region tab no longer opens scrolled down at region 16).
-    this.scroller.scrollTop = 0;
+    this.scroller.scrollTop = savedValid ? saved.scrollTop : 0;
     if (!this.onCellClick) this.emit();
   }
 
@@ -257,6 +273,7 @@ export class TilePalette {
     this.draw();
     this.emit();
     this.scroller.scrollTop = Math.max(0, r * CELL - 60);
+    this.tabSelections.set(this.tab, { ...this.selection, scrollTop: this.scroller.scrollTop });
   }
 
   private emit(): void {

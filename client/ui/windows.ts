@@ -270,6 +270,11 @@ export class WindowManager {
     const top = this.stack.at(-1);
     return top ? top.handleInput(input) : false;
   }
+
+  /** Re-evaluates open windows when the layout mode changes (desktop / touch). */
+  refreshLayout(): void {
+    for (const w of this.stack) adaptToViewport(w.element);
+  }
 }
 
 /**

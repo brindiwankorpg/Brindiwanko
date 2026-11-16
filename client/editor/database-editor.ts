@@ -1018,18 +1018,19 @@ class RecordForm {
       }
       case 'list': {
         const box = el('div', { className: 'db-list' });
+        const nested = path.some((p) => typeof p === 'number');
         // Effects and traits are cards headed by what they do, redrawn as their fields change.
         const cards = CARD_LISTS.has(field.key);
         const seen = new WeakMap<object, Map<string, Field>>();
         let heads: (() => void)[] = [];
         if (cards) this.watchers.push(() => heads.forEach((paint) => paint()));
-        const render = () => {
+        const render = (focusAdded = false) => {
           const items = (getPath(this.record, path) as Record<string, unknown>[]) ?? [];
           heads = [];
           const rows = items.map((row, i) => {
             this.settle(field.fields, row, seen);
             // Fields depending on another one (objective kind, effect kind...) are shown only when they apply.
-            const controls = activeFields(field.fields, row).map((f) => this.listField(f, [...path, i, f.key], render));
+            const controls = activeFields(field.fields, row).map((f) => this.listField(f, [...path, i, f.key], () => render()));
             const remove = el('button', {
               className: 'button small danger',
               text: '✕',
@@ -1055,9 +1056,7 @@ class RecordForm {
             heads.push(paint);
             return card;
           });
-          box.replaceChildren(
-            ...rows,
-            ...(cards && rows.length === 0 ? [el('p', { className: 'hint db-list-empty', text: t('db.list_empty') })] : []),
+          const actions = el('div', { className: 'db-list-actions' }, [
             el('button', {
               className: 'button small',
               text: t('db.add_row'),
@@ -1068,11 +1067,20 @@ class RecordForm {
                   items.push(completeValues(field.fields, {}, (f) => this.defaultOf(f)));
                   setPath(this.record, path, items);
                   this.changed();
-                  render();
+                  render(true);
                 },
               },
             }),
-          );
+          ]);
+          const empty = cards && rows.length === 0 ? [el('p', { className: 'hint db-list-empty', text: t('db.list_empty') })] : [];
+          // Nested lists (quest objectives) keep their "+ Add" button at the top so it is never buried below rows;
+          // top-level lists keep a sticky footer bar so "+ Add" stays visible above the fold.
+          box.replaceChildren(...(nested ? [actions, ...rows, ...empty] : [...rows, ...empty, actions]));
+          if (focusAdded) {
+            const added = rows.at(-1);
+            added?.scrollIntoView?.({ block: 'nearest' });
+            added?.querySelector<HTMLElement>('input, select, textarea, button.rp-button')?.focus();
+          }
         };
         render();
         return box;
