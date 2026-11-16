@@ -27,7 +27,8 @@
     <a href="#fr-editeur">🗺️ Éditeur</a> •
     <a href="#fr-administration">🛡️ Administration</a> •
     <a href="#fr-configuration">⚙️ Configuration</a> •
-    <a href="#fr-deploiement">🌐 Déploiement</a>
+    <a href="#fr-deploiement">🌐 Déploiement</a> •
+    <a href="#fr-changelog">📜 Journal des modifications</a>
   </p>
 
 </div>
@@ -465,6 +466,19 @@ Brindiwanko/
 
 ---
 
+<a id="fr-changelog"></a>
+
+## 📜 Journal des modifications (Derniers correctifs)
+
+Retrouvez l'historique complet dans [CHANGELOG.md](CHANGELOG.md). Dernières améliorations intégrées depuis la `1.0.0-beta.1` :
+
+* 🗺️ **Confinement des monstres en région** : En errance (`idle`) et en fuite sur zone peinte, les monstres restent dans leur région d'origine ; la détection d'aggro et le retour maison encadrent la sortie de zone (jusqu'à 2 cases de marge en poursuite, sans gêner les marqueurs de boss à une case).
+* 🎮 **Contrôles clavier plus réactifs** : Un clic sur la carte libère immédiatement le focus clavier du chat, et un buffer d'action de `150 ms` déclenche les interactions pressées juste avant la fin d'un pas.
+* 📱 **Lisibilité des dialogues & mode tactile dynamique** : Les barres basses, le chat et les contrôles tactiles s'effacent pendant un dialogue actif ; le basculement entre mode tactile et bureau suit les changements de pointeur (`hover: none`) et de redimensionnement sans recharger la page (`F5`).
+* 🛠️ **Confort d'édition** : La palette conserve la sélection et le défilement par onglet, et les boutons `+ Ajouter` de la base de données (étapes et objectifs de quêtes) restent visibles sans défilement superflu.
+
+---
+
 ## 📄 Licence
 
 Ce projet est distribué sous licence open-source **[Apache 2.0](LICENSE)**.
@@ -503,7 +517,8 @@ Ce projet est distribué sous licence open-source **[Apache 2.0](LICENSE)**.
     <a href="#en-editor">🗺️ Editor</a> •
     <a href="#en-administration">🛡️ Administration</a> •
     <a href="#en-configuration">⚙️ Configuration</a> •
-    <a href="#en-deployment">🌐 Deployment</a>
+    <a href="#en-deployment">🌐 Deployment</a> •
+    <a href="#en-changelog">📜 Changelog</a>
   </p>
 
 </div>
@@ -938,6 +953,19 @@ Brindiwanko/
 ├── scripts/      # Operational scripts (Build pipeline, Load tester, Demo export)
 └── tests/        # Automated test suites (node --test)
 ```
+
+---
+
+<a id="en-changelog"></a>
+
+## 📜 Changelog (Latest Fixes)
+
+See [CHANGELOG.md](CHANGELOG.md) for full release notes. Latest improvements integrated since `1.0.0-beta.1`:
+
+* 🗺️ **Monster region confinement**: Monsters stay within their spawn region while idle (and while fleeing in painted multi-cell zones); aggro spotting and return leashing keep chasing monsters near their hunting region (within a 2-cell margin, leaving single-tile boss markers unrestricted during combat).
+* 🎮 **Responsive controls**: Clicking the map canvas returns keyboard focus from the chat input immediately, and a `150 ms` action buffer executes interactions pressed near the end of a step on arrival.
+* 📱 **Clean dialogue layering & live touch switching**: Bottom bars, chat, and touch controls hide during active dialogues, and automatic `touch-mode` tracks `(hover: none)` and viewport resizes live without needing a manual page reload.
+* 🛠️ **Editor ergonomics**: The tile palette preserves per-tab selection and scroll position, and database editor `+ Add` buttons (such as quest steps and objectives) stay accessible above the fold.
 
 ---
 

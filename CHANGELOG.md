@@ -4,6 +4,15 @@
 
 Toutes les évolutions notables de Brindiwanko sont consignées dans ce fichier. Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## Non publié — 16/11/2026
+
+### 🛠️ Correctifs & Améliorations
+
+- **Combat & IA des régions (`server/game/combat.ts`)** : Les monstres associés à une région restent désormais confinés à leur région en mode `idle` (et en fuite sur les zones multi-cases). Sur les zones de chasse peintes, la détection d'aggro se limite aux abords immédiats de la région (1 case) et la poursuite rompt le combat pour rentrer au point d'origine au-delà de 2 cases hors région, tout en laissant les marqueurs de boss à une case chasser librement dans leur salle.
+- **Focus clavier & réactivité des interactions (`client/game.ts`, `client/engine/player-controller.ts`)** : Cliquer sur la carte retire le focus du champ de chat (ou d'un contrôle du HUD) pour rendre immédiatement la main au clavier. Un buffer d'entrée de `150 ms` conserve également l'action (`Espace`, `Entrée`, `Z` ou bouton tactile `A`) pressée juste avant la fin d'un pas.
+- **Interface, dialogues & bascule tactile (`client/game.ts`, `client/styles/game.css`, `client/ui/mobile.ts`, `client/ui/windows.ts`)** : Pendant un dialogue actif (`body.dialogue-active`), les barres du bas, la fenêtre de chat et les contrôles tactiles sont masqués (et le chat défocalisé si actif) afin d'éviter tout chevauchement en vue compacte ou mobile. Le passage dynamique entre mode tactile et bureau suit désormais `(hover: none)` et `resize` sans rechargement de page.
+- **Ergonomie de l'éditeur (`client/editor/palette.ts`, `client/editor/database-editor.ts`, `client/styles/editor.css`)** : La palette de tuiles mémorise la sélection et la position de défilement de chaque onglet (réinitialisées uniquement si les planches du tileset changent). Dans l'éditeur de base de données, le bouton `+ Ajouter` reste ancré en pied de liste pour les listes principales et en tête pour les sous-listes imbriquées (objectifs de quêtes), avec défilement et focus automatiques sur la ligne ajoutée.
+
 ## 1.0.0-beta.1 — 11/11/2026
 
 🧪 **Première bêta de Brindiwanko 1.0** : un moteur de MMORPG 2D pour navigateur, avec son éditeur de monde en temps réel intégré. Le tout tourne dans un seul processus Node.js (26 LTS recommandé, 24 au minimum) adossé à une seule base SQLite, et est livré avec un monde de démonstration jouable.
@@ -42,6 +51,15 @@ Toutes les évolutions notables de Brindiwanko sont consignées dans ce fichier.
 [🇫🇷 Lire en Français](#-journal-des-modifications) · **English**
 
 All notable changes to Brindiwanko are recorded in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org/).
+
+## Unreleased — 2026-11-16
+
+### 🛠️ Fixes & Improvements
+
+- **Combat & Region AI (`server/game/combat.ts`)**: Monsters spawned in a region now stay within that region while idle (and while fleeing in multi-cell zones). On painted multi-cell hunting regions, aggro spotting is restricted to players within 1 cell of the region and chasing monsters return home once more than 2 cells outside the region, while single-tile boss spawn markers remain free to chase within their room.
+- **Canvas Focus & Interaction Buffering (`client/game.ts`, `client/engine/player-controller.ts`)**: Clicking the map canvas blurs active non-window inputs (such as the chat field) so keyboard movement and action keys resume immediately. A `150 ms` input buffer preserves `action` presses (`Space`, `Enter`, `Z`, or touch `A`) made near the end of a step so interactions trigger on landing.
+- **HUD Dialogue Layering & Live Touch Switching (`client/game.ts`, `client/styles/game.css`, `client/ui/mobile.ts`, `client/ui/windows.ts`)**: Active event dialogues toggle `body.dialogue-active` to hide bottom bars, the chat box, and touch controls (and blur any focused chat input) so dialogues stay unobstructed on compact/touch screens. Automatic `touch-mode` detection now tracks `(hover: none)` and `resize` events and recalculates layout without needing a manual reload.
+- **Editor Ergonomics (`client/editor/palette.ts`, `client/editor/database-editor.ts`, `client/styles/editor.css`)**: The tile palette preserves each tab's last selection and scroll position across tab switches (resetting only when tileset sheets change). In the database editor, top-level `+ Add` list buttons remain sticky at the bottom of the scroll viewport, nested sublist `+ Add` buttons (such as quest objectives) sit at the top of each sublist, and newly added rows scroll into view and receive focus.
 
 ## 1.0.0-beta.1 — 11/11/2026
 
