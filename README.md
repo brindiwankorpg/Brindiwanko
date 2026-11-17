@@ -97,7 +97,35 @@ Brindiwanko/
 
 ### Prérequis
 - **Node.js 26 LTS** recommandé *(version minimale : **Node.js 24**)*
-- **npm**
+- **npm** *(inclus avec Node.js)*
+
+<a id="fr-nvm"></a>
+<details>
+<summary>🐧 Installer Node.js et npm via <code>nvm</code> (Linux / macOS / VPS — recommandé)</summary>
+
+Sur Ubuntu ou Debian, les dépôts `apt` par défaut proposent souvent une version de Node.js inférieure à `24`. **`nvm`** (Node Version Manager) permet d'installer **Node.js 26 LTS** et **`npm`** directement dans ton dossier utilisateur, sans privilèges `root` :
+
+```bash
+# 1. Installer nvm (vérifie la dernière version sur https://github.com/nvm-sh/nvm/releases)
+#    (Si curl manque : sudo apt update && sudo apt install -y curl)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh | bash
+
+# 2. Charger nvm dans le terminal actuel (ou fermer puis rouvrir la session SSH)
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# 3. Installer Node.js 26 LTS (fournit npm automatiquement) et le définir par défaut
+nvm install 26
+nvm alias default 26
+
+# 4. Vérifier les versions installées
+node -v
+npm -v
+```
+
+> **Important :** Avec `nvm`, Node.js, `npm` et les paquets globaux sont installés dans `~/.nvm` (ton dossier personnel) et non dans `/usr/bin`. Pour installer un paquet global comme `pm2`, n'utilise **jamais** `sudo` (`npm install -g pm2` directement). À l'inverse, si Node.js a été installé au niveau système via `apt`, `sudo npm install -g pm2` reste nécessaire.
+
+</details>
 
 ```bash
 # 1. Installer les dépendances
@@ -299,17 +327,36 @@ sudo ufw status
 
 Si tu lances le jeu avec un simple `npm start`, **il s'arrêtera dès que tu fermeras la fenêtre SSH**. On utilise donc **`pm2`** pour le garder allumé 24h/24 et le relancer automatiquement si le VPS redémarre.
 
+> [!TIP]
+> **Node.js 24/26 et `npm` ne sont pas encore installés sur ton VPS ?** Suis d'abord [la procédure d'installation via `nvm`](#fr-nvm) *(recommandée sous Ubuntu/Debian, où `apt` installe souvent une version trop ancienne)*.
+
 Depuis le dossier du projet *(après avoir vérifié que `node -v` affiche `24` ou `26`)* :
 
+**1. Installer `pm2`** *(choisis la commande adaptée à ton installation de Node.js / `npm`)* :
+
+- **Installé via `nvm`** *(recommandé — **sans `sudo`**)* :
+  ```bash
+  npm install -g pm2
+  ```
+- **Installé via `apt`** *(installation système — **avec `sudo`**)* :
+  ```bash
+  sudo npm install -g pm2
+  ```
+
+> [!WARNING]
+> **`sudo npm install -g pm2` ne fonctionne pas avec `nvm` :** `sudo` réinitialise le `PATH` et ne voit pas `~/.nvm` (ce qui provoque `sudo: npm: command not found` ou installe `pm2` sur une autre version système de Node.js). N'utilise `sudo` que pour une installation système via `apt`.
+
+**2. Compiler et démarrer le jeu en arrière-plan** *(remplace `mondomaine.fr` par ton vrai domaine)* :
+
 ```bash
-# 1. Installer pm2 et compiler le jeu pour la production
-sudo npm install -g pm2
+# Compiler le jeu pour la production
 npm ci && npm run build
 
-# 2. Démarrer le jeu en arrière-plan (remplace mondomaine.fr par ton vrai domaine)
+# Démarrer le jeu en arrière-plan
 NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 CONTENT_LANGUAGE=fr PUBLIC_URL=https://mondomaine.fr PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
 
-# 3. Enregistrer le démarrage automatique au reboot du VPS
+# Enregistrer le démarrage automatique au reboot du VPS
+# (copie et exécute la commande sudo affichée par pm2 startup, puis lance pm2 save)
 pm2 startup
 pm2 save
 ```
@@ -406,6 +453,7 @@ pm2 logs Brindiwanko --lines 30
 
 | Ce que tu vois | Ce qui se passe | Comment régler ça |
 | :--- | :--- | :--- |
+| `sudo: npm: command not found` lors de l'installation de `pm2` | Node.js et `npm` ont été installés via `nvm` (dans `~/.nvm`, inaccessible à `sudo`). | Lance `npm install -g pm2` **sans `sudo`** *(réserve `sudo` aux installations système via `apt`)*. |
 | Page **`502 Bad Gateway`** | Nginx fonctionne, mais le jeu est arrêté ou plante au démarrage. | Lance `pm2 status` et `pm2 logs Brindiwanko` pour voir l'erreur, puis `pm2 restart Brindiwanko`. |
 | `dig +short mondomaine.fr` n'affiche pas l'IP du VPS | Le DNS n'est pas encore configuré ou pas encore propagé. | Vérifie ton enregistrement `A` chez ton registrar et patiente 5–15 min avant de lancer Certbot. |
 | `nginx -t` dit `No such file` | Un lien symbolique dans `/etc/nginx/sites-enabled/` pointe vers un fichier supprimé. | Supprime le lien cassé (`sudo rm /etc/nginx/sites-enabled/<nom>`) et refais `sudo ln -s ...`. |
@@ -599,7 +647,35 @@ Brindiwanko/
 
 ### Prerequisites
 - **Node.js 26 LTS** recommended *(minimum: **Node.js 24**)*
-- **npm**
+- **npm** *(bundled with Node.js)*
+
+<a id="en-nvm"></a>
+<details>
+<summary>🐧 Install Node.js and npm via <code>nvm</code> (Linux / macOS / VPS — recommended)</summary>
+
+On Ubuntu or Debian, default `apt` packages often ship a Node.js version older than `24`. **`nvm`** (Node Version Manager) installs **Node.js 26 LTS** and **`npm`** directly inside your user home directory without `root` privileges:
+
+```bash
+# 1. Install nvm (check https://github.com/nvm-sh/nvm/releases for the latest tag)
+#    (If curl is missing: sudo apt update && sudo apt install -y curl)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh | bash
+
+# 2. Load nvm in your current terminal (or close and reopen the SSH session)
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# 3. Install Node.js 26 LTS (includes npm automatically) and set it as default
+nvm install 26
+nvm alias default 26
+
+# 4. Verify active versions
+node -v
+npm -v
+```
+
+> **Important:** With `nvm`, Node.js, `npm`, and global packages live in `~/.nvm` (your home directory) rather than `/usr/bin`. Never use `sudo` when installing global packages like `pm2` (run `npm install -g pm2` directly). Conversely, if Node.js was installed system-wide via `apt`, `sudo npm install -g pm2` is still required.
+
+</details>
 
 ```bash
 # 1. Install dependencies
@@ -801,17 +877,36 @@ sudo ufw status
 
 If you start the server with plain `npm start`, **the game will stop the moment you close your SSH window**. **`pm2`** keeps it running 24/7 in the background and starts it automatically if the VPS reboots.
 
+> [!TIP]
+> **Don't have Node.js 24/26 or `npm` on your VPS yet?** Follow [the `nvm` installation guide](#en-nvm) first *(recommended on Ubuntu/Debian, where `apt` often ships an outdated version)*.
+
 Inside the project folder *(after making sure `node -v` shows `24` or `26`)*:
 
+**1. Install `pm2`** *(pick the command matching how Node.js and `npm` were installed)*:
+
+- **Installed via `nvm`** *(recommended — **without `sudo`**)*:
+  ```bash
+  npm install -g pm2
+  ```
+- **Installed via `apt`** *(system-wide install — **with `sudo`**)*:
+  ```bash
+  sudo npm install -g pm2
+  ```
+
+> [!WARNING]
+> **`sudo npm install -g pm2` does not work with `nvm`:** `sudo` resets `PATH` and cannot see `~/.nvm` (resulting in `sudo: npm: command not found` or installing `pm2` under a different system Node.js version). Only use `sudo` when Node.js and `npm` were installed system-wide via `apt`.
+
+**2. Build and start the game in the background** *(replace `mydomain.com` with your real domain)*:
+
 ```bash
-# 1. Install pm2 and build the game for production
-sudo npm install -g pm2
+# Build the game for production
 npm ci && npm run build
 
-# 2. Start the game in the background (replace mydomain.com with your real domain)
+# Start the game in the background
 NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 CONTENT_LANGUAGE=en PUBLIC_URL=https://mydomain.com PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
 
-# 3. Make sure pm2 restarts automatically when the VPS reboots
+# Make sure pm2 restarts automatically when the VPS reboots
+# (copy and run the sudo command printed by pm2 startup, then run pm2 save)
 pm2 startup
 pm2 save
 ```
@@ -910,6 +1005,7 @@ pm2 logs Brindiwanko --lines 30
 
 | What you see | Why it happens | How to fix it |
 | :--- | :--- | :--- |
+| `sudo: npm: command not found` when installing `pm2` | Node.js and `npm` were installed via `nvm` (inside `~/.nvm`, hidden from `sudo`). | Run `npm install -g pm2` **without `sudo`** *(only use `sudo` for system-wide `apt` installs)*. |
 | **`502 Bad Gateway`** page | Nginx is running, but Brindiwanko stopped or crashed on startup. | Run `pm2 status` and `pm2 logs Brindiwanko` to inspect the message, then `pm2 restart Brindiwanko`. |
 | `dig +short mydomain.com` doesn't show your VPS IP | DNS record isn't set or hasn't propagated yet. | Double-check your `A` record at your domain registrar and wait 5–15 minutes before running Certbot. |
 | `nginx -t` says `No such file` | A shortcut inside `/etc/nginx/sites-enabled/` points to a deleted file. | Remove the broken shortcut (`sudo rm /etc/nginx/sites-enabled/<name>`) and recreate `sudo ln -s ...`. |
