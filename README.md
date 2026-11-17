@@ -1,138 +1,128 @@
+<a id="fr-top"></a>
+
 <div align="center">
 
-  <img src="assets/img/system/AppIcon-512.png" alt="Logo Brindiwanko" width="130" style="border-radius: 20px;" />
+  <img src="assets/img/system/AppIcon-512.png" alt="Logo Brindiwanko" width="128" />
 
-  # 🌿 Brindiwanko 🌿
+  # 🌿 Brindiwanko
 
-  **Un moteur de MMORPG 2D web avec éditeur de monde en temps réel intégré**
+  **Moteur de MMORPG 2D navigateur avec éditeur de monde temps réel intégré**
 
-  [![Version](https://img.shields.io/badge/version-1.0.0--beta.1-blue.svg?style=flat-square)](package.json)
-  [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D24.0.0-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![Socket.io](https://img.shields.io/badge/Socket.io-4.x-010101?style=flat-square&logo=socketdotio&logoColor=white)](https://socket.io/)
-  [![SQLite](https://img.shields.io/badge/SQLite-better--sqlite3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://github.com/WiseLibs/better-sqlite3)
-  [![Tests](https://img.shields.io/badge/tests-330%20passed-brightgreen?style=flat-square&logo=node.js&logoColor=white)](tests/)
-  [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=flat-square)](LICENSE)
-
-  <br />
-
-  **Français** · [🇬🇧 Switch to English](#-brindiwanko-english-)
+  [![Version](https://img.shields.io/badge/version-1.0.0--beta.1-2563eb?style=for-the-badge)](package.json)
+  [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D24.0.0-16a34a?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![Socket.io](https://img.shields.io/badge/Socket.io-4.x-0f172a?style=for-the-badge&logo=socketdotio&logoColor=white)](https://socket.io/)
+  [![SQLite](https://img.shields.io/badge/SQLite-WAL%20%2B%20better--sqlite3-0369a1?style=for-the-badge&logo=sqlite&logoColor=white)](https://github.com/WiseLibs/better-sqlite3)
+  [![Tests](https://img.shields.io/badge/tests-330%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+  [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
 
   <br />
 
-  <p align="center">
-    <a href="#fr-fonctionnalites">✨ Fonctionnalités</a> •
-    <a href="#fr-demarrage">🚀 Démarrage</a> •
-    <a href="#fr-jouer">🕹️ Jouer</a> •
-    <a href="#fr-editeur">🗺️ Éditeur</a> •
-    <a href="#fr-administration">🛡️ Administration</a> •
-    <a href="#fr-configuration">⚙️ Configuration</a> •
-    <a href="#fr-deploiement">🌐 Déploiement</a> •
-    <a href="#fr-changelog">📜 Journal des modifications</a>
-  </p>
+  **🇫🇷 Français** &nbsp;·&nbsp; [🇬🇧 Switch to English](#en-top)
+
+  <br />
+
+  [✨ Fonctionnalités](#fr-fonctionnalites) •
+  [🚀 Démarrage](#fr-demarrage) •
+  [🕹️ Jouer](#fr-jouer) •
+  [🗺️ Éditeur](#fr-editeur) •
+  [🛡️ Administration](#fr-administration) •
+  [⚙️ Configuration](#fr-configuration) •
+  [🌐 Déploiement](#fr-deploiement) •
+  [📜 Nouveautés](#fr-changelog)
 
 </div>
 
 ---
 
-> 🎮 **Un monde persistant dans votre navigateur :** Dessinez vos cartes, programmez vos quêtes, placez vos monstres… et vos joueurs voient les modifications apparaître **en direct**, sans rechargement ! ✨
+> 🎮 **Un monde persistant directement dans le navigateur :** dessinez vos cartes, écrivez vos quêtes, placez vos monstres… et vos joueurs voient chaque mise à jour **en direct**, sans recharger la page.
 
-Brindiwanko réunit tout ce qu'il faut pour créer et faire vivre un petit monde en ligne : cartes en tuiles, événements scénarisés et cinématiques, quêtes scénarisées, combats en temps réel sur la carte, groupes, guildes, donjons instanciés et raids.
-
-Le tout s'exécute dans **un seul processus Node.js** adossé à **une seule base de données SQLite** : aucun serveur de base de données externe lourd à installer ou configurer. 🚀
-
----
-
-## 🤖 Un projet conçu par IA & testé par l'humain
+**Brindiwanko** réunit dans **un seul processus Node.js** et **une seule base SQLite** tout le nécessaire pour lancer et administrer un monde en ligne complet : cartes en tuiles, cinématiques, quêtes à étapes, combats temps réel, groupes, guildes, donjons instanciés et raids — sans serveur de base de données externe à configurer.
 
 > [!NOTE]
-> **Brindiwanko a été entièrement conçu et programmé via une intelligence artificielle, et testé rigoureusement par son auteur en complément des batteries de tests de l'IA.** 🧠
-
-* 💻 **Code & Générateurs** : L'ensemble du code source (serveur, client, éditeur, tests), les générateurs d'actifs procéduraux et la documentation sont écrits par l'IA sous la direction créative et technique humaine.
-* 🧪 **Validation rigoureuse** : Le projet est validé par **330 tests automatisés** (`npm test`), un simulateur de charge multi-clients et des campagnes de validation de bout en bout en conditions réelles dans le navigateur.
-* ⚠️ **Mise en garde** : Comme pour toute réalisation générée, une relecture et des essais attentifs sont conseillés avant toute mise en production. Les signalements de bugs et contributions sont chaleureusement accueillis ! 🙏
+> **Un projet conçu par IA & validé par l'humain**  
+> L'ensemble du code (serveur, client, éditeur, générateurs SVG et tests) est rédigé par intelligence artificielle sous direction technique et créative humaine, puis éprouvé par **330 tests automatisés** (`npm test`), un banc de charge multi-clients et des campagnes de jeu en navigateur. Comme pour tout logiciel, une relecture et des essais en pré-production sont recommandés avant ouverture publique.
 
 ---
 
 <a id="fr-fonctionnalites"></a>
 
-## ✨ En un coup d'œil
+## ✨ Panorama des capacités
 
-| Domaine | Capacités intégrées |
+| Domaine | Fonctionnalités clés |
 | :--- | :--- |
-| 🗺️ **Éditeur de cartes** | Barre de menus et d'icônes, palette de tuiles A à E, couches automatiques, autotiles, ombres dynamiques, régions, passabilité manuelle, cartes en boucle toroïdale, historique des versions, bouton *« Tester la carte »*. |
-| 🧩 **Événements** | Multi-pages, conditions d'activation, déclencheurs variés, éditeur visuel de commandes, cinématiques (fondus, teintes d'écran, flashs, tremblements, affichage d'images, météo, défilement de caméra, minuteurs). |
-| 🎵 **Musique & Audio** | Musiques et ambiances dédiées par carte, jingles de victoire, commandes d'événement audio (lecture, fondu, mémorisation, reprise). |
-| 📜 **Quêtes** | Étapes séquentielles, objectifs multiples (dialoguer, éliminer des cibles, collecter des objets, atteindre une zone), récompenses, chapitres, indicateurs visuels « ! » et « ? ». |
-| ⚔️ **Système de Combat** | Action en temps réel directement sur la carte, compétences, altérations d'état, affinités élémentaires, coups critiques, IA des monstres, tables de butin. |
-| 🎒 **Gestion Personnage** | Caractéristiques, points d'attributs à répartir, inventaire en grille, équipements, marchands, auberges de repos, coffres de banque. |
-| 💬 **Vie Sociale** | Canaux de discussion publics, messagerie privée instantanée, liste d'amis, liste d'ignorés, système d'échanges sécurisés entre joueurs, émoticônes. |
-| 🛡️ **Groupes & Guildes** | Partage dynamique de points d'expérience et d'or, hiérarchie de rangs et permissions, coffre de guilde partagé, journal d'activité, blason généré. |
-| 🏰 **Donjons & Raids** | Instances indépendantes générées par groupe, combats de boss à phases scénarisées, verrous hebdomadaires (lockouts), attribution du butin aux dés. |
-| 👑 **Administration** | Tableau de bord temps réel, panel de sanctions, outils d'animation en jeu, journaux d'audit détaillés, sauvegardes à chaud et restauration. |
-| 📱 **Compatibilité Mobile** | Joystick virtuel tactile, boutons d'action et d'annulation dédiés, compétences disposées en arc de cercle, mode plein écran, installation en PWA. |
-| 🌍 **Bilingue natif** | Interface utilisateur, mécaniques de jeu et éditeur intégralement traduits en **français** et en **anglais**. |
+| 🗺️ **Éditeur temps réel** | Palettes A–E avec mémoire par onglet, couches automatiques, autotiles, ombres dynamiques, régions, passabilité manuelle, cartes toroïdales, historique des versions, bouton *« Tester la carte »*. |
+| 🧩 **Événements & Cinématiques** | Multi-pages conditionnelles, déclencheurs (action, contact, auto, parallèle), éditeur visuel de commandes, fondus, teintes, flashs, secousses, images, météo, caméra, minuteurs. |
+| ⚔️ **Combat temps réel** | Affrontements directs sur carte, compétences, altérations d'état, affinités élémentaires, critiques, IA à confinement de région et tables de butin. |
+| 📜 **Quêtes & Progression** | Étapes séquentielles, objectifs variés (parler, vaincre, collecter, atteindre une zone), marqueurs `!` / `?`, récompenses et journal de quêtes. |
+| 🎒 **Personnage & Économie** | Attributs à répartir, inventaire en grille, équipement, marchands, auberges, coffre de banque, sécurité anti-duplication lors des KO ou changements de carte. |
+| 💬 **Social & Guildes** | Canaux All/Carte/Groupe/Guilde/Privé/Système, liste d'amis et d'ignorés, échanges sécurisés, émoticônes, rangs/permissions, banque et journal de guilde, blason généré. |
+| 🏰 **Donjons & Raids** | Instances privées par groupe, boss à phases scriptées, verrouillage de présence de groupe à l'entrée, lockouts hebdomadaires et butin aux dés. |
+| 👑 **Administration** | Tableau de bord live (CPU, lag, instances), sanctions (`/kick`, `/mute`, `/ban`), outils MJ, journaux d'audit, sauvegardes automatiques et restauration vérifiée. |
+| 🎨 **100 % Graphismes générés** | Tilesets, personnages, portraits, monstres, boss, icônes et fenêtres générés en pixel-art vectoriel depuis `assets/generators/` (`npm run assets:build`), libres et sans dépendance tierce. |
+| 📱 **Mobile & Bilingue** | Joystick virtuel, boutons `A`/`B`, compétences en arc, bascule tactile/bureau à chaud (`(hover: none)`), PWA plein écran et traduction intégrale **FR / EN**. |
 
----
+### 🏗️ Architecture technique en bref
 
-## 🎨 Ressources visuelles : 100 % générées
+```mermaid
+flowchart LR
+  Browser["🌐 Navigateur / PWA<br/>Canvas 2D + Éditeur Live"] <-- "HTTP + Socket.io 4" --> Server["⚙️ Serveur Node.js + Express 5<br/>Simulation 20 Hz · Auth · Admin"]
+  Server --> SQLite[("🗄️ SQLite WAL<br/>data/game.db")]
+  Server -. "Scripts isolés (--permission)" .-> Sandbox["🧪 Sandbox VM"]
+  Server -. "Vérification asynchrone" .-> Worker["🧵 Worker PRAGMA"]
+```
 
-> [!TIP]
-> **Toutes les ressources graphiques de Brindiwanko sont produites par le code source du projet.**
+<details>
+<summary>📁 Arborescence du dépôt</summary>
 
-Tilesets, autotiles, personnages animés, visages (facesets), monstres, boss de raid, objets, icônes d'interface, habillages de fenêtres, bulles de dialogue, marqueurs de quête, blasons de guilde et icône applicative… 🖌️
+```text
+Brindiwanko/
+├── server/       # Serveur Node.js (Express 5, Socket.io, boucle de jeu, dépôts SQLite, migrations)
+├── client/       # Client web TypeScript (Canvas 2D, UI RPG modulaire, éditeur visuel intégré)
+├── shared/       # Contrats partagés (protocole Socket.io typé, schémas, formules, i18n)
+├── assets/       # Générateurs procéduraux SVG de pixel art et ressources compilées
+├── views/        # Gabarits EJS des pages web (authentification, personnages, compte, admin)
+├── locales/      # Dictionnaires de traduction fr.json et en.json (2 364 clés)
+├── scripts/      # Pipeline de build, serveur dev, load-test, export démo, vérifications CI
+└── tests/        # Suite de 330 tests automatisés (node --test)
+```
 
-* 🧪 **Pixel art vectoriel** : Générées à partir des scripts SVG de `assets/generators/` lors de chaque commande `npm run build`.
-* 🆓 **Libres de droit & originales** : Aucun élément n'est issu d'un pack externe ou de banques de données tierces. Rien n'enfreint de licence propriétaire.
-* 🔁 **Personnalisables à l'infini** : Régénérez-les à volonté (`npm run assets:build`), éditez-les ou importez vos propres créations via le gestionnaire de **Ressources** intégré à l'éditeur.
-
----
-
-## 🛠️ Pile technologique
-
-* 🖥️ **Serveur** : TypeScript (mode strict), Express 5, Socket.io 4, better-sqlite3 (moteur unique de persistance), moteurs de vues EJS.
-* 🌐 **Client Web** : TypeScript compilé via esbuild, rendu graphique sur HTML5 Canvas 2D, interfaces modulaires façon RPG classique.
-* 🧪 **Qualité & Tests** : Runner natif `node --test` (330 tests automatisés), suite de test de charge multi-clients intégrée.
+</details>
 
 ---
 
 <a id="fr-demarrage"></a>
 
-## 📦 Installation & Démarrage rapide
+## 🚀 Installation & Démarrage rapide
 
 ### Prérequis
-
-* **Node.js 26 LTS** recommandé (version minimale : **Node.js 24**)
-* Gestionnaire de paquets **npm**
+- **Node.js 26 LTS** recommandé *(version minimale : **Node.js 24**)*
+- **npm**
 
 ```bash
-# 1. Cloner et installer les dépendances
+# 1. Installer les dépendances
 npm install
 
-# 2. Générer les assets graphiques et compiler l'application
+# 2. Générer les ressources graphiques et compiler serveur + client
 npm run build
 
-# 3. Lancer le serveur
+# 3. Démarrer le serveur
 npm start
 ```
 
 > [!NOTE]
-> Le fichier `.npmrc` préconfiguré bloque l'exécution de scripts d'installation superflus : SQLite et bcrypt fournissent directement leurs binaires précompilés (Windows, Linux, macOS). Aucun compilateur C++ n'est requis sur votre machine.
+> Le fichier `.npmrc` bloque l'exécution de scripts d'installation tiers : `better-sqlite3` et `bcrypt` utilisent leurs binaires précompilés (Windows, Linux, macOS). Aucun compilateur C++ n'est nécessaire.
 
-🌐 Rendez-vous sur **<http://localhost:3000>**. 
-Lors de cette première exécution, la base de données `data/game.db` est automatiquement créée, mise à jour au dernier schéma et alimentée avec le monde de démonstration.
+Ouvrez ensuite **<http://localhost:3000>** : au premier démarrage, `data/game.db` est créé, migré au schéma le plus récent et peuplé avec le monde de démonstration.
 
-* **Environnement de développement** : Lancez `npm run dev` pour bénéficier du rechargement automatique du serveur et de la recompilation du client à chaque enregistrement.
+- **Mode développement :** `npm run dev` relance le serveur et recompile le client automatiquement à chaque modification.
 
----
+### 👑 Premier compte administrateur
 
-## 👑 Premier compte administrateur
-
-Le **tout premier utilisateur** qui s'enregistre sur la plateforme reçoit automatiquement le rôle d'**administrateur** 🎉. Tous les comptes créés ultérieurement seront de simples joueurs. L'administrateur peut ensuite désigner d'autres administrateurs ou modérateurs directement via le panel d'administration (les permissions s'appliquent immédiatement, y compris en cours de jeu).
+Le **tout premier utilisateur** inscrit reçoit automatiquement le rôle d'**administrateur**. Les comptes suivants démarrent en joueurs standards ; les promotions/rétrogradations depuis `/admin` s'appliquent instantanément, y compris en cours de partie.
 
 > [!IMPORTANT]
-> **Sécurisation en production (`NODE_ENV=production`)** :  
-> Tant qu'aucun compte n'existe en base, la création du premier utilisateur exige un **code d'installation** (`SETUP_CODE`). Ce code est affiché dans le journal d'amorçage du serveur ou défini manuellement via la variable d'environnement `SETUP_CODE`. Cela empêche un visiteur impromptu d'obtenir les privilèges administrateur lors de la mise en ligne.
+> **Protection en production (`NODE_ENV=production`) :** tant que la base ne contient aucun compte, l'inscription initiale exige un **code d'installation** (`SETUP_CODE`) lu depuis la variable d'environnement ou affiché une fois dans le journal de démarrage.
 
 ---
 
@@ -140,37 +130,31 @@ Le **tout premier utilisateur** qui s'enregistre sur la plateforme reçoit autom
 
 ## 🕹️ Commandes & Guide du Joueur
 
-### 🚀 Vos premiers pas
-1. **Création de personnage** : Choisissez votre classe et personnalisez votre apparence. Un compte ne peut connecter qu'un seul personnage en jeu simultanément.
-2. **Gestion du compte** : Le menu **Mon compte** (en haut à gauche) vous permet de modifier votre mot de passe, votre adresse e-mail ou de supprimer le compte et ses personnages associés.
-3. **Récupération d'accès** : Le lien **Mot de passe oublié ?** transmet un jeton de réinitialisation sécurisé par e-mail, valide pendant une heure (nécessite la configuration de `SMTP_URL`).
+<details open>
+<summary>🎮 Raccourcis clavier, mobile et fenêtres d'interface</summary>
 
-### 🎮 Tableau des commandes
-
-| Action | Raccourcis Clavier | Bouton Mobile |
+| Action | Clavier / Souris | Mobile / Tactile |
 | :--- | :--- | :--- |
-| **Se déplacer** | <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> ou <kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> / <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ou clic gauche | Joystick tactile |
+| **Se déplacer** | <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd>, <kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd>, <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ou clic gauche | Joystick virtuel |
 | **Interagir / Attaque frontale** | <kbd>Espace</kbd> ou <kbd>Entrée</kbd> | Bouton <kbd>A</kbd> |
-| **Attaquer** | <kbd>F</kbd> | Bouton dédié |
-| **Barre d'actions rapides** | <kbd>1</kbd> à <kbd>8</kbd> | Raccourcis en arc |
-| **Menu principal** | <kbd>Échap</kbd> | Icône menu |
-
-### 🪟 Raccourcis d'interface
+| **Attaquer** | <kbd>F</kbd> | Bouton d'attaque |
+| **Barre d'actions (1–8)** | <kbd>1</kbd> à <kbd>8</kbd> | Compétences en arc |
+| **Menu principal / Annuler** | <kbd>Échap</kbd> | Bouton <kbd>B</kbd> / Menu |
 
 | Fenêtre | Touche | Fenêtre | Touche |
 | :--- | :---: | :--- | :---: |
 | 🎒 **Sac (Inventaire)** | <kbd>I</kbd> | 📜 **Journal de quêtes** | <kbd>J</kbd> |
-| 👤 **Fiche Personnage** | <kbd>C</kbd> | 👥 **Liste d'amis** | <kbd>L</kbd> |
-| 🔮 **Grimoire de compétences** | <kbd>K</kbd> | 🛡️ **Guilde** | <kbd>G</kbd> |
-| ⚔️ **Gestion de groupe** | <kbd>P</kbd> | 🗺️ **Carte du monde** | <kbd>M</kbd> |
-| ⚙️ **Paramètres & Options** | <kbd>O</kbd> | 💬 **Ouvrir le chat** | <kbd>Entrée</kbd> |
+| 👤 **Fiche Personnage** | <kbd>C</kbd> | 👥 **Amis & Ignorés** | <kbd>L</kbd> |
+| 🔮 **Compétences** | <kbd>K</kbd> | 🛡️ **Guilde** | <kbd>G</kbd> |
+| ⚔️ **Groupe** | <kbd>P</kbd> | 🗺️ **Carte du monde** | <kbd>M</kbd> |
+| ⚙️ **Options** | <kbd>O</kbd> | 💬 **Tchat** | <kbd>Entrée</kbd> |
 
-### ⚔️ Mécaniques de jeu essentielles
-* **Raccourcis & Ciblage** : Glissez-déposez compétences et consommables sur la barre d'action rapide. Cliquez sur un ennemi ou un allié pour le sélectionner.
-* **Interactions sociales** : En cliquant sur un avatar ou sur un pseudo dans le chat, un menu contextuel propose l'envoi de message privé, demande d'ami, invitation de groupe/guilde, échange commercial sécurisé, inspection d'équipement, mise sous silence (ignorer) et signalement modérateur. Un délai anti-spam de 10 s s'applique aux invitations (porté à 1 minute après un refus).
-* **Partage d'XP & Butin** : L'expérience et les pièces d'or générées par un monstre sont réparties proportionnellement aux dégâts infligés par chacun (les membres d'un même groupe bénéficient d'un bonus supplémentaire de +10 % par allié présent). Le butin physique revient au joueur ou au groupe ayant infligé le plus lourd tribut de dégâts.
-* **Instances de Raid** : Le système contrôle à l'entrée le nombre d'équipiers présents ; le boss de raid demeure invulnérable tant que l'ensemble du groupe n'a pas pénétré dans l'arène.
-* **Intégrité commerciale** : Toute fenêtre d'aubergiste, de marchande ou de coffre de banque se verrouille instantanément si le joueur tombe K.-O. ou change de carte, annulant toute transaction en cours.
+</details>
+
+- **Premiers pas :** un seul personnage actif par compte à la fois ; gestion du mot de passe, de l'e-mail et suppression définitive depuis **Mon compte** ; récupération d'accès via **Mot de passe oublié ?** *(lien valide 1 h, requiert `SMTP_URL`)*.
+- **Ciblage & Social :** glisser-déposer vers la barre 1–8, clic sur un joueur ou un pseudo pour chuchoter, échanger, inviter, inspecter, ignorer ou signaler *(anti-spam 10 s entre invitations, 1 min après refus)*.
+- **Partage XP, Butin & Raids :** XP et or répartis au prorata des dégâts *(+10 % par allié de groupe présent)* ; le butin revient au plus gros contributeur ; un boss de raid reste invulnérable tant que tout le groupe n'a pas franchi l'entrée.
+- **Sécurité économique :** boutiques, auberges et coffres se ferment automatiquement en cas de KO ou de changement de carte.
 
 ---
 
@@ -178,36 +162,18 @@ Le **tout premier utilisateur** qui s'enregistre sur la plateforme reçoit autom
 
 ## 🗺️ Prise en main de l'éditeur de monde
 
-Pour les utilisateurs dotés des droits administrateurs, l'éditeur s'ouvre directement depuis le jeu via l'icône **Administration** 👑 de la barre de menus, puis **« Ouvrir l'éditeur de cartes »**. Toutes les modifications sauvegardées sont diffusées **en temps réel** aux joueurs connectés ! ⚡
+Accessible aux administrateurs depuis le jeu via **Administration** 👑 ➔ **« Ouvrir l'éditeur de cartes »**. Les sauvegardes mettent à jour le monde connecté **en temps réel**.
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                   Éditeur de Monde en Direct                           │
-├─────────────────┬──────────────────────────────────────────────────────┤
-│ 🗺️ Cartes       │ Arborescence, calques auto, autotiles, ombres,       │
-│                 │ régions, passage tore (boucle), historique versions   │
-├─────────────────┼──────────────────────────────────────────────────────┤
-│ 🚧 Passabilité  │ Blocage / déblocage manuel par case sans altérer     │
-│                 │ les graphismes (contour de sélection distinctif)     │
-├─────────────────┼──────────────────────────────────────────────────────┤
-│ ⚙️ Propriétés   │ Nom, dimensions, tileset, PvP, drapeau d'instance,   │
-│                 │ thèmes musicaux et d'ambiance, monstres associés     │
-├─────────────────┼──────────────────────────────────────────────────────┤
-│ 🧩 Événements   │ PNJ, coffres, téléportations rapides, cinématiques,   │
-│                 │ déclencheurs, gestion des pages et conditions        │
-├─────────────────┼──────────────────────────────────────────────────────┤
-│ 📚 Données      │ Classes, sorts, objets, monstres, quêtes, raids...   │
-│                 │ Importation et exportation JSON sans pertes          │
-└─────────────────┴──────────────────────────────────────────────────────┘
-```
+| Module | Rôle principal |
+| :--- | :--- |
+| **Cartes & Passabilité** | Arborescence, calques auto/tuiles, ombres, régions, boucle toroïdale, verrou d'édition multi-admin et surcharge de passabilité par case. |
+| **Propriétés & Spawns** | Dimensions, tileset, PvP, instanciation de donjon, musiques BGM/BGS, zones et effectifs d'apparition des monstres. |
+| **Événements & Base de données** | Événements rapides (PNJ, coffres, téléporteurs), pages/conditions, classes, sorts, objets, monstres, quêtes, raids, import/export JSON sans perte. |
 
-* ▶️ **Bouton « Tester la carte »** : Enregistre les altérations en cours, masque l'éditeur et téléporte votre personnage sur la case précisément ciblée.
-* 📚 **Résilience des données JSON** : Lors de l'import d'une base de données, les liaisons vers des éléments non répertoriés sont préservées sans bloquer le moteur de jeu ; l'éditeur recense le total et met en évidence les dix premières incohérences pour révision.
-* 🖼️ **Gestionnaire de Ressources** : Importez vos graphismes et bruitages personnalisés ou chargez un projet complet au format de fichiers standard. Tout fichier altéré ou transmission tronquée est automatiquement neutralisé au profit du fichier initial sain.
-* 🧪 **Quarantaine de sécurité sur les scripts** : Tout fragment de code exécutable importé (commandes de script, conditions formulées par script, évaluations de variables) est consigné mais **totalement désactivé** jusqu'à ce qu'un administrateur valide son contenu dans la vue dédiée (*« Scripts à vérifier »*).
-* 🗑️ **Suppression sécurisée** : La suppression d'une carte ou d'une entrée encore référencée (objectif de quête, transfert, monstre, magasin) déclenche un panneau d'avertissement avec la liste des dépendances. Les identifiants uniques supprimés ne sont jamais recyclés.
-* 🪜 **Dalles spéciales** : Une tuile marquée comme **échelle** force l'orientation du personnage vers le haut ; une case de type **dégâts** soustrait 10 PV par foulée sans jamais infliger d'état K.-O.
-* 🔑 **Interrupteurs locaux vs Instances** : Les interrupteurs locaux sont liés à l'identité du personnage (un coffre ouvert dans un donjon demeure ouvert pour lui lors de visites ultérieures). Pour un mécanisme propre à l'instance en cours, cochez l'option d'interrupteur d'instance sous l'onglet **Système**.
+- ▶️ **« Tester la carte » :** sauvegarde, ferme l'éditeur et téléporte votre personnage directement sur la case visée.
+- 🖼️ **Ressources & Imports :** détection de type et dimensions, protection contre les fichiers tronqués, mise en **quarantaine** automatique de tout script importé tant qu'un administrateur ne l'a pas validé dans *« Scripts à vérifier »*.
+- 🗑️ **Sécurité d'édition :** avertissement listant les dépendances avant suppression ; les identifiants supprimés (comptes, personnages, cartes, fiches) ne sont jamais réattribués.
+- 🪜 **Cases spéciales & Interrupteurs :** une tuile **échelle** oriente vers le haut ; un **sol à dégâts** retire 10 PV par pas sans tuer ; les interrupteurs **d'instance** (onglet Système) isolent l'état d'une session de donjon.
 
 ---
 
@@ -215,51 +181,38 @@ Pour les utilisateurs dotés des droits administrateurs, l'éditeur s'ouvre dire
 
 ## 🛡️ Administration & Modération
 
-### 📊 Console d'administration (`/admin`)
-
-Réservée aux administrateurs et modérateurs habilités :
-
-* 📈 **Tableau de bord** : Mesure de la charge processeur, joueurs actifs, volumétrie des cartes et instances allouées.
-* 👤 **Gestion des comptes** : Attribution de rôles, avertissements, mise en sourdine, déconnexions forcées et réinitialisation de mots de passe.  
-  *(Les modérateurs accèdent aux adresses e-mail anonymisées et n'ont pas accès aux adresses IP. Le propriétaire originel du serveur ne peut pas être déchu de son rang).*
-* 🧰 **Boîte à outils de jeu** : Téléportation sur coordonnées, invisibilité, distribution de monnaie et d'objets, altération d'interrupteurs globaux et alertes système.
-* 📝 **Journaux d'audit** : Historique inaltérable des connexions, transactions, échanges entre joueurs, butins épiques et rapports de signalement.
-* 💾 **Sauvegarde & Restauration** : Téléchargement d'archives exemptes de secrets serveur et sessions. Restauration vérifiée avec contrôle d'intégrité strict du schéma ; qu'il s'agisse d'une sauvegarde du serveur ou d'un fichier téléversé, elle redemande le mot de passe de l'administrateur.
+### 📊 Console `/admin`
+- **Tableau de bord live :** charge CPU échantillonnée périodiquement, latence de boucle d'événements, joueurs en ligne et instances actives.
+- **Comptes & Outils MJ :** rôles, avertissements, sourdine, bannissements, réinitialisation de mot de passe *(modérateurs sans accès IP et e-mails masqués ; le propriétaire initial ne peut être rétrogradé)*, téléportation, invisibilité, dons, interrupteurs/variables et annonces.
+- **Audit & Sauvegardes :** journaux de connexions, échanges, ventes, butins rares et modération ; export `.db` nettoyé des sessions/secrets ; restauration avec double contrôle de schéma SQLite et redemande de mot de passe administrateur.
 
 ### 💬 Commandes de modération en jeu
 
-| Commande | Rôle minimal | Description |
+| Commande | Rôle minimal | Action |
 | :--- | :---: | :--- |
-| `/kick <joueur> [motif]` | Modérateur | Expulse immédiatement le joueur (reconnexion autorisée). |
-| `/mute <joueur> [durée] [motif]` | Modérateur | Réduit le joueur au silence pour une période (`30m`, `2h`, `7j`). |
-| `/unmute <joueur>` | Modérateur | Lève la sanction de sourdine sur le compte ciblé. |
-| `/ban <joueur> [durée\|perm] [motif]` | Administrateur | Bannit le compte temporairement ou définitivement. |
-| `/unban <joueur>` | Administrateur | Révoque une mesure de bannissement active. |
-| `/all <message>` | Modérateur | Diffuse une annonce officielle sur le canal mondial réservé au staff. |
-| `/pkick <joueur>` | Joueur (Chef) | Expulse un aventurier de son propre groupe d'expédition. |
+| `/kick <joueur> [motif]` | Modérateur | Expulse immédiatement la session. |
+| `/mute <joueur> [durée] [motif]` | Modérateur | Coupe le chat (`30m`, `2h`, `7j`). |
+| `/unmute <joueur>` | Modérateur | Lève la mise en sourdine. |
+| `/ban <joueur> [durée\|perm] [motif]` | Administrateur | Suspend le compte temporairement ou définitivement. |
+| `/unban <joueur>` | Administrateur | Révoque un bannissement actif. |
+| `/all <message>` | Modérateur | Annonce sur le canal global staff. |
+| `/pkick <joueur>` | Joueur (Chef) | Retire un membre du groupe. |
 
 > [!TIP]
-> **Politique de rétention et RGPD** : Les sauvegardes automatiques s'exécutent chaque nuit à l'heure configurée dans le panel (4 h du matin par défaut) avec rotation sur 1, 7, 14 ou 31 jours. Les journaux de plus de 90 jours sont purgés quotidiennement, et la suppression d'un compte retire irrévocablement toutes ses adresses IP archivées.
+> **Rétention & Confidentialité :** sauvegardes nocturnes automatiques (par défaut 4 h, conservation 1 / 7 / 14 / 31 jours), purge quotidienne des journaux de plus de 90 jours, et effacement irréversible des IP lors de la suppression d'un compte.
 
 ---
 
 ## 🌳 Monde de démonstration
 
-Chaque installation neuve contient un univers de démonstration prêt à l'emploi :
-* 🏘️ **Le village de Brindiwanko** : PNJ animés, comptoir marchand, auberge réparatrice, coffres de dépôt et banquier.
-* 🌲 **La forêt de Bruyère** : Faune hostile, herbes médicinales à récolter, cinématiques interactives d'introduction.
-* 🏠 **Intérieurs & Maisons** : Habitations meublées avec transitions transparentes.
-* 🦇 **La grotte de Bruyère** : Donjon instancié abritant le redoutable 👺 **Roi Gobelin** (boss de raid multi-joueurs).
-* 📖 **Chapitre 1** : Série de quêtes scénarisées guidant les premiers pas de l'aventurier.
+Une base neuve démarre avec un monde jouable complet : **Village de Brindiwanko**, **Forêt de Bruyère**, **Intérieurs**, **Grotte de Bruyère** *(donjon instancié avec le Roi Gobelin)* et **Chapitre 1**.
 
 ```bash
-# Exporter le monde de démonstration en fichiers JSON structurés dans demo/
+# Exporter le monde de démonstration vers demo/
 npm run demo:export
 ```
 
-> [!TIP]
-> **Réinitialiser le monde** : Arrêtez le serveur, supprimez les fichiers de base de données `data/game.db*` (incluant les suffixes `-wal` et `-shm`), puis relancez le serveur.  
-> Au démarrage sur une base vierge, le terminal invite à sélectionner la langue : `Choose language/Choix de la langue (EN/FR) :`. Cartes, quêtes et dialogues de démonstration sont générés dans la langue désignée. En environnement automatisé (pm2, Docker), définissez la variable d'environnement `CONTENT_LANGUAGE=fr` ou `en`.
+> **Réinitialiser le monde :** arrêtez le serveur, supprimez `data/game.db*` (`-wal` et `-shm` inclus), puis relancez. Sans terminal interactif (pm2, Docker), définissez `CONTENT_LANGUAGE=fr` ou `en`.
 
 ---
 
@@ -267,78 +220,63 @@ npm run demo:export
 
 ## ⚙️ Configuration
 
-Toutes les variables d'environnement suivantes sont optionnelles et disposent de valeurs par défaut saines :
+Toutes les variables d'environnement sont optionnelles :
 
-| Variable | Défaut | Description |
+| Variable | Défaut | Rôle |
 | :--- | :---: | :--- |
-| `PORT` | `3000` | Port d'écoute du serveur HTTP / WebSocket. |
-| `HOST` | `0.0.0.0` | Adresse d'écoute réseau (`127.0.0.1` vivement recommandé derrière un proxy inverse nginx). |
-| `DB_PATH` | `game.db` dans `DATA_DIR` | Chemin du fichier SQLite, absolu (ex. `/var/lib/brindiwanko/game.db`) ou relatif au **dossier du projet** (pas à `DATA_DIR`). Ses sauvegardes vont dans un dossier `backups/` à côté de lui. |
-| `DATA_DIR` | `data/` | Répertoire de la base par défaut et de son sous-dossier `backups/` (sans effet sur un `DB_PATH` donné). |
-| `UPLOADS_DIR` | `uploads/` | Répertoire d'accueil des graphismes et sons importés (exposés sous `/uploads/`). |
-| `NODE_ENV` | — | Définir sur `production` pour activer le mode sécurisé (cookies `Secure`, en-têtes HSTS, mise en cache). |
-| `SESSION_SECRET` | auto-généré | Clé cryptographique préservant les signatures de session. |
-| `TRUST_PROXY` | — | Définir sur `1` ou `true` derrière un reverse proxy (`0`/`false` pour désactiver ; toute autre valeur refuse le démarrage). Requis pour la validation HTTPS et le traçage exact des IP. |
-| `SETUP_CODE` | aléatoire | Code secret réclamé lors de l'enregistrement du premier compte administrateur (définir explicitement en production si les logs sont centralisés). |
-| `CONTENT_LANGUAGE` | prompt terminal | `fr` ou `en` : force la langue des éléments lors de la génération du monde initial. |
-| `PUBLIC_URL` | — | URL publique d'accès (ex. `https://jeu.mondomaine.org`). Requis en production contre les attaques CSWSH. |
-| `REGISTRATIONS_PER_HOUR` | `10` *(prod)* | Plafond d'inscriptions autorisées par tranche d'une heure depuis une même IP (`0` = illimité). |
-| `IMPORTS_PER_15_MIN` | `3` *(prod)* | Imports de projet (jusqu'à 200 Mo chacun) qu'un même compte peut lancer par tranche de 15 minutes ; illimité hors production (`0` = illimité). |
-| `MAX_CHARACTERS` | `4` | Nombre maximum d'avatars qu'un même compte peut détenir. |
-| `SMTP_URL` | — | URI de connexion au relais mail sortant (ex. `smtps://user:pass@smtp.example.org:465`). |
-| `MAIL_FROM` | — | En-tête d'expédition des e-mails automatiques (ex. `Brindiwanko <no-reply@example.org>`). |
-
-> [!NOTE]
-> Les options relatives au gameplay (nom de la monnaie, niveau maximal, paramètres de guilde, taille du sac) se configurent directement dans l'éditeur sous l'onglet **Système**. Le point d'apparition initial propre à chaque classe s'établit dans l'onglet **Classes**.
+| `PORT` / `HOST` | `3000` / `0.0.0.0` | Port et adresse d'écoute (`127.0.0.1` conseillé derrière nginx). |
+| `DB_PATH` | `data/game.db` | Chemin absolu ou relatif au projet de la base SQLite (backups à côté). |
+| `DATA_DIR` / `UPLOADS_DIR` | `data/` / `uploads/` | Dossiers des données par défaut et des ressources importées. |
+| `NODE_ENV` | — | `production` active cookies `Secure`, HSTS et caches statiques. |
+| `SESSION_SECRET` | auto-généré | Secret de signature des sessions HTTP. |
+| `TRUST_PROXY` | `false` | Accepter `1` ou `true` derrière un reverse proxy (`0`/`false` pour désactiver ; échoue au démarrage sinon). |
+| `PUBLIC_URL` | — | Origine publique (ex. `https://jeu.mondomaine.org`) requise contre les attaques CSWSH. |
+| `SETUP_CODE` | aléatoire | Code du premier compte administrateur en production (à fixer explicitement si vos logs sont centralisés). |
+| `CONTENT_LANGUAGE` | prompt terminal | `fr` ou `en` pour générer le monde de démonstration sans saisie interactive. |
+| `REGISTRATIONS_PER_HOUR` | `10` *(prod)* | Limite d'inscriptions par heure et par IP (`0` = illimité). |
+| `IMPORTS_PER_15_MIN` | `3` *(prod)* | Limite d'imports de projet (200 Mo max) par compte / 15 min (`0` = illimité). |
+| `MAX_CHARACTERS` | `4` | Nombre maximum de personnages par compte. |
+| `SMTP_URL` / `MAIL_FROM` | — | Relais SMTP sortant et expéditeur pour la réinitialisation de mot de passe. |
 
 ---
 
 ## 🧪 Tests & Assurance Qualité
 
 ```bash
-# Exécute les contrôles de conformité lexicale, les clés de traduction, puis les 320+ tests unitaires
+# Contrôles lexicaux, parité i18n (clés + {{placeholders}} + vues .ejs) et 330 tests
 npm test
 
-# Validation du typage strict sur l'ensemble de la base de code
+# Vérification TypeScript stricte (serveur, client, outils)
 npm run typecheck
 
-# Simulation de charge réseau : 80 connexions concurrentes pendant 15 secondes
+# Test de charge : 80 clients simultanés pendant 15 secondes
 npm run load-test -- 80 15
 ```
 
 > [!NOTE]
-> Les tests s'exécutent au sein d'un environnement temporaire sandboxé : vos dossiers opérationnels `data/` et `uploads/` ne sont jamais modifiés ni altérés lors des sessions de test.
+> Tous les tests s'exécutent dans un répertoire temporaire isolé : `data/` et `uploads/` restent intacts.
 
 ---
 
 <a id="fr-deploiement"></a>
 
-## 🚀 Déploiement en Production
-
-Déploiement type sur serveur Linux (Debian / Ubuntu) adossé à **nginx**, certificats SSL **Let's Encrypt** et orchestrateur **pm2** :
+## 🌐 Déploiement en Production
 
 ```bash
-# Installation globale de pm2 et compilation propre
+# Installation et compilation propre
 npm install -g pm2
-npm ci
-npm run build
+npm ci && npm run build
 
-# Démarrage du service sous isolation locale
+# Lancement en processus unique derrière nginx
 NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 PUBLIC_URL=https://jeu.mondomaine.org PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
-
-# Enregistrement du service au démarrage du système
-pm2 startup
-pm2 save
+pm2 startup && pm2 save
 ```
 
-### 🔒 Recommandations de sécurité
-1. **Écoute locale stricte** : `HOST=127.0.0.1` assure que Node.js ne répond qu'aux requêtes relayées par nginx, bloquant toute tentative de contournement des pares-feux applicatifs.
-2. **Reverse proxy & HTTPS** : Avec `TRUST_PROXY=1`, les sessions requièrent impérativement un flux chiffré HTTPS.
-3. **Prévention CSWSH** : La spécification rigoureuse de `PUBLIC_URL` interdit les connexions WebSockets parasites initiées depuis des domaines tiers.
-4. **Sandbox de scripts** : L'interpréteur de scripts d'événements s'exécute dans une enclave mémoire bornée sans accès au système de fichiers hôte. Exécutez le processus sous un utilisateur système non privilégié dédié.
-5. **Instance unique** : N'activez jamais le mode cluster (`-i`) de pm2 : la simulation du monde virtuel et des combats repose sur la cohérence d'un processus central unique.
+> [!IMPORTANT]
+> **Règles d'exploitation :** écoutez sur `127.0.0.1` derrière HTTPS avec `PUBLIC_URL` défini, utilisez un utilisateur système non privilégié et **n'activez jamais** le mode cluster pm2 (`-i`) : l'état du monde et des combats vit dans un processus unique.
 
-### 🌐 Configuration nginx
+<details>
+<summary>🌐 Configuration nginx recommandée (SSL, WebSocket & limites d'upload 500 Mo)</summary>
 
 ```nginx
 server {
@@ -354,18 +292,13 @@ server {
   ssl_certificate /etc/letsencrypt/live/jeu.mondomaine.org/fullchain.pem;
   ssl_certificate_key /etc/letsencrypt/live/jeu.mondomaine.org/privkey.pem;
 
-  # Autorise le téléversement de gros packages de cartes (200 Mo) et restaurations (500 Mo)
   client_max_body_size 500m;
 
   location / {
     proxy_pass http://127.0.0.1:3000;
     proxy_http_version 1.1;
-
-    # Négociation WebSocket
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
-
-    # En-têtes d'acheminement réseau
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Host $host;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -374,14 +307,15 @@ server {
 }
 ```
 
-### ☁️ Derrière Cloudflare (ou un second proxy)
+</details>
 
-Avec Cloudflare (ou tout autre proxy) placé devant nginx, `TRUST_PROXY=1` fait voir à l'application l'adresse de Cloudflare au lieu de celle du joueur. Tous les joueurs partageraient alors les mêmes limites d'inscription (10 par heure et par adresse en production) et de connexion, et les journaux n'enregistreraient que des adresses de Cloudflare.
+<details>
+<summary>☁️ Derrière Cloudflare ou un proxy amont (module realip nginx)</summary>
 
-Demandez à nginx de rétablir la véritable adresse du joueur (module `realip`, inclus dans les paquets nginx de Debian et Ubuntu) en ajoutant ces lignes dans le bloc `server { listen 443 … }` ci-dessus :
+Avec un proxy devant nginx, `TRUST_PROXY=1` seul ferait voir à l'application l'IP du proxy (partage des quotas d'inscription et de connexion). Ajoutez dans le bloc `server { listen 443 … }` :
 
 ```nginx
-# Plages d'adresses de Cloudflare, publiées sur https://www.cloudflare.com/ips/ (à vérifier de temps en temps)
+# Plages officielles Cloudflare (https://www.cloudflare.com/ips/)
 set_real_ip_from 173.245.48.0/20;
 set_real_ip_from 103.21.244.0/22;
 set_real_ip_from 103.22.200.0/22;
@@ -405,64 +339,34 @@ set_real_ip_from 2405:8100::/32;
 set_real_ip_from 2a06:98c0::/29;
 set_real_ip_from 2c0f:f248::/32;
 
-# Adresse du joueur transmise par Cloudflare (crue seulement pour les connexions venant des plages ci-dessus)
 real_ip_header CF-Connecting-IP;
 ```
 
-Gardez `TRUST_PROXY=1` : nginx transmet alors à l'application la véritable adresse du joueur. Avec un autre proxy que Cloudflare, indiquez ses propres adresses dans `set_real_ip_from`, puis `real_ip_header X-Forwarded-For;` et `real_ip_recursive on;`.
+Pour un autre proxy, remplacez les plages par ses IP et utilisez `real_ip_header X-Forwarded-For;` avec `real_ip_recursive on;`. Conservez `TRUST_PROXY=1`.
 
-### 💾 Procédure de restauration des données
+</details>
+
+<details>
+<summary>💾 Restauration et procédure de mise à jour</summary>
 
 ```bash
-# Lister l'ensemble des sauvegardes archivées
+# Lister ou préparer la restauration d'une sauvegarde (puis redémarrer)
 npm run restore
-
-# Restaurer l'archive la plus récente (ou indiquer un nom spécifique)
 npm run restore -- latest
-
-# Redémarrer le service pour charger la base restaurée
 pm2 restart Brindiwanko
 ```
-
-> [!TIP]
-> Lors d'une restauration, la base en place est archivée avec le suffixe `.before-restore`. L'archive appliquée est préalablement assainie de toutes sessions ou secrets résiduels. Veillez à synchroniser régulièrement le répertoire `data/backups/` vers un support de stockage externe.
-
-### 🔄 Mise à jour
 
 ```bash
-# 1. Vérifier qu'une sauvegarde récente existe (la plus récente est en tête de liste)
-npm run restore
-
-# 2. Récupérer la nouvelle version
+# Mise à jour sécurisée
+npm run restore           # Vérifier la présence d'une sauvegarde récente
 git pull
-
-# 3. Installer les dépendances exactes puis recompiler
-npm ci
-npm run build
-
-# 4. Redémarrer le service
+npm ci && npm run build
 pm2 restart Brindiwanko
 ```
 
-> [!NOTE]
-> Les migrations de la base s'appliquent seules au démarrage du serveur : aucune autre commande n'est nécessaire.  
-> En cas de problème, remettez la dernière sauvegarde faite avant la mise à jour avec `npm run restore -- latest` (ou son nom, affiché par `npm run restore`), puis `pm2 restart Brindiwanko`.
+> Les migrations SQLite s'appliquent automatiquement au démarrage. La base remplacée reste conservée avec le suffixe `.before-restore`, et les sauvegardes appliquées sont purgées de toute session ou secret.
 
----
-
-## 📁 Architecture du Code Source
-
-```text
-Brindiwanko/
-├── server/       # Cœur applicatif Node.js (Express, Socket.io, Moteur de jeu, DB SQLite)
-├── client/       # Client Web (Moteur Canvas 2D, Rendu graphique, UI, Éditeur embarqué)
-├── shared/       # Définitions communes (Protocoles réseau, Formules, Typages stricts)
-├── assets/       # Générateurs procéduraux de pixel art SVG et actifs compilés
-├── views/        # Gabarits HTML / EJS des pages Web du service
-├── locales/      # Dictionnaires de localisation bilingues (fr.json, en.json)
-├── scripts/      # Outils d'automatisation (Build, Dev, Tests de charge, Démo)
-└── tests/        # Bancs de tests automatisés (node --test)
-```
+</details>
 
 ---
 
@@ -470,79 +374,70 @@ Brindiwanko/
 
 ## 📜 Journal des modifications (Derniers correctifs)
 
-Retrouvez l'historique complet dans [CHANGELOG.md](CHANGELOG.md). Dernières améliorations intégrées depuis la `1.0.0-beta.1` :
+Historique détaillé dans [CHANGELOG.md](CHANGELOG.md). Principaux apports depuis `1.0.0-beta.1` :
 
-* 🔒 **Sécurité & restauration à chaud** : Vérification du mot de passe et du verrou `restoring` avant le buffering des uploads sur `/api/admin/restore`, préparation asynchrone `prepareRestore` sans blocage de la boucle 20 Hz, contrôle anti-chevauchement ZIP, durcissement SVG/sandbox/Socket.io (`Sec-Fetch-Site`) et libération des verrous d'édition au changement de mot de passe.
-* ⚡ **Performance, fiabilité & cycle de vie** : Migration SQL `002_indexes.sql` (6 index secondaires), cache `SettingsRepository`, requêtes unifiées sur l'annuaire des guildes, parsing JSON défensif, suppression atomique de compte par transaction SQLite, contrôle de reconnexion multi-onglets (`characterId`), nettoyage `AbortController`/`destroy()` côté client et validation i18n étendue aux placeholders et vues `.ejs`.
-* 🗺️ **Confinement des monstres en région** : En errance (`idle`) et en fuite sur zone peinte, les monstres restent dans leur région d'origine ; la détection d'aggro et le retour maison encadrent la sortie de zone (jusqu'à 2 cases de marge en poursuite, sans gêner les marqueurs de boss à une case).
-* 🎮 **Contrôles clavier plus réactifs** : Un clic sur la carte libère immédiatement le focus clavier du chat, et un buffer d'action de `150 ms` déclenche les interactions pressées juste avant la fin d'un pas.
-* 📱 **Lisibilité des dialogues & mode tactile dynamique** : Les barres basses, le chat et les contrôles tactiles s'effacent pendant un dialogue actif ; le basculement entre mode tactile et bureau suit les changements de pointeur (`hover: none`) et de redimensionnement sans recharger la page (`F5`).
-* 🛠️ **Confort d'édition** : La palette conserve la sélection et le défilement par onglet, et les boutons `+ Ajouter` de la base de données (étapes et objectifs de quêtes) restent visibles sans défilement superflu.
+- 🔒 **Sécurité & restauration à chaud :** vérification du mot de passe et du verrou `restoring` avant le buffering sur `POST /api/admin/restore`, `prepareRestore` asynchrone (Worker + `fs.promises.cp`), contrôle anti-chevauchement ZIP, durcissement SVG/sandbox/Socket.io (`Sec-Fetch-Site`) et libération des verrous d'édition au changement de mot de passe.
+- ⚡ **Performance, fiabilité & cycle de vie :** migration `002_indexes.sql` (6 index secondaires), cache `SettingsRepository`, requêtes unifiées sur l'annuaire des guildes, parsing JSON défensif, suppression atomique de compte par transaction SQLite, contrôle multi-onglets (`characterId`), nettoyage `AbortController`/`destroy()` côté client et validation `i18n:check` étendue.
+- 🗺️ **Combat & IA des régions :** confinement des monstres dans leur région en `idle` et fuite sur zone peinte, détection d'aggro à 1 case des bordures et retour maison au-delà de 2 cases hors zone *(boss à 1 case non bridés)*.
+- 🎮 **Ergonomie joueur & éditeur :** focus clavier rendu au clic carte, buffer d'action de `150 ms`, masquage des barres/chat pendant les dialogues actifs, bascule tactile dynamique sans `F5`, mémoire par onglet de la palette et boutons `+ Ajouter` ancrés.
 
 ---
-
-## 📄 Licence
-
-Ce projet est distribué sous licence open-source **[Apache 2.0](LICENSE)**.
-
----
-
-<br />
 
 <div align="center">
-  <a id="english"></a>
 
-  <img src="assets/img/system/AppIcon-512.png" alt="Brindiwanko Logo" width="130" style="border-radius: 20px;" />
-
-  # 🌿 Brindiwanko (English) 🌿
-
-  **A browser-based 2D MMORPG engine with a built-in live world editor**
-
-  [![Version](https://img.shields.io/badge/version-1.0.0--beta.1-blue.svg?style=flat-square)](package.json)
-  [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D24.0.0-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![Socket.io](https://img.shields.io/badge/Socket.io-4.x-010101?style=flat-square&logo=socketdotio&logoColor=white)](https://socket.io/)
-  [![SQLite](https://img.shields.io/badge/SQLite-better--sqlite3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://github.com/WiseLibs/better-sqlite3)
-  [![Tests](https://img.shields.io/badge/tests-330%20passed-brightgreen?style=flat-square&logo=node.js&logoColor=white)](tests/)
-  [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=flat-square)](LICENSE)
-
-  <br />
-
-  [🇫🇷 Lire en Français](#-brindiwanko-) · **English**
-
-  <br />
-
-  <p align="center">
-    <a href="#en-highlights">✨ Highlights</a> •
-    <a href="#en-quick-start">🚀 Quick Start</a> •
-    <a href="#en-playing">🕹️ Playing</a> •
-    <a href="#en-editor">🗺️ Editor</a> •
-    <a href="#en-administration">🛡️ Administration</a> •
-    <a href="#en-configuration">⚙️ Configuration</a> •
-    <a href="#en-deployment">🌐 Deployment</a> •
-    <a href="#en-changelog">📜 Changelog</a>
-  </p>
+📄 Sous licence **[Apache 2.0](LICENSE)** &nbsp;·&nbsp; [⬆️ Haut de page (FR)](#fr-top) &nbsp;·&nbsp; [🇬🇧 English README](#en-top)
 
 </div>
 
 ---
 
-> 🎮 **A living world in your browser:** Design your maps, script your quests, place your monsters… and your players see the changes appear **live**, with zero page reloads! ✨
+<br />
 
-Brindiwanko provides everything needed to build and operate a persistent online world: tilemaps, scripted events and cutscenes, story quests, real-time map combat, parties, guilds, instanced dungeons, and raids.
+<a id="en-top"></a>
+<a id="english"></a>
 
-All powered by **a single Node.js process** backed by **a single SQLite database**: no external database server to deploy or maintain. 🚀
+<div align="center">
+
+  <img src="assets/img/system/AppIcon-512.png" alt="Brindiwanko Logo" width="128" />
+
+  # 🌿 Brindiwanko (English)
+
+  **A browser-based 2D MMORPG engine with a built-in live world editor**
+
+  [![Version](https://img.shields.io/badge/version-1.0.0--beta.1-2563eb?style=for-the-badge)](package.json)
+  [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D24.0.0-16a34a?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![Socket.io](https://img.shields.io/badge/Socket.io-4.x-0f172a?style=for-the-badge&logo=socketdotio&logoColor=white)](https://socket.io/)
+  [![SQLite](https://img.shields.io/badge/SQLite-WAL%20%2B%20better--sqlite3-0369a1?style=for-the-badge&logo=sqlite&logoColor=white)](https://github.com/WiseLibs/better-sqlite3)
+  [![Tests](https://img.shields.io/badge/tests-330%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+  [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
+
+  <br />
+
+  [🇫🇷 Lire en Français](#fr-top) &nbsp;·&nbsp; **🇬🇧 English**
+
+  <br />
+
+  [✨ Highlights](#en-highlights) •
+  [🚀 Quick Start](#en-quick-start) •
+  [🕹️ Playing](#en-playing) •
+  [🗺️ Editor](#en-editor) •
+  [🛡️ Administration](#en-administration) •
+  [⚙️ Configuration](#en-configuration) •
+  [🌐 Deployment](#en-deployment) •
+  [📜 Changelog](#en-changelog)
+
+</div>
 
 ---
 
-## 🤖 An AI-Engineered & Human-Validated Project
+> 🎮 **A living world in your browser:** design your maps, script your quests, place monsters… and players see changes go **live**, with zero page reloads.
+
+**Brindiwanko** packs everything needed to run a persistent online RPG inside **a single Node.js process** backed by **a single SQLite database**: tilemaps, scripted cutscenes, multi-step quests, real-time combat, parties, guilds, instanced dungeons, and raids — with no external database server to maintain.
 
 > [!NOTE]
-> **Brindiwanko was entirely designed and written via artificial intelligence, and rigorously tested by its author alongside standard AI test routines.** 🧠
-
-* 💻 **Code & Generators**: The full codebase (server, client, editor, test suites), procedural asset generators, and documentation are authored by AI under human creative and technical direction.
-* 🧪 **Thorough Validation**: Tested with **330 automated test cases** (`npm test`), an integrated multi-client load tester, and comprehensive end-to-end browser verification sessions.
-* ⚠️ **Disclaimer**: As with any generated software, careful review and staging tests are encouraged before going live in production. Issue reports and pull requests are warmly appreciated! 🙏
+> **An AI-Engineered & Human-Validated Project**  
+> All source code (server, client, editor, SVG generators, and test suites) was authored by AI under human creative and technical direction, and validated by **330 automated tests** (`npm test`), a multi-client stress tester, and browser verification sessions. Review and stage-test before production rollouts; bug reports and PRs are always welcome.
 
 ---
 
@@ -552,79 +447,78 @@ All powered by **a single Node.js process** backed by **a single SQLite database
 
 | Area | Capabilities |
 | :--- | :--- |
-| 🗺️ **World Editor** | Menu and toolbar, tile palettes A through E, auto-layering, autotiles, dynamic shadows, region IDs, manual passability overrides, toroidal looping maps, version history, *"Test Map"* instant button. |
-| 🧩 **Event System** | Multi-page conditions, customizable triggers, visual command builder, cutscene sequences (fades, screen tints, flashes, camera shakes, picture displays, weather systems, camera scrolling, timers). |
-| 🎵 **Audio Engine** | Map-specific background music and ambient tracks, victory jingles, audio event actions (play, fade, memorize, resume). |
-| 📜 **Quest System** | Sequential steps, multi-type objectives (talk, defeat mobs, gather items, reach locations), experience & item rewards, story chapters, floating "!" and "?" markers. |
-| ⚔️ **Combat Mechanics** | Fast-paced real-time map battles, custom spells & skills, status conditions, elemental weaknesses, critical strikes, reactive monster AI, configurable drop tables. |
-| 🎒 **Character Systems** | Primary attributes, allocatable stat points, grid-based inventory, equipment slots, shopkeepers, resting inns, secure bank storage. |
-| 💬 **Social Suite** | Public broadcast channels, instant private whispers, friends list, blacklist/ignore list, secure player-to-player trading, expressive emotes. |
-| 🛡️ **Parties & Guilds** | Shared group XP and gold scaling, custom ranks and fine-grained permissions, shared guild bank, audit log, generated guild crests. |
-| 🏰 **Dungeons & Raids** | Dynamic party-instanced maps, multi-phase scripted raid bosses, weekly lockout timers, transparent dice-roll loot distribution. |
-| 👑 **Administration** | Real-time operations dashboard, moderation tools, in-game gamemaster commands, tamper-evident audit logs, live hot backups and restore. |
-| 📱 **Mobile Ready** | Virtual analog joystick, dedicated Action and Cancel touch buttons, skill arc menu layout, immersive fullscreen mode, installable PWA. |
-| 🌍 **Native Bilingual** | Player client, game systems, and the world editor are fully supported in both **English** and **French**. |
+| 🗺️ **Live World Editor** | Palettes A–E with per-tab selection memory, auto-layers, autotiles, dynamic shadows, region IDs, manual passability overrides, toroidal wrap-around maps, version snapshots, *"Test Map"* quick preview. |
+| 🧩 **Events & Cutscenes** | Conditional pages, flexible triggers (action, touch, autorun, parallel), visual command builder, fades, tints, flashes, camera shakes, pictures, weather, scrolling, timers. |
+| ⚔️ **Real-Time Combat** | Action battles directly on the map, custom skills & states, elemental affinities, critical strikes, region-confined monster AI, and configurable drop tables. |
+| 📜 **Quests & Progression** | Sequential steps, talk/kill/collect/reach/switch objectives, `!` and `?` map markers, rewards, chapters, and player quest journal. |
+| 🎒 **Character & Economy** | Allocatable stats, grid inventory, equipment slots, shops, resting inns, bank storage, automatic lock-down on knock-out or map change. |
+| 💬 **Social & Guilds** | All/Map/Party/Guild/Whisper/System chat channels, friends and ignore lists, secure player trades, emotes, guild ranks/permissions, bank vault, log, and generated crests. |
+| 🏰 **Dungeons & Raids** | Dynamic party instances, multi-phase raid bosses, party entrance readiness check, weekly lockouts, and dice-roll loot distribution. |
+| 👑 **Administration** | Live dashboard (CPU, event loop lag, instances), staff commands (`/kick`, `/mute`, `/ban`), GM tools, audit logs, scheduled backups, and schema-checked restores. |
+| 🎨 **100% Generated Art** | Tilesets, characters, facesets, monsters, bosses, icons, and window skins compiled as vector pixel art from `assets/generators/` (`npm run assets:build`) with zero external asset packs. |
+| 📱 **Mobile & Bilingual** | Virtual joystick, `A`/`B` touch controls, skill arc layout, live `(hover: none)` desktop/touch switching, fullscreen PWA, and native **English / French** localization. |
 
----
+### 🏗️ Architecture Overview
 
-## 🎨 Visual Assets: 100% Generated
+```mermaid
+flowchart LR
+  Browser["🌐 Browser / PWA<br/>Canvas 2D + Live Editor"] <-- "HTTP + Socket.io 4" --> Server["⚙️ Node.js + Express 5 Server<br/>20 Hz Tick · Auth · Admin"]
+  Server --> SQLite[("🗄️ SQLite WAL<br/>data/game.db")]
+  Server -. "Isolated scripts (--permission)" .-> Sandbox["🧪 VM Sandbox"]
+  Server -. "Async quick_check" .-> Worker["🧵 Worker Thread"]
+```
 
-> [!TIP]
-> **Every single visual graphic in Brindiwanko is generated on-the-fly by the project's own build scripts.**
+<details>
+<summary>📁 Repository layout</summary>
 
-Tilesets, autotiles, character spritesheets, facesets, monsters, raid bosses, inventory icons, window skins, speech bubbles, quest markers, guild banners, and the desktop application icon… 🖌️
+```text
+Brindiwanko/
+├── server/       # Node.js backend (Express 5, Socket.io, world loop, SQLite repositories, migrations)
+├── client/       # Web client TypeScript (Canvas 2D engine, RPG windows, embedded world editor)
+├── shared/       # Shared contracts (typed Socket.io protocol, schemas, formulas, i18n)
+├── assets/       # Procedural SVG pixel-art generators and compiled asset targets
+├── views/        # EJS templates for account, auth, character, and admin pages
+├── locales/      # Bilingual dictionaries en.json and fr.json (2,364 keys)
+├── scripts/      # Build pipeline, dev watcher, load tester, demo export, CI checks
+└── tests/        # Automated suite of 330 tests (node --test)
+```
 
-* 🧪 **Procedural SVG Pixel Art**: Rendered from vector SVG generators in `assets/generators/` during `npm run build`.
-* 🆓 **Zero Proprietary Packs**: Contains no ripped images, commercial tileset packages, or proprietary third-party art. Clean, original, and license-compliant.
-* 🔁 **Fully Customizable**: Regenerate them at will (`npm run assets:build`), tweak their generation scripts, or import your custom assets through the built-in **Resources** manager.
-
----
-
-## 🛠️ Technology Stack
-
-* 🖥️ **Server Engine**: Strict TypeScript, Express 5, Socket.io 4, better-sqlite3 (standalone persistent engine), EJS templating.
-* 🌐 **Web Client**: TypeScript bundled via esbuild, high-performance HTML5 2D Canvas rendering, retro-inspired RPG modular windowing.
-* 🧪 **Quality Assurance**: Native `node --test` runner (330 automated tests), integrated stress-testing suite.
+</details>
 
 ---
 
 <a id="en-quick-start"></a>
 
-## 📦 Installation & Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
-
-* **Node.js 26 LTS** recommended (minimum version: **Node.js 24**)
-* **npm** package manager
+- **Node.js 26 LTS** recommended *(minimum: **Node.js 24**)*
+- **npm**
 
 ```bash
 # 1. Install dependencies
 npm install
 
-# 2. Build visual assets and compile TypeScript
+# 2. Generate visual assets and compile server + client
 npm run build
 
-# 3. Start the game server
+# 3. Start the server
 npm start
 ```
 
 > [!NOTE]
-> The included `.npmrc` file deliberately disables unneeded dependency installation scripts. Both SQLite and bcrypt ship with precompiled platform binaries (Windows, Linux, macOS) — no C++ compilation toolchain is required.
+> The repository's `.npmrc` disables unnecessary third-party install scripts: `better-sqlite3` and `bcrypt` ship prebuilt binaries (Windows, Linux, macOS), so no C++ compiler toolchain is required.
 
-🌐 Open **<http://localhost:3000>**.  
-Upon first launch, `data/game.db` is created, migrated to the latest schema, and initialized with the demo starter world.
+Open **<http://localhost:3000>** in your browser. First startup initializes `data/game.db`, applies schema migrations, and populates the starter demo world.
 
-* **Development mode**: Run `npm run dev` for automatic server reloading and client recompilation on any file save.
+- **Development mode:** run `npm run dev` for automatic server restarts and client rebundling on file changes.
 
----
+### 👑 First Administrator Account
 
-## 👑 First Administrator Account
-
-The **very first player** to register an account automatically gains full **administrator privileges** 🎉. Accounts created afterwards will be standard players. Administrators can promote other users to moderator or administrator ranks directly from the administration dashboard (permissions take effect immediately, even while in-game).
+The **very first account** registered becomes **administrator** automatically. Subsequent registrations start as regular players; staff promotions/demotions from `/admin` take effect immediately, even for players currently in game.
 
 > [!IMPORTANT]
-> **Production Hardening (`NODE_ENV=production`)**:  
-> When running in production on an empty database, registration of the first account mandates entering a **Setup Code** (`SETUP_CODE`). This token is output in the server initialization log or defined via the `SETUP_CODE` environment variable, ensuring unauthorized visitors cannot claim server ownership.
+> **Production safeguard (`NODE_ENV=production`):** while the database has zero accounts, registering the first user requires a **Setup Code** (`SETUP_CODE`) supplied via the environment variable or printed once to the startup log.
 
 ---
 
@@ -632,37 +526,31 @@ The **very first player** to register an account automatically gains full **admi
 
 ## 🕹️ Playing the Game
 
-### 🚀 Getting Started
-1. **Character Creation**: Pick your starting class and customize your appearance. Each account may log in with one active character at a time.
-2. **Account Management**: Access **My Account** (top-left link) to update passwords, change registered email addresses, or delete characters and accounts.
-3. **Password Recovery**: The **Forgotten Password?** page emails a secure reset link valid for 60 minutes (requires `SMTP_URL` to be configured).
+<details open>
+<summary>🎮 Keyboard, touch, and UI shortcuts</summary>
 
-### 🎮 Default Controls
-
-| Action | Keyboard Controls | Touch / Mobile |
+| Action | Keyboard / Mouse | Touch / Mobile |
 | :--- | :--- | :--- |
-| **Movement** | <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / <kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> or Left Click | Virtual Joystick |
-| **Interact / Attack Forward** | <kbd>Space</kbd> or <kbd>Enter</kbd> | Button <kbd>A</kbd> |
-| **Direct Attack** | <kbd>F</kbd> | Action Button |
-| **Hotbar Slots** | <kbd>1</kbd> through <kbd>8</kbd> | Arc Skill Buttons |
-| **Main Menu** | <kbd>Escape</kbd> | Menu Button |
-
-### 🪟 Interface Hotkeys
+| **Move** | <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd>, <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, <kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd>, or Left Click | Virtual Joystick |
+| **Interact / Front Attack** | <kbd>Space</kbd> or <kbd>Enter</kbd> | Button <kbd>A</kbd> |
+| **Attack** | <kbd>F</kbd> | Attack Button |
+| **Hotbar (1–8)** | <kbd>1</kbd> through <kbd>8</kbd> | Skill Arc Buttons |
+| **Main Menu / Cancel** | <kbd>Escape</kbd> | Button <kbd>B</kbd> / Menu |
 
 | Window | Key | Window | Key |
 | :--- | :---: | :--- | :---: |
 | 🎒 **Bag (Inventory)** | <kbd>I</kbd> | 📜 **Quest Journal** | <kbd>J</kbd> |
-| 👤 **Character Sheet** | <kbd>C</kbd> | 👥 **Friends List** | <kbd>L</kbd> |
-| 🔮 **Spellbook & Skills** | <kbd>K</kbd> | 🛡️ **Guild Panel** | <kbd>G</kbd> |
-| ⚔️ **Party Management** | <kbd>P</kbd> | 🗺️ **World Map** | <kbd>M</kbd> |
-| ⚙️ **Game Settings** | <kbd>O</kbd> | 💬 **Focus Chat** | <kbd>Enter</kbd> |
+| 👤 **Character Sheet** | <kbd>C</kbd> | 👥 **Friends & Ignore** | <kbd>L</kbd> |
+| 🔮 **Skills & Spells** | <kbd>K</kbd> | 🛡️ **Guild** | <kbd>G</kbd> |
+| ⚔️ **Party** | <kbd>P</kbd> | 🗺️ **World Map** | <kbd>M</kbd> |
+| ⚙️ **Settings** | <kbd>O</kbd> | 💬 **Focus Chat** | <kbd>Enter</kbd> |
 
-### ⚔️ Core Gameplay Mechanics
-* **Action Hotbars & Targeting**: Drag-and-drop skills and consumable items onto the hotbar slots. Click any monster or player to set them as your active target.
-* **Player Context Menu**: Clicking another player avatar or their name in chat opens a contextual menu allowing private messages, friend requests, party or guild invites, secure trade requests, gear inspection, muting/ignoring, or reporting. A 10-second spam cooldown applies to invitations (increased to 1 minute following a refusal).
-* **Experience & Loot Sharing**: XP and gold from defeated enemies are shared proportionally according to damage dealt (party members receive an additional +10% bonus per ally present). Physical item drops are awarded to the player or party dealing the majority of damage.
-* **Raid Encounters**: Raids verify the count of present party members at the entrance threshold; the boss encounter remains invulnerable until all members are inside the arena.
-* **Economic Security**: Vendor, inn, and bank storage dialogs close automatically if a player is knocked out or transitions to another map, preventing out-of-bounds trade exploits.
+</details>
+
+- **Getting started:** one active character per account at a time; update passwords, email, or permanently delete your account under **My Account**; reset lost passwords via **Forgotten Password?** *(1-hour token, requires `SMTP_URL`)*.
+- **Targeting & Social:** drag skills or items onto slots 1–8; click players or chat names to whisper, trade, invite, inspect, ignore, or report *(10s invite cooldown, 1 min after refusal)*.
+- **XP, Loot & Raids:** XP and gold scale with damage contribution *(+10% party bonus per nearby member)*; item drops go to the highest-damage player or party; raid bosses stay invulnerable until every party member enters the arena.
+- **Economic protection:** shops, inns, and banks automatically close if knocked out or transferred off the map.
 
 ---
 
@@ -670,36 +558,18 @@ The **very first player** to register an account automatically gains full **admi
 
 ## 🗺️ World Editor Guide
 
-For accounts granted administrator privileges, the world editor is accessible directly in-game via the **Administration** 👑 menu icon, then selecting **"Open the map editor"**. All saved changes propagate **instantly** to active players! ⚡
+Administrators can launch the live editor straight from the game menu via **Administration** 👑 ➔ **"Open the map editor"**. Saved changes propagate **immediately** to connected players.
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        Live World Editor                               │
-├─────────────────┬──────────────────────────────────────────────────────┤
-│ 🗺️ Maps        │ Map hierarchy, auto layers, autotiles, shadows,      │
-│                 │ region IDs, looping wrap-around, version rollbacks   │
-├─────────────────┼──────────────────────────────────────────────────────┤
-│ 🚧 Passability  │ Manual cell block/unblock without changing tiles     │
-│                 │ (displayed with distinct highlight outlines)         │
-├─────────────────┼──────────────────────────────────────────────────────┤
-│ ⚙️ Properties   │ Display name, dimensions, tileset, PvP flag,         │
-│                 │ instancing toggle, BGM/BGS audio, map monster spawns │
-├─────────────────┼──────────────────────────────────────────────────────┤
-│ 🧩 Events       │ Quick NPCs, chests, teleporters, cutscenes, triggers │
-│                 │ multi-page condition trees, visual command lists     │
-├─────────────────┼──────────────────────────────────────────────────────┤
-│ 📚 Database     │ Classes, skills, items, enemies, quests, raids...    │
-│                 │ Resilient lossless JSON import and export            │
-└─────────────────┴──────────────────────────────────────────────────────┘
-```
+| Toolset | Main Capabilities |
+| :--- | :--- |
+| **Maps & Passability** | Map hierarchy tree, auto-layers, autotiles, shadows, regions, toroidal loops, multi-admin edit locks, and manual cell passability overrides. |
+| **Properties & Spawns** | Display name, size, tileset, PvP flag, instancing toggle, BGM/BGS audio, monster spawn zones and counts. |
+| **Events & Database** | Quick NPC/chest/teleporter helpers, multi-page conditions, classes, skills, items, enemies, quests, raids, lossless JSON import/export. |
 
-* ▶️ **"Test Map" Quick Tool**: Saves current modifications, exits the editor, and instantly teleports your player character to the clicked coordinate.
-* 📚 **JSON Reference Resilience**: When importing database files, references to entries not present in the game or file are retained safely without crashing; the editor tallies missing links and highlights the first 10 entries for administrator review.
-* 🖼️ **Resource Manager**: Import bespoke audio and graphic files or import complete projects in standard file formats. Damaged or interrupted file uploads are rejected automatically, leaving active assets unharmed.
-* 🧪 **Script Quarantine Safety**: Any imported executable script logic (script commands, script page conditions, script variable formulas) is safely quarantined and **remains inert** until reviewed and activated by an administrator in the *"Scripts to review"* window.
-* 🗑️ **Safe Deletions**: Deleting a map or database record that remains referenced elsewhere (quest targets, transitions, monsters, stores) requires confirmation and presents a list of usages. Deleted entity IDs are never recycled.
-* 🪜 **Special Tiles**: A tile configured as a **ladder** forces the player sprite to look upward; tiles configured as **damage floors** deduct 10 HP per step without ever causing a knock-out.
-* 🔑 **Self Switches vs Instance Switches**: Self switches belong to individual player characters (a opened chest in a dungeon stays opened for that specific player). For states bound to a specific dungeon run, declare an instance-bound switch under the **System** tab.
+- ▶️ **"Test Map":** saves your edits, hides the editor, and warps your character directly onto the clicked tile.
+- 🖼️ **Resources & Imports:** validates formats and pixel bounds, protects existing uploads from partial transfers, and **quarantines** all imported script logic until manually approved in *"Scripts to review"*.
+- 🗑️ **Safe deletions:** warns with a full usage list before removing referenced maps or records; deleted entity IDs are never reused.
+- 🪜 **Special tiles & Switches:** **ladder** tiles lock character facing upward; **damage floors** deal 10 HP per step without knocking out; **instance switches** (System tab) scope dungeon puzzle state per run.
 
 ---
 
@@ -707,51 +577,38 @@ For accounts granted administrator privileges, the world editor is accessible di
 
 ## 🛡️ Administration & Moderation
 
-### 📊 Management Dashboard (`/admin`)
+### 📊 Panel (`/admin`)
+- **Live dashboard:** periodic CPU usage sampling, event loop lag monitor, active players, maps, and instances.
+- **Account tools & GM panel:** roles, warnings, mutes, bans, password resets *(moderators see masked emails with no IP visibility; the server owner cannot be demoted)*, teleportation, staff invisibility, item/gold grants, global progress flags, and announcements.
+- **Audit logs & Backups:** connection, trade, sale, rare drop, and report history; downloads stripped of sessions and secrets; schema-validated restores requiring admin password confirmation for both server backups and uploaded archives.
 
-Available to authorized moderators and administrators:
-
-* 📈 **Live Overview**: Monitor active server load, connected player sessions, and active map/dungeon instances.
-* 👤 **Account Oversight**: Manage permission roles, issue kicks/mutes/bans, force logouts, or reset credentials.  
-  *(Moderators view masked email addresses and no IP addresses. The root server administrator cannot be demoted).*
-* 🧰 **Game Tools**: Coordinate-based teleportation, staff invisibility, currency/item distribution, global switch manipulation, and server-wide broadcast banners.
-* 📝 **Audit Logs**: Tamper-proof logs detailing connections, player trades, vendor transactions, rare loot drops, and moderation actions.
-* 💾 **Backup & Restore**: Download database backups stripped of server secrets and sessions. Restores are verified against strict schema constraints before application and, whether from a server backup or an uploaded file, ask for the administrator's password again.
-
-### 💬 In-Game Staff Commands
+### 💬 Staff Chat Commands
 
 | Command | Min Role | Effect |
 | :--- | :---: | :--- |
-| `/kick <player> [reason]` | Moderator | Disconnects the targeted player immediately (may log back in). |
-| `/mute <player> [duration] [reason]` | Moderator | Mutes player across channels for a specified duration (`30m`, `2h`, `7d`). |
-| `/unmute <player>` | Moderator | Removes an active chat silence from the user. |
-| `/ban <player> [duration\|perm] [reason]` | Administrator | Temporarily or permanently suspends the user account. |
-| `/unban <player>` | Administrator | Revokes an existing account suspension. |
-| `/all <message>` | Moderator | Broadcasts a priority announcement to the global staff-only world channel. |
-| `/pkick <player>` | Player (Leader) | Removes an adventurer from your active expedition party. |
+| `/kick <player> [reason]` | Moderator | Disconnects the player immediately. |
+| `/mute <player> [duration] [reason]` | Moderator | Silences chat (`30m`, `2h`, `7d`). |
+| `/unmute <player>` | Moderator | Lifts an active mute. |
+| `/ban <player> [duration\|perm] [reason]` | Administrator | Suspends an account temporarily or permanently. |
+| `/unban <player>` | Administrator | Revokes an active ban. |
+| `/all <message>` | Moderator | Broadcasts on the global staff channel. |
+| `/pkick <player>` | Player (Leader) | Removes a member from your party. |
 
 > [!TIP]
-> **Data Retention & Privacy**: Automated backups execute nightly at the hour configured in the panel (default: 4:00 AM) with retention windows of 1, 7, 14, or 31 days. Activity logs older than 90 days are pruned daily, and account deletion permanently scrubs all associated IP history.
+> **Retention & Privacy:** nightly automated backups run at the configured hour (default 4:00 AM) with 1 / 7 / 14 / 31-day rotation, logs older than 90 days are pruned daily, and deleting an account permanently wipes its IP history.
 
 ---
 
 ## 🌳 Demonstration World
 
-Fresh installations come with a ready-to-play starter world:
-* 🏘️ **Village of Brindiwanko**: Interactive villagers, general store merchant, restful inn, bank storage clerk, and starter chests.
-* 🌲 **Bruyère Forest**: Roaming wildlife, collectable herbs, and scripted introductory cutscenes.
-* 🏠 **House Interiors**: Fully decorated indoor maps with seamless entrance transitions.
-* 🦇 **Bruyère Cavern**: Instanced dungeon housing the formidable 👺 **Goblin King** raid encounter.
-* 📖 **Chapter 1 Storyline**: A sequence of linked starter quests teaching basic adventure mechanics.
+Every clean install includes a starter adventure: **Village of Brindiwanko**, **Bruyère Forest**, **House Interiors**, **Bruyère Cavern** *(instanced dungeon featuring the Goblin King raid)*, and **Chapter 1** storyline quests.
 
 ```bash
-# Export the complete demo world into JSON files in demo/
+# Export the demo world into JSON files under demo/
 npm run demo:export
 ```
 
-> [!TIP]
-> **Resetting to a Blank World**: Shut down the server, delete the database files `data/game.db*` (including `-wal` and `-shm`), and restart.  
-> On clean startup, the terminal prompts: `Choose language/Choix de la langue (EN/FR) :`. The starter world will be populated in the chosen language. In unattended deployments (pm2, Docker), set `CONTENT_LANGUAGE=en` or `fr`.
+> **Resetting the world:** stop the server, delete `data/game.db*` (including `-wal` and `-shm`), and restart. In unattended environments (pm2, Docker), set `CONTENT_LANGUAGE=en` or `fr`.
 
 ---
 
@@ -759,78 +616,63 @@ npm run demo:export
 
 ## ⚙️ Configuration
 
-All environment variables are optional with sensible defaults:
+All environment variables are optional:
 
-| Variable | Default | Description |
+| Variable | Default | Purpose |
 | :--- | :---: | :--- |
-| `PORT` | `3000` | HTTP and WebSocket listener port. |
-| `HOST` | `0.0.0.0` | Network bind address (`127.0.0.1` strongly advised behind an nginx reverse proxy). |
-| `DB_PATH` | `game.db` in `DATA_DIR` | Path of the SQLite file, absolute (e.g. `/var/lib/brindiwanko/game.db`) or relative to the **project folder** (not to `DATA_DIR`). Its backups go to a `backups/` folder next to it. |
-| `DATA_DIR` | `data/` | Folder of the default database and of its `backups/` subfolder (no effect on a `DB_PATH` you set). |
-| `UPLOADS_DIR` | `uploads/` | Storage directory for uploaded user assets (served under `/uploads/`). |
-| `NODE_ENV` | — | Set to `production` to enforce secure cookies, HSTS headers, and asset caching. |
-| `SESSION_SECRET` | auto-generated | Secret key used to sign HTTP session cookies. |
-| `TRUST_PROXY` | — | Set to `1` or `true` behind a reverse proxy (`0`/`false` to disable; invalid values fail startup). Required for HTTPS cookie validation and IP tracing. |
-| `SETUP_CODE` | random token | Verification code required when registering the initial admin account in production (recommended to set explicitly when using centralized log collection). |
-| `CONTENT_LANGUAGE` | prompt | `en` or `fr`: sets the language for initial database demo generation. |
-| `PUBLIC_URL` | — | Canonical public address (e.g. `https://game.example.org`). Blocks CSWSH attacks. |
-| `REGISTRATIONS_PER_HOUR` | `10` *(prod)* | Maximum account registrations per IP per hour (`0` = unlimited). |
-| `IMPORTS_PER_15_MIN` | `3` *(prod)* | Project imports (up to 200 MB each) one account may start per 15 minutes; unlimited outside production (`0` = unlimited). |
-| `MAX_CHARACTERS` | `4` | Maximum character slots permitted per player account. |
-| `SMTP_URL` | — | Outbound SMTP connection string (e.g. `smtps://user:pass@smtp.example.org:465`). |
-| `MAIL_FROM` | — | From address for outgoing transaction emails (e.g. `Brindiwanko <no-reply@example.org>`). |
-
-> [!NOTE]
-> Gameplay rules (currency names, level caps, guild limits, bag capacities) are adjusted in the editor's **System** tab. Class-specific starting spawn locations are defined within the **Classes** tab.
+| `PORT` / `HOST` | `3000` / `0.0.0.0` | Listener port and interface (`127.0.0.1` advised behind nginx). |
+| `DB_PATH` | `data/game.db` | SQLite database path (absolute or project-relative; backups sit alongside). |
+| `DATA_DIR` / `UPLOADS_DIR` | `data/` / `uploads/` | Default data folder and uploaded resource directory. |
+| `NODE_ENV` | — | `production` enables `Secure` cookies, HSTS headers, and static asset caching. |
+| `SESSION_SECRET` | auto-generated | Secret key used to sign session cookies. |
+| `TRUST_PROXY` | `false` | Accepts `1` or `true` behind a reverse proxy (`0`/`false` to disable; invalid values fail startup). |
+| `PUBLIC_URL` | — | Canonical public origin (e.g. `https://game.example.org`), required to block CSWSH attacks. |
+| `SETUP_CODE` | random token | Setup code required for first admin registration in production (set explicitly when logs are centralized). |
+| `CONTENT_LANGUAGE` | terminal prompt | `en` or `fr` to seed the starter world non-interactively. |
+| `REGISTRATIONS_PER_HOUR` | `10` *(prod)* | Account registration rate limit per IP per hour (`0` = unlimited). |
+| `IMPORTS_PER_15_MIN` | `3` *(prod)* | Project import limit (up to 200 MB each) per account per 15 min (`0` = unlimited). |
+| `MAX_CHARACTERS` | `4` | Maximum characters per account. |
+| `SMTP_URL` / `MAIL_FROM` | — | Outbound SMTP URI and sender address for password reset emails. |
 
 ---
 
-## 🧪 Testing & Quality Verification
+## 🧪 Testing & Quality Assurance
 
 ```bash
-# Runs naming lint, translation parity checks, and the 320+ unit test suite
+# Runs naming lint, i18n parity/placeholder/EJS checks, and all 330 tests
 npm test
 
-# Strict TypeScript type checks across server, client, and developer tools
+# Strict TypeScript checks across server, client, and build tools
 npm run typecheck
 
-# Network load test: 80 simulated concurrent clients over 15 seconds
+# Network stress test: 80 concurrent simulated clients over 15 seconds
 npm run load-test -- 80 15
 ```
 
 > [!NOTE]
-> All automated tests execute in an isolated temporary directory: live files in `data/` and `uploads/` are never touched during testing runs.
+> All automated tests run against isolated temporary storage: live `data/` and `uploads/` folders are never modified.
 
 ---
 
 <a id="en-deployment"></a>
 
-## 🚀 Production Deployment
-
-Standard production deployment on a Linux server using **nginx**, **Let's Encrypt** SSL, and **pm2** process management:
+## 🌐 Production Deployment
 
 ```bash
-# Global PM2 setup and build
+# Clean install and build
 npm install -g pm2
-npm ci
-npm run build
+npm ci && npm run build
 
-# Start server bound to local loopback interface
+# Launch single-process service behind nginx
 NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 PUBLIC_URL=https://game.example.org PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
-
-# Persist daemon across server reboots
-pm2 startup
-pm2 save
+pm2 startup && pm2 save
 ```
 
-### 🔒 Operational Security Checklist
-1. **Loopback Binding**: `HOST=127.0.0.1` guarantees Node.js only accepts connections forwarded by nginx, eliminating unproxied access vectors.
-2. **Reverse Proxy & HTTPS**: With `TRUST_PROXY=1`, session cookies are marked `Secure`, requiring HTTPS transport.
-3. **CSWSH Defense**: Providing `PUBLIC_URL` ensures WebSocket upgrades originating from third-party origins are rejected.
-4. **Sandboxed Event Scripts**: The event scripting sandbox has no filesystem access and enforces a strict memory ceiling. Run the server under a dedicated system user with restricted permissions.
-5. **Single Process**: Never run pm2 in cluster mode (`-i`): game world state and combat simulations rely on single-process state integrity.
+> [!IMPORTANT]
+> **Operational checklist:** bind locally (`127.0.0.1`) behind HTTPS with `PUBLIC_URL` configured, run under an unprivileged OS user, and **never** enable PM2 cluster mode (`-i`) because world simulation and combat require a single process.
 
-### 🌐 Nginx Configuration
+<details>
+<summary>🌐 Recommended nginx config (SSL, WebSockets & 500 MB restore/import uploads)</summary>
 
 ```nginx
 server {
@@ -846,18 +688,13 @@ server {
   ssl_certificate /etc/letsencrypt/live/game.example.org/fullchain.pem;
   ssl_certificate_key /etc/letsencrypt/live/game.example.org/privkey.pem;
 
-  # Allow large project uploads (200MB) and database restore archives (500MB)
   client_max_body_size 500m;
 
   location / {
     proxy_pass http://127.0.0.1:3000;
     proxy_http_version 1.1;
-
-    # WebSocket Upgrade
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
-
-    # Forwarding Headers
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Host $host;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -866,14 +703,15 @@ server {
 }
 ```
 
-### ☁️ Behind Cloudflare (or a Second Proxy)
+</details>
 
-With Cloudflare (or any other proxy) in front of nginx, `TRUST_PROXY=1` makes the application see Cloudflare's address instead of the player's. Every player would then share the same registration limit (10 per hour and per address in production) and login limits, and the logs would only record Cloudflare addresses.
+<details>
+<summary>☁️ Behind Cloudflare or an upstream proxy (nginx realip module)</summary>
 
-Have nginx restore the player's real address (`realip` module, included in the Debian and Ubuntu nginx packages) by adding these lines to the `server { listen 443 … }` block above:
+When another proxy sits in front of nginx, `TRUST_PROXY=1` alone makes the app see the proxy's address instead of the player's (sharing registration and login rate limits). Add inside `server { listen 443 … }`:
 
 ```nginx
-# Cloudflare address ranges, published at https://www.cloudflare.com/ips/ (check them now and then)
+# Cloudflare IP ranges (https://www.cloudflare.com/ips/)
 set_real_ip_from 173.245.48.0/20;
 set_real_ip_from 103.21.244.0/22;
 set_real_ip_from 103.22.200.0/22;
@@ -897,64 +735,34 @@ set_real_ip_from 2405:8100::/32;
 set_real_ip_from 2a06:98c0::/29;
 set_real_ip_from 2c0f:f248::/32;
 
-# Player address sent by Cloudflare (trusted only for connections coming from the ranges above)
 real_ip_header CF-Connecting-IP;
 ```
 
-Keep `TRUST_PROXY=1`: nginx then passes the player's real address on to the application. With a proxy other than Cloudflare, list its own addresses in `set_real_ip_from`, then use `real_ip_header X-Forwarded-For;` and `real_ip_recursive on;`.
+For another upstream proxy, replace the ranges with its IPs and use `real_ip_header X-Forwarded-For;` with `real_ip_recursive on;`. Keep `TRUST_PROXY=1`.
 
-### 💾 Backup Restoration Guide
+</details>
+
+<details>
+<summary>💾 Restoring backups & updating</summary>
 
 ```bash
-# Display chronological list of available backups
+# List backups or prepare a restore (then restart)
 npm run restore
-
-# Restore the most recent backup snapshot (or specify an exact archive name)
 npm run restore -- latest
-
-# Restart the process to apply the restored state
 pm2 restart Brindiwanko
 ```
-
-> [!TIP]
-> Restoring a snapshot preserves existing database state with a `.before-restore` extension. Restored archives are automatically purged of active sessions and secrets. Schedule regular off-site transfers of the `data/backups/` directory.
-
-### 🔄 Updating
 
 ```bash
-# 1. Check that a recent backup exists (the newest is at the top of the list)
-npm run restore
-
-# 2. Fetch the new version
+# Safe update workflow
+npm run restore           # Verify a recent backup exists
 git pull
-
-# 3. Install the exact dependencies, then rebuild
-npm ci
-npm run build
-
-# 4. Restart the service
+npm ci && npm run build
 pm2 restart Brindiwanko
 ```
 
-> [!NOTE]
-> Database migrations apply on their own when the server starts: no other command is needed.  
-> If something goes wrong, put back the last backup made before the update with `npm run restore -- latest` (or its name, shown by `npm run restore`), then `pm2 restart Brindiwanko`.
+> Database migrations apply automatically on startup. Replaced databases are preserved as `.before-restore`, and applied snapshots have all sessions and secrets stripped.
 
----
-
-## 📁 Source Tree Architecture
-
-```text
-Brindiwanko/
-├── server/       # Node.js backend (Express, Socket.io, World simulation, SQLite database)
-├── client/       # Web client (Canvas 2D render loop, UI windows, Embedded world editor)
-├── shared/       # Shared contracts (Network wire protocol, Math formulas, Shared types)
-├── assets/       # Procedural SVG pixel art generators and asset compilation targets
-├── views/        # EJS templates for public account and auth views
-├── locales/      # Internationalization dictionaries (fr.json, en.json)
-├── scripts/      # Operational scripts (Build pipeline, Load tester, Demo export)
-└── tests/        # Automated test suites (node --test)
-```
+</details>
 
 ---
 
@@ -962,17 +770,17 @@ Brindiwanko/
 
 ## 📜 Changelog (Latest Fixes)
 
-See [CHANGELOG.md](CHANGELOG.md) for full release notes. Latest improvements integrated since `1.0.0-beta.1`:
+See [CHANGELOG.md](CHANGELOG.md) for complete release notes. Key updates since `1.0.0-beta.1`:
 
-* 🔒 **Security & non-blocking restore**: `POST /api/admin/restore` verifies the password and `restoring` lock before body buffering, `prepareRestore` runs asynchronously via Worker + `fs.promises.cp`, and hardening covers ZIP overlaps, SVG bounds/CSS escapes, script ID bounds, `Sec-Fetch-Site` handshakes, and edit-lock release on password resets.
-* ⚡ **Performance, reliability & client lifecycle**: Added migration `002_indexes.sql` (6 secondary indexes), transaction-safe `SettingsRepository` cache, unified guild directory queries, defensive JSON parsing, transactional account deletion, multi-tab reconnect `characterId` checks, `AbortController`/`destroy()` cleanup, and extended `i18n:check` validation for placeholders and `.ejs` views.
-* 🗺️ **Monster region confinement**: Monsters stay within their spawn region while idle (and while fleeing in painted multi-cell zones); aggro spotting and return leashing keep chasing monsters near their hunting region (within a 2-cell margin, leaving single-tile boss markers unrestricted during combat).
-* 🎮 **Responsive controls**: Clicking the map canvas returns keyboard focus from the chat input immediately, and a `150 ms` action buffer executes interactions pressed near the end of a step on arrival.
-* 📱 **Clean dialogue layering & live touch switching**: Bottom bars, chat, and touch controls hide during active dialogues, and automatic `touch-mode` tracks `(hover: none)` and viewport resizes live without needing a manual page reload.
-* 🛠️ **Editor ergonomics**: The tile palette preserves per-tab selection and scroll position, and database editor `+ Add` buttons (such as quest steps and objectives) stay accessible above the fold.
+- 🔒 **Security & non-blocking restore:** `POST /api/admin/restore` verifies admin password and `restoring` lock before body buffering; `prepareRestore` runs asynchronously via Worker + `fs.promises.cp`; hardening covers ZIP overlaps, SVG bounds/CSS escapes, script ID bounds, `Sec-Fetch-Site` handshakes, and edit-lock release on password resets.
+- ⚡ **Performance, reliability & lifecycle:** added migration `002_indexes.sql` (6 secondary indexes), transaction-safe `SettingsRepository` cache, unified guild directory SQL queries, defensive JSON parsing, transactional account deletion, multi-tab reconnect `characterId` checks, `AbortController`/`destroy()` cleanup, and extended `i18n:check` checks for placeholders and `.ejs` views.
+- 🗺️ **Monster region confinement:** monsters remain within their spawn region while idle and fleeing on multi-cell zones, spot players within 1 cell of painted region borders, and leash home beyond 2 cells outside *(single-tile boss markers stay unrestricted)*.
+- 🎮 **Player & editor ergonomics:** clicking the canvas restores keyboard focus, a `150 ms` input buffer captures step-end interactions, bottom bars/chat hide during active dialogues, `touch-mode` updates live without reloads, tile palettes keep per-tab selection/scroll, and database `+ Add` buttons stay anchored.
 
 ---
 
-## 📄 License
+<div align="center">
 
-This software is released under the **[Apache 2.0 License](LICENSE)**.
+📄 Released under the **[Apache 2.0 License](LICENSE)** &nbsp;·&nbsp; [⬆️ Back to Top (EN)](#en-top) &nbsp;·&nbsp; [🇫🇷 Version Française](#fr-top)
+
+</div>
