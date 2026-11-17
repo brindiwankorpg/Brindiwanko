@@ -47,6 +47,7 @@ async function boot(): Promise<void> {
   let expectedCharacterId: number | null = null;
   const socket: GameSocket = io({
     transports: ['websocket', 'polling'],
+    tryAllTransports: true,
     reconnection: true,
     reconnectionAttempts: 20,
     reconnectionDelayMax: 5000,

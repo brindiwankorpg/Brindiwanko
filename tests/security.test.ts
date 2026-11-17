@@ -184,6 +184,8 @@ test('behind a proxy, the client address and the public origin are read as confi
   assert.equal(isSameOrigin(from('https://evil.example'), true, 'https://jeu.example.org'), false, 'a forged forwarded host does not help');
   assert.equal(isSameOrigin(request({ 'sec-fetch-site': 'cross-site' }), false), false, 'cross-site fetch metadata rejected even without Origin');
   assert.equal(isSameOrigin(request({ 'sec-fetch-site': 'same-origin' }), false), true);
+  assert.equal(isSameOrigin(request({ origin: 'https://jeu.example.org', host: 'jeu.example.org', 'x-forwarded-host': '' }), true), true);
+  assert.equal(isSameOrigin(request({ origin: 'https://jeu.example.org', host: 'jeu.example.org', 'x-forwarded-host': 'jeu.example.org:443' }), true), true);
   assert.equal(boolFromEnv('TRUST_PROXY', { TRUST_PROXY: 'true' }), true);
   assert.equal(boolFromEnv('TRUST_PROXY', { TRUST_PROXY: '1' }), true);
   assert.equal(boolFromEnv('TRUST_PROXY', { TRUST_PROXY: 'false' }), false);

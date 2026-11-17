@@ -411,6 +411,7 @@ pm2 logs Brindiwanko --lines 30
 | `nginx -t` dit `No such file` | Un lien symbolique dans `/etc/nginx/sites-enabled/` pointe vers un fichier supprimé. | Supprime le lien cassé (`sudo rm /etc/nginx/sites-enabled/<nom>`) et refais `sudo ln -s ...`. |
 | `bind() to 0.0.0.0:80 failed` | Un autre serveur web (souvent **Apache2**) est déjà allumé sur le port `80`. | Trouve-le avec `sudo ss -tulpn \| grep :80` puis arrête Apache : `sudo systemctl stop apache2 && sudo systemctl disable apache2`. |
 | Certbot échoue sur `www` | Tu n'as pas mis d'enregistrement DNS pour `www.mondomaine.fr`. | Relance sans `www` : `sudo certbot --nginx --cert-name mondomaine.fr -d mondomaine.fr`. |
+| **`WebSocket ... code: 400`** dans le navigateur | Soit les en-têtes `Upgrade`/`Connection` manquent dans le bloc Nginx actif (port `443`), soit `PUBLIC_URL` ne correspond pas exactement à l'URL ouverte (`www` vs sans `www`, `http` vs `https`). | Vérifie `pm2 logs Brindiwanko` (affiche le détail du rejet) et `sudo nginx -T`, puis assure-toi que `Upgrade` + `Connection "upgrade"` sont présents sur le port `443` et que `PUBLIC_URL` correspond exactement à l'adresse du navigateur. |
 
 </details>
 
@@ -914,6 +915,7 @@ pm2 logs Brindiwanko --lines 30
 | `nginx -t` says `No such file` | A shortcut inside `/etc/nginx/sites-enabled/` points to a deleted file. | Remove the broken shortcut (`sudo rm /etc/nginx/sites-enabled/<name>`) and recreate `sudo ln -s ...`. |
 | `bind() to 0.0.0.0:80 failed` | Another web server (usually **Apache2**) is already using port `80`. | Check with `sudo ss -tulpn \| grep :80` then stop Apache: `sudo systemctl stop apache2 && sudo systemctl disable apache2`. |
 | Certbot fails on `www` | No DNS record exists for `www.mydomain.com`. | Re-run without `www`: `sudo certbot --nginx --cert-name mydomain.com -d mydomain.com`. |
+| **`WebSocket ... code: 400`** in browser DevTools | Either Nginx's active HTTPS (`443`) block is missing `Upgrade`/`Connection "upgrade"`, or `PUBLIC_URL` does not match the exact origin opened (`www` vs root, `http` vs `https`). | Inspect `pm2 logs Brindiwanko` and `sudo nginx -T`, ensure `Upgrade` + `Connection "upgrade"` are inside the `443` `location /` block, and match `PUBLIC_URL` to the exact browser origin. |
 
 </details>
 

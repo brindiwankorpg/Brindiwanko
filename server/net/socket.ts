@@ -51,7 +51,8 @@ export function isSameOrigin(req: IncomingMessage, trustProxy: boolean, publicUr
   }
   if (publicUrl) return url.origin === publicUrl;
   const forwarded = trustProxy ? req.headers['x-forwarded-host'] : undefined;
-  const expected = (typeof forwarded === 'string' ? forwarded.split(',')[0]!.trim() : undefined) ?? req.headers.host;
+  const forwardedHost = typeof forwarded === 'string' ? forwarded.split(',')[0]!.trim() : Array.isArray(forwarded) ? forwarded[0]?.split(',')[0]?.trim() : undefined;
+  const expected = (forwardedHost || req.headers.host)?.replace(/:(80|443)$/, '');
   return url.host !== '' && url.host === expected;
 }
 
@@ -79,7 +80,23 @@ export function createSocketServer(httpServer: HttpServer, ctx: ServerContext): 
     serveClient: false,
     // Keep payloads small: nothing legitimate that a client sends comes near this.
     maxHttpBufferSize: 64 * 1024,
-    allowRequest: (req, callback) => callback(null, isSameOrigin(req, ctx.config.trustProxy, ctx.config.publicUrl)),
+    allowRequest: (req, callback) => {
+      const ok = isSameOrigin(req, ctx.config.trustProxy, ctx.config.publicUrl);
+      if (!ok) {
+        console.warn(
+          `[brindiwanko] rejected socket handshake (origin=${req.headers.origin ?? 'none'}, sec-fetch-site=${String(req.headers['sec-fetch-site'] ?? 'none')}, host=${req.headers.host ?? 'none'}, x-forwarded-host=${String(req.headers['x-forwarded-host'] ?? 'none')}, publicUrl=${ctx.config.publicUrl ?? 'unset'})`,
+        );
+      }
+      callback(null, ok);
+    },
+  });
+
+  io.engine.on('connection_error', (err: { req: IncomingMessage; code: number; message: string; context?: Record<string, unknown> }) => {
+    if (err.code !== 4) {
+      console.warn(
+        `[brindiwanko] socket engine error code=${err.code} (${err.message}) upgrade=${err.req.headers.upgrade ?? 'none'} connection=${err.req.headers.connection ?? 'none'} context=${JSON.stringify(err.context ?? {})}`,
+      );
+    }
   });
 
   // Run the Express session middleware on the engine's HTTP handshake requests.
