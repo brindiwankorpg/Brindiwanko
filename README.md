@@ -230,7 +230,7 @@ Toutes les variables d'environnement sont optionnelles :
 | `NODE_ENV` | — | `production` active cookies `Secure`, HSTS et caches statiques. |
 | `SESSION_SECRET` | auto-généré | Secret de signature des sessions HTTP. |
 | `TRUST_PROXY` | `false` | Accepter `1` ou `true` derrière un reverse proxy (`0`/`false` pour désactiver ; échoue au démarrage sinon). |
-| `PUBLIC_URL` | — | Origine publique (ex. `https://jeu.mondomaine.org`) requise contre les attaques CSWSH. |
+| `PUBLIC_URL` | — | Origine publique (ex. `https://mondomaine.fr`) requise contre les attaques CSWSH. |
 | `SETUP_CODE` | aléatoire | Code du premier compte administrateur en production (à fixer explicitement si vos logs sont centralisés). |
 | `CONTENT_LANGUAGE` | prompt terminal | `fr` ou `en` pour générer le monde de démonstration sans saisie interactive. |
 | `REGISTRATIONS_PER_HOUR` | `10` *(prod)* | Limite d'inscriptions par heure et par IP (`0` = illimité). |
@@ -268,7 +268,7 @@ npm install -g pm2
 npm ci && npm run build
 
 # Lancement en processus unique derrière nginx
-NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 PUBLIC_URL=https://jeu.mondomaine.org PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
+NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 PUBLIC_URL=https://mondomaine.fr PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
 pm2 startup && pm2 save
 ```
 
@@ -282,7 +282,7 @@ pm2 startup && pm2 save
 server {
     listen 80;
     listen [::]:80;
-    server_name game.com www.game.com;
+    server_name mondomaine.fr www.mondomaine.fr;
 
     client_max_body_size 500m;
 
@@ -621,7 +621,7 @@ All environment variables are optional:
 | `NODE_ENV` | — | `production` enables `Secure` cookies, HSTS headers, and static asset caching. |
 | `SESSION_SECRET` | auto-generated | Secret key used to sign session cookies. |
 | `TRUST_PROXY` | `false` | Accepts `1` or `true` behind a reverse proxy (`0`/`false` to disable; invalid values fail startup). |
-| `PUBLIC_URL` | — | Canonical public origin (e.g. `https://game.example.org`), required to block CSWSH attacks. |
+| `PUBLIC_URL` | — | Canonical public origin (e.g. `https://mydomain.com`), required to block CSWSH attacks. |
 | `SETUP_CODE` | random token | Setup code required for first admin registration in production (set explicitly when logs are centralized). |
 | `CONTENT_LANGUAGE` | terminal prompt | `en` or `fr` to seed the starter world non-interactively. |
 | `REGISTRATIONS_PER_HOUR` | `10` *(prod)* | Account registration rate limit per IP per hour (`0` = unlimited). |
@@ -659,7 +659,7 @@ npm install -g pm2
 npm ci && npm run build
 
 # Launch single-process service behind nginx
-NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 PUBLIC_URL=https://game.example.org PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
+NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 PUBLIC_URL=https://mydomain.com PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
 pm2 startup && pm2 save
 ```
 
@@ -673,7 +673,7 @@ pm2 startup && pm2 save
 server {
     listen 80;
     listen [::]:80;
-    server_name game.com www.game.com;
+    server_name mydomain.com www.mydomain.com;
 
     client_max_body_size 500m;
 
