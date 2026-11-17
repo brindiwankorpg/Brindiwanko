@@ -106,21 +106,20 @@ Brindiwanko/
 Sur Ubuntu ou Debian, les dépôts `apt` par défaut proposent souvent une version de Node.js inférieure à `24`. **`nvm`** (Node Version Manager) permet d'installer **Node.js 26 LTS** et **`npm`** directement dans ton dossier utilisateur, sans privilèges `root` :
 
 ```bash
-# 1. Installer nvm (vérifie la dernière version sur https://github.com/nvm-sh/nvm/releases)
-#    (Si curl manque : sudo apt update && sudo apt install -y curl)
+# Télécharger et installer nvm :
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh | bash
 
-# 2. Charger nvm dans le terminal actuel (ou fermer puis rouvrir la session SSH)
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+# Charger nvm sans redémarrer le terminal :
+\. "$HOME/.nvm/nvm.sh"
 
-# 3. Installer Node.js 26 LTS (fournit npm automatiquement) et le définir par défaut
+# Télécharger et installer Node.js :
 nvm install 26
-nvm alias default 26
 
-# 4. Vérifier les versions installées
-node -v
-npm -v
+# Vérifier la version de Node.js :
+node -v # Doit afficher "v26.13.1".
+
+# Vérifier la version de npm :
+npm -v # Doit afficher "11.20.0".
 ```
 
 > **Important :** Avec `nvm`, Node.js, `npm` et les paquets globaux sont installés dans `~/.nvm` (ton dossier personnel) et non dans `/usr/bin`. Pour installer un paquet global comme `pm2`, n'utilise **jamais** `sudo` (`npm install -g pm2` directement). À l'inverse, si Node.js a été installé au niveau système via `apt`, `sudo npm install -g pm2` reste nécessaire.
@@ -656,21 +655,20 @@ Brindiwanko/
 On Ubuntu or Debian, default `apt` packages often ship a Node.js version older than `24`. **`nvm`** (Node Version Manager) installs **Node.js 26 LTS** and **`npm`** directly inside your user home directory without `root` privileges:
 
 ```bash
-# 1. Install nvm (check https://github.com/nvm-sh/nvm/releases for the latest tag)
-#    (If curl is missing: sudo apt update && sudo apt install -y curl)
+# Download and install nvm:
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh | bash
 
-# 2. Load nvm in your current terminal (or close and reopen the SSH session)
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+# in lieu of restarting the shell
+\. "$HOME/.nvm/nvm.sh"
 
-# 3. Install Node.js 26 LTS (includes npm automatically) and set it as default
+# Download and install Node.js:
 nvm install 26
-nvm alias default 26
 
-# 4. Verify active versions
-node -v
-npm -v
+# Verify the Node.js version:
+node -v # Should print "v26.13.1".
+
+# Verify npm version:
+npm -v # Should print "11.20.0".
 ```
 
 > **Important:** With `nvm`, Node.js, `npm`, and global packages live in `~/.nvm` (your home directory) rather than `/usr/bin`. Never use `sudo` when installing global packages like `pm2` (run `npm install -g pm2` directly). Conversely, if Node.js was installed system-wide via `apt`, `sudo npm install -g pm2` is still required.
