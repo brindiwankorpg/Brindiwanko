@@ -9,7 +9,7 @@
 import type { Statement } from 'better-sqlite3';
 import { normalizeRecord } from '../../shared/database-schema.js';
 import { DATABASE_TYPES, type DatabaseType, type GameDataType, type GameDataTypes } from '../../shared/database.js';
-import type { Db } from './database.js';
+import { safeJsonParse, type Db } from './database.js';
 import { SettingsRepository } from './settings.js';
 
 /**
@@ -51,7 +51,9 @@ export class GameDataRepository {
     if (!entries) {
       entries = new Map();
       for (const row of this.listStmt.all(type)) {
-        let record = JSON.parse(row.data) as GameDataTypes[T];
+        const parsed = safeJsonParse<GameDataTypes[T] | null>(row.data, null);
+        if (!parsed) continue;
+        let record = parsed;
         // Records written by older versions are completed with the current schema's defaults.
         if ((DATABASE_TYPES as readonly string[]).includes(type)) {
           record = normalizeRecord(type as DatabaseType, record, record.id) as unknown as GameDataTypes[T];

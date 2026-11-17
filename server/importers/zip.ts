@@ -62,6 +62,7 @@ export async function readZip(buf: Buffer, limits: ZipLimits = DEFAULT_ZIP_LIMIT
   let offset = buf.readUInt32LE(eocd + 16);
   if (count > limits.maxEntries) throw new ZipError('error.import.too_many_files');
   const entries: ZipEntry[] = [];
+  const usedRanges: Array<[number, number]> = [];
   let total = 0;
   for (let n = 0; n < count; n++) {
     if (offset + 46 > buf.length || buf.readUInt32LE(offset) !== CENTRAL) throw new ZipError('error.import.corrupt');
@@ -82,6 +83,7 @@ export async function readZip(buf: Buffer, limits: ZipLimits = DEFAULT_ZIP_LIMIT
     if (localOffset + 30 > buf.length || buf.readUInt32LE(localOffset) !== LOCAL) throw new ZipError('error.import.corrupt');
     const start = localOffset + 30 + buf.readUInt16LE(localOffset + 26) + buf.readUInt16LE(localOffset + 28);
     if (start + compressed > buf.length) throw new ZipError('error.import.corrupt');
+    usedRanges.push([localOffset, start + compressed]);
     const raw = buf.subarray(start, start + compressed);
     let data: Buffer;
     if (method === 0) {
@@ -94,8 +96,13 @@ export async function readZip(buf: Buffer, limits: ZipLimits = DEFAULT_ZIP_LIMIT
       } catch {
         throw new ZipError('error.import.corrupt');
       }
+      if (data.length !== size) throw new ZipError('error.import.corrupt');
     } else throw new ZipError('error.import.unsupported_compression');
     entries.push({ name, data });
+  }
+  usedRanges.sort((a, b) => a[0] - b[0]);
+  for (let i = 1; i < usedRanges.length; i++) {
+    if (usedRanges[i]![0] < usedRanges[i - 1]![1]) throw new ZipError('error.import.corrupt');
   }
   return entries;
 }

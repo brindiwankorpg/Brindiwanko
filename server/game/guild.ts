@@ -226,14 +226,14 @@ export class GuildService {
    * A character is about to be deleted: it leaves its guild. A leader hands the
    * lead to the highest-ranked remaining member; a guild left empty ends.
    */
-  characterDeleted(characterId: number, name: string): void {
+  characterDeleted(characterId: number, name: string, notify = true): number | null {
     const membership = this.repo.membership(characterId);
-    if (!membership) return;
+    if (!membership) return null;
     const { guildId } = membership;
     const heir = this.repo.members(guildId).find((m) => m.characterId !== characterId);
     if (!heir) {
       this.repo.disband(guildId);
-      return;
+      return null;
     }
     this.repo.removeMember(characterId);
     this.repo.log(guildId, null, 'deleted', { name });
@@ -243,6 +243,12 @@ export class GuildService {
       const online = this.world.player(heir.characterId);
       if (online?.guild) online.guild.rank = 0;
     }
+    if (notify) this.pushAll(guildId);
+    return guildId;
+  }
+
+  /** Pushes updated guild members and state to every online member (used after transactional updates). */
+  notifyGuildUpdated(guildId: number): void {
     this.pushAll(guildId);
   }
 

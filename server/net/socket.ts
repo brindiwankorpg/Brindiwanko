@@ -39,6 +39,8 @@ export type GameServer = Server<ClientToServerEvents, ServerToClientEvents, Inte
  * @param publicUrl - Public origin of the game (`PUBLIC_URL`): when set, only this exact origin is accepted.
  */
 export function isSameOrigin(req: IncomingMessage, trustProxy: boolean, publicUrl?: string): boolean {
+  const fetchSite = req.headers['sec-fetch-site'];
+  if (fetchSite !== undefined && fetchSite !== 'same-origin' && fetchSite !== 'none') return false;
   const origin = req.headers.origin;
   if (origin === undefined) return true;
   let url: URL;
@@ -108,6 +110,11 @@ export function createSocketServer(httpServer: HttpServer, ctx: ServerContext): 
       const notice = banNotice(account);
       // The reason and the end date travel in `data`, so the page can tell them.
       next(Object.assign(new Error(notice.key), { data: notice.params }));
+      return;
+    }
+    const requestedId = Number((socket.handshake.auth as { characterId?: unknown } | undefined)?.characterId);
+    if (Number.isInteger(requestedId) && requestedId > 0 && req.session?.characterId !== requestedId) {
+      next(new Error('error.character.not_selected'));
       return;
     }
     const character = ctx.characterService.owned(account.id, req.session?.characterId);

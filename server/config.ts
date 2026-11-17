@@ -12,7 +12,7 @@
  * - `DATA_DIR`, `UPLOADS_DIR` (folder of the default database and its backups, which a `DB_PATH` you set
  *   ignores, and folder of the imported resources; default `data/` and `uploads/`, see `paths.ts`)
  * - `NODE_ENV` (`production` enables secure cookies and disables dev helpers)
- * - `TRUST_PROXY` (set to `1` behind a reverse proxy)
+ * - `TRUST_PROXY` (set to `1` or `true` behind a reverse proxy)
  * - `MAX_CHARACTERS` (characters per account, default 4)
  * - `BRINDIWANKO_DEV` (set to `1` by `npm run dev`)
  * - `SETUP_CODE` (code asked when registering the first account, which becomes
@@ -43,6 +43,13 @@ function intFromEnv(name: string, fallback: number): number {
   return value;
 }
 
+export function boolFromEnv(name: string, env: NodeJS.ProcessEnv = process.env): boolean {
+  const raw = env[name]?.trim().toLowerCase();
+  if (!raw || raw === '0' || raw === 'false') return false;
+  if (raw === '1' || raw === 'true') return true;
+  throw new Error(`Environment variable ${name} must be "1", "true", "0", or "false" (got "${env[name]}")`);
+}
+
 /** Origin (`scheme://host[:port]`) of a public URL given in the environment. */
 function originFromEnv(name: string): string | undefined {
   const raw = process.env[name];
@@ -67,7 +74,7 @@ export const config = Object.freeze({
   sessionSecret: process.env.SESSION_SECRET || undefined,
   /** Database file (`:memory:` keeps everything in memory, for tests). */
   dbPath: process.env.DB_PATH === ':memory:' ? ':memory:' : process.env.DB_PATH ? fromRoot(process.env.DB_PATH) : join(PATHS.data, 'game.db'),
-  trustProxy: process.env.TRUST_PROXY === '1',
+  trustProxy: boolFromEnv('TRUST_PROXY'),
   /** Origin of the public address, when set (game socket origin check). */
   publicUrl: originFromEnv('PUBLIC_URL'),
   /** Accounts one client address may create per hour (0 = unlimited). */

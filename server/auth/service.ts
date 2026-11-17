@@ -210,7 +210,8 @@ export class AuthService {
 
   private async setPassword(account: Account, password: string): Promise<AuthResult> {
     this.accounts.setPasswordHash(account.id, await bcrypt.hash(password, this.bcryptRounds));
-    const updated = this.accounts.findById(account.id)!;
+    const updated = this.accounts.findById(account.id);
+    if (!updated) return { ok: false, errorKey: 'error.auth.not_authenticated' };
     return { ok: true, account: updated, deviceToken: createDeviceToken(this.deviceSecret, updated.username, updated.passwordHash) };
   }
 
@@ -228,7 +229,8 @@ export class AuthService {
       if (err instanceof DuplicateAccountError) return { ok: false, errorKey: 'error.auth.email_taken' };
       throw err;
     }
-    const updated = this.accounts.findById(account.id)!;
+    const updated = this.accounts.findById(account.id);
+    if (!updated) return { ok: false, errorKey: 'error.auth.not_authenticated' };
     return { ok: true, account: updated, deviceToken: createDeviceToken(this.deviceSecret, updated.username, updated.passwordHash) };
   }
 

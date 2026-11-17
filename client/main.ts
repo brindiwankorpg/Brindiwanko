@@ -42,8 +42,16 @@ async function boot(): Promise<void> {
   if (iconUrl) applyIconSet(iconUrl);
 
   // Automatic reconnection after network drops; the server keeps the session, so
-  // it simply sends `enterWorld` again and the game resynchronises.
-  const socket: GameSocket = io({ transports: ['websocket', 'polling'], reconnection: true, reconnectionAttempts: 20, reconnectionDelayMax: 5000 });
+  // it simply sends `enterWorld` again and the game resynchronises. On reconnect,
+  // send the expected character id so switching character in another tab stops cleanly.
+  let expectedCharacterId: number | null = null;
+  const socket: GameSocket = io({
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 20,
+    reconnectionDelayMax: 5000,
+    auth: (cb) => cb(expectedCharacterId === null ? {} : { characterId: expectedCharacterId }),
+  });
   socket.on('connect_error', (err) => {
     // Authentication problems are final; network errors are retried by socket.io.
     if (err.message.startsWith('error.')) {
@@ -61,6 +69,7 @@ async function boot(): Promise<void> {
   socket.on('disconnect', (reason) => {
     // The server closed the connection on purpose (replaced session, kick): no retry.
     if (reason !== 'io server disconnect') return;
+    game?.destroy();
     const notice = lastNotice && Date.now() - lastNotice.at < 5000 ? lastNotice : null;
     showMessage(notice ? tDynamic(notice.key, notice.params) : t('game.disconnected'), true);
   });
@@ -79,6 +88,7 @@ async function boot(): Promise<void> {
   };
   socket.onAny(keepEarly);
   socket.on('enterWorld', (payload: EnterWorldPayload) => {
+    if (expectedCharacterId === null) expectedCharacterId = payload.character.id;
     if (game) {
       void game.reenter(payload);
       return;

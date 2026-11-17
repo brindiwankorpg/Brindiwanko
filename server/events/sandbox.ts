@@ -267,11 +267,13 @@ return JSON.stringify({ ops: __ops, value: typeof __value === 'number' || typeof
   }
 }
 
+const MAX_ID = 9999;
+
 function isOp(o: unknown): o is ScriptOp {
   const op = o as ScriptOp;
   if (typeof op !== 'object' || op === null) return false;
-  if (op.op === 'variable') return Number.isInteger(op.id) && op.id > 0 && Number.isFinite(op.value);
-  if (op.op === 'switch') return Number.isInteger(op.id) && op.id > 0 && typeof op.value === 'boolean';
+  if (op.op === 'variable') return Number.isInteger(op.id) && op.id >= 1 && op.id <= MAX_ID && Number.isSafeInteger(op.value);
+  if (op.op === 'switch') return Number.isInteger(op.id) && op.id >= 1 && op.id <= MAX_ID && typeof op.value === 'boolean';
   if (op.op === 'self') return ['A', 'B', 'C', 'D'].includes(op.letter) && typeof op.value === 'boolean';
   if (op.op === 'notify') return typeof op.text === 'string';
   return false;

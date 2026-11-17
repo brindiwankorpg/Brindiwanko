@@ -57,3 +57,16 @@ export function prepareCached<P extends unknown[] = unknown[], R = unknown>(db: 
   }
   return statement as unknown as Statement<P, R>;
 }
+
+/**
+ * Parses a JSON column stored in SQLite without throwing on corrupted data.
+ * @param raw - Raw JSON text.
+ * @param fallback - Value returned when parsing fails.
+ */
+export function safeJsonParse<T>(raw: string, fallback: T): T {
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}

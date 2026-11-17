@@ -198,6 +198,9 @@ export class World {
   private readonly timers: NodeJS.Timeout[] = [];
   /** Event loop lag (how late timers fire), smoothed, in milliseconds. */
   private lag = 0;
+  private cpuUsagePrev = process.cpuUsage();
+  private cpuSampleAt = Date.now();
+  private cpuPct = 0;
   private io: WorldIo | null = null;
   /** Server-wide switches and variables. */
   readonly global: GlobalProgress;
@@ -261,19 +264,29 @@ export class World {
     for (const t of this.timers) t.unref();
   }
 
-  /** Measures how late a timer of 500 ms fires (the timer is stopped with the world). */
+  /** Measures how late a timer of 500 ms fires and samples process CPU (the timer is stopped with the world). */
   private lagMonitor(): NodeJS.Timeout {
     let expected = Date.now() + 500;
     return setInterval(() => {
       const now = Date.now();
       this.lag = this.lag * 0.8 + Math.max(0, now - expected) * 0.2;
       expected = now + 500;
+      const elapsed = Math.max(1, now - this.cpuSampleAt) * 1000;
+      const cpu = process.cpuUsage(this.cpuUsagePrev);
+      this.cpuUsagePrev = process.cpuUsage();
+      this.cpuSampleAt = now;
+      this.cpuPct = Math.round(((cpu.user + cpu.system) / elapsed) * 100);
     }, 500);
   }
 
   /** Event loop lag, in milliseconds (administration dashboard). */
   get eventLoopLag(): number {
     return Math.round(this.lag);
+  }
+
+  /** Recent CPU usage percentage sampled periodically (administration dashboard). */
+  get cpuPercent(): number {
+    return this.cpuPct;
   }
 
   /** Connects the socket.io server used for room broadcasts. */
@@ -496,7 +509,7 @@ export class World {
 
   /** Sets a switch; a global one refreshes every player's events. */
   setSwitch(p: PlayerSession, id: number, on: boolean): void {
-    if (id < 1 || this.getSwitch(p, id) === on) return;
+    if (!Number.isInteger(id) || id < 1 || id > 9999 || this.getSwitch(p, id) === on) return;
     if (this.instanceSwitchIds.has(id)) {
       const instance = this.instances.of(p);
       if (!instance) return;
@@ -516,7 +529,7 @@ export class World {
 
   /** Sets a variable; a global one refreshes every player's events. */
   setVariable(p: PlayerSession, id: number, value: number): void {
-    if (id < 1) return;
+    if (!Number.isInteger(id) || id < 1 || id > 9999 || !Number.isFinite(value)) return;
     const before = this.getVariable(p, id);
     if (this.isGlobalVariable(id)) {
       this.ctx.progression.setGlobalVariable(this.global, id, value);

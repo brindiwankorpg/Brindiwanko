@@ -185,6 +185,10 @@ export class Game implements MenuHost {
   private lastTime = 0;
   /** Time of the last animation frame callback, for the stall watchdog. */
   private lastRaf = 0;
+  private readonly lifecycle = new AbortController();
+  private readonly unlistenLocale: () => void;
+  private readonly fallbackTimer: number;
+  private rafId = 0;
 
   private constructor(
     root: HTMLElement,
@@ -364,20 +368,20 @@ export class Game implements MenuHost {
     this.music.volume = audibleVolume(this.options.values.musicVolume, this.options.values);
     this.touch.apply(this.options.values);
     this.chat.applyOptions(this.options.values);
-    onLocaleChange(() => this.refreshLanguage());
-    window.addEventListener('resize', () => this.resize());
+    this.unlistenLocale = onLocaleChange(() => this.refreshLanguage());
+    window.addEventListener('resize', () => this.resize(), { signal: this.lifecycle.signal });
     this.resize();
     const unlock = () => {
       this.audio.unlock();
       this.music.unlock();
     };
-    window.addEventListener('keydown', unlock, { once: true });
-    window.addEventListener('pointerdown', unlock, { once: true });
-    requestAnimationFrame((time) => this.loop(time));
+    window.addEventListener('keydown', unlock, { once: true, signal: this.lifecycle.signal });
+    window.addEventListener('pointerdown', unlock, { once: true, signal: this.lifecycle.signal });
+    this.rafId = requestAnimationFrame((time) => this.loop(time));
     // Some browsers stop animation frames in occluded windows or embedded views;
     // keep the simulation (and its server intents) ticking with a timer then. A hidden
     // tab is not drawn: nobody sees it, and drawing the whole scene there is wasted work.
-    window.setInterval(() => {
+    this.fallbackTimer = window.setInterval(() => {
       const now = performance.now();
       if (now - this.lastRaf > 200) this.frame(now, document.visibilityState !== 'hidden');
     }, 50);
@@ -577,8 +581,22 @@ export class Game implements MenuHost {
   }
 
   logout(): void {
+    this.destroy();
     this.socket.disconnect();
     window.location.href = '/characters';
+  }
+
+  /** Stops timers, animation frames and global listeners owned by this game instance. */
+  destroy(): void {
+    if (this.lifecycle.signal.aborted) return;
+    this.lifecycle.abort();
+    this.unlistenLocale();
+    window.clearInterval(this.fallbackTimer);
+    cancelAnimationFrame(this.rafId);
+    this.deathOverlay?.remove();
+    this.deathOverlay = null;
+    this.chat.destroy();
+    this.windows.destroy();
   }
 
   /** Opens the map editor over the game (administrators only; the server checks every request). */
@@ -1273,7 +1291,7 @@ export class Game implements MenuHost {
         e.stopImmediatePropagation();
         this.chat.focus();
       },
-      { capture: true },
+      { capture: true, signal: this.lifecycle.signal },
     );
     window.addEventListener('keydown', (e) => {
       const target = e.target as HTMLElement | null;
@@ -1307,7 +1325,7 @@ export class Game implements MenuHost {
         e.preventDefault();
         this.toggleFullscreen();
       }
-    });
+    }, { signal: this.lifecycle.signal });
   }
 
   // --- Loop -----------------------------------------------------------------
@@ -1472,9 +1490,10 @@ export class Game implements MenuHost {
   }
 
   private loop(time: number): void {
+    if (this.lifecycle.signal.aborted) return;
     this.lastRaf = performance.now();
     this.frame(time);
-    requestAnimationFrame((t2) => this.loop(t2));
+    if (!this.lifecycle.signal.aborted) this.rafId = requestAnimationFrame((t2) => this.loop(t2));
   }
 
   /**

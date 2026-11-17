@@ -78,7 +78,7 @@ export function negotiateLocale(header: string | undefined): Locale {
 export function lookup(dict: Dictionary, key: string): string | undefined {
   let node: string | Dictionary | undefined = dict;
   for (const part of key.split('.')) {
-    if (node === undefined || typeof node === 'string') return undefined;
+    if (node === undefined || typeof node === 'string' || !Object.hasOwn(node, part)) return undefined;
     node = node[part];
   }
   return typeof node === 'string' ? node : undefined;

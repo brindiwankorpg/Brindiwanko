@@ -175,6 +175,13 @@ export function editorRouter(ctx: ServerContext): Router {
       return;
     }
     const body = req.body as Partial<MapInfo> & { width?: unknown; height?: unknown };
+    if (body.name !== undefined || body.parentId !== undefined) {
+      const holder = ctx.editLocks.holder(id);
+      if (holder && holder.accountId !== account(res).id) {
+        fail(res, 409, 'error.editor.locked', { name: holder.username });
+        return;
+      }
+    }
     const next: MapInfo = { ...info };
     if (typeof body.name === 'string' && body.name.trim()) next.name = body.name.trim().slice(0, 100);
     if (typeof body.expanded === 'boolean') next.expanded = body.expanded;
@@ -300,7 +307,7 @@ export function editorRouter(ctx: ServerContext): Router {
   /** Where a resource is used: maps (events, music, parallax) and database records (by name, as the files are referenced by name). */
   router.get('/resources/:kind/:name/usage', (req, res) => {
     const needle = JSON.stringify(req.params.name);
-    const maps = ctx.maps.infos().filter((i) => JSON.stringify(ctx.maps.peek(i.id) ?? null).includes(needle)).map((i) => i.name);
+    const maps = ctx.maps.infos().filter((i) => ctx.maps.rawIncludes(i.id, needle)).map((i) => i.name);
     const records = [...DATABASE_TYPES, 'tileset' as const].flatMap((type) => ctx.gameData.list(type).filter((r) => JSON.stringify(r).includes(needle)).map((r) => `${type} #${r.id}`));
     res.json({ maps, records });
   });

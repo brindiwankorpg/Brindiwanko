@@ -7,7 +7,7 @@
  */
 import type { Statement } from 'better-sqlite3';
 import type { MapData, MapInfo } from '../../shared/map.js';
-import type { Db } from './database.js';
+import { safeJsonParse, type Db } from './database.js';
 
 /** A saved snapshot of a map. */
 export interface MapVersion {
@@ -147,7 +147,7 @@ export class MapRepository {
   /** Content of a snapshot. */
   version(mapId: number, versionId: number): MapData | undefined {
     const raw = this.versionDataStmt.get(versionId, mapId);
-    return raw === undefined ? undefined : (JSON.parse(raw) as MapData);
+    return raw === undefined ? undefined : safeJsonParse<MapData | undefined>(raw, undefined);
   }
 
   /** The map tree. */
@@ -173,7 +173,8 @@ export class MapRepository {
     if (!map) {
       const raw = this.dataStmt.get(id);
       if (raw === undefined) return undefined;
-      map = JSON.parse(raw) as MapData;
+      map = safeJsonParse<MapData | undefined>(raw, undefined);
+      if (!map) return undefined;
       this.cache.set(id, map);
     }
     return map;
@@ -189,7 +190,14 @@ export class MapRepository {
     const cached = this.cache.get(id);
     if (cached) return cached;
     const raw = this.dataStmt.get(id);
-    return raw === undefined ? undefined : (JSON.parse(raw) as MapData);
+    return raw === undefined ? undefined : safeJsonParse<MapData | undefined>(raw, undefined);
+  }
+
+  /** Checks whether a map's JSON contains a substring without parsing uncached maps. */
+  rawIncludes(id: number, needle: string): boolean {
+    const cached = this.cache.get(id);
+    if (cached) return JSON.stringify(cached).includes(needle);
+    return this.dataStmt.get(id)?.includes(needle) ?? false;
   }
 
   /** Number of maps. */

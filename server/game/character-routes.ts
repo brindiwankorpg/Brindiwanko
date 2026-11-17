@@ -14,12 +14,8 @@ import { DEFAULT_SETTINGS } from '../../shared/settings.js';
 import { currentAccount, requireAuth } from '../auth/middleware.js';
 import type { ServerContext } from '../context.js';
 import { verifyCsrf } from '../http/csrf.js';
+import { field } from '../http/form.js';
 import { gamePreloads } from '../http/preload.js';
-
-function field(req: Request, name: string): string {
-  const value: unknown = (req.body as Record<string, unknown> | undefined)?.[name];
-  return typeof value === 'string' ? value : '';
-}
 
 /** Parses the appearance fields posted by the creation form. */
 function appearanceFromForm(req: Request): Record<string, unknown> {

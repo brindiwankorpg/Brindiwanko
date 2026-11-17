@@ -7,7 +7,10 @@
  */
 import { randomBytes } from 'node:crypto';
 import type { Statement } from 'better-sqlite3';
-import type { Db } from './database.js';
+import { safeJsonParse, type Db } from './database.js';
+
+const CACHE_MISS = Symbol('missing');
+const settingsCaches = new WeakMap<Db, Map<string, unknown>>();
 
 /** Typed access to `system_settings` and `server_secrets`. */
 export class SettingsRepository {
@@ -16,8 +19,15 @@ export class SettingsRepository {
   private readonly allStmt: Statement<[], { key: string; value: string }>;
   private readonly getSecretStmt: Statement<[string], string>;
   private readonly insertSecretStmt: Statement<[string, string]>;
+  private readonly cache: Map<string, unknown>;
 
-  constructor(db: Db) {
+  constructor(private readonly db: Db) {
+    let cache = settingsCaches.get(db);
+    if (!cache) {
+      cache = new Map();
+      settingsCaches.set(db, cache);
+    }
+    this.cache = cache;
     this.getStmt = db.prepare<[string], string>('SELECT value FROM system_settings WHERE key = ?').pluck();
     this.setStmt = db.prepare(`INSERT INTO system_settings (key, value) VALUES (?, ?)
       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`);
@@ -32,8 +42,19 @@ export class SettingsRepository {
    * @param fallback - Value returned when the key is absent.
    */
   get<T>(key: string, fallback: T): T {
+    if (!this.db.inTransaction && this.cache.has(key)) {
+      const hit = this.cache.get(key);
+      return hit === CACHE_MISS ? fallback : (hit as T);
+    }
     const raw = this.getStmt.get(key);
-    return raw === undefined ? fallback : (JSON.parse(raw) as T);
+    if (raw === undefined) {
+      if (!this.db.inTransaction) this.cache.set(key, CACHE_MISS);
+      return fallback;
+    }
+    const parsed = safeJsonParse<T | typeof CACHE_MISS>(raw, CACHE_MISS);
+    if (parsed === CACHE_MISS) return fallback;
+    if (!this.db.inTransaction) this.cache.set(key, parsed);
+    return parsed;
   }
 
   /**
@@ -42,18 +63,25 @@ export class SettingsRepository {
    * @param value - Any JSON-serializable value.
    */
   set(key: string, value: unknown): void {
-    this.setStmt.run(key, JSON.stringify(value));
+    const json = JSON.stringify(value);
+    this.setStmt.run(key, json);
+    if (this.db.inTransaction) this.cache.delete(key);
+    else this.cache.set(key, JSON.parse(json));
   }
 
   /** Tells whether a setting exists. */
   has(key: string): boolean {
+    if (!this.db.inTransaction && this.cache.has(key)) return this.cache.get(key) !== CACHE_MISS;
     return this.getStmt.get(key) !== undefined;
   }
 
   /** Returns every setting as a plain object. */
   all(): Record<string, unknown> {
     const out: Record<string, unknown> = {};
-    for (const row of this.allStmt.all()) out[row.key] = JSON.parse(row.value);
+    for (const row of this.allStmt.all()) {
+      const parsed = safeJsonParse<unknown>(row.value, CACHE_MISS);
+      if (parsed !== CACHE_MISS) out[row.key] = parsed;
+    }
     return out;
   }
 

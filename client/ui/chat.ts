@@ -56,6 +56,7 @@ export class ChatBox {
   private readonly input: HTMLInputElement;
   private readonly messages: ChatMessage[] = [];
   private readonly unread = new Set<Tab>();
+  private readonly lifecycle = new AbortController();
   private menu: HTMLElement | null = null;
 
   constructor(layer: HTMLElement, private readonly host: ChatHost) {
@@ -87,7 +88,7 @@ export class ChatBox {
     });
     document.addEventListener('pointerdown', (e) => {
       if (this.menu && !this.menu.contains(e.target as Node)) this.closeMenu();
-    });
+    }, { signal: this.lifecycle.signal });
     this.renderTabs();
   }
 
@@ -171,8 +172,14 @@ export class ChatBox {
       const covered = Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop));
       this.element.style.setProperty('--keyboard-height', `${covered}px`);
     };
-    viewport.addEventListener('resize', update);
-    viewport.addEventListener('scroll', update);
+    viewport.addEventListener('resize', update, { signal: this.lifecycle.signal });
+    viewport.addEventListener('scroll', update, { signal: this.lifecycle.signal });
+  }
+
+  /** Removes global listeners attached by this chat box. */
+  destroy(): void {
+    this.lifecycle.abort();
+    this.closeMenu();
   }
 
   /** Re-applies translated labels. */

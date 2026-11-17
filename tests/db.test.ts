@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
 import { scheduleBackups } from '../server/db/backups.js';
-import { openDatabase } from '../server/db/database.js';
+import { openDatabase, safeJsonParse } from '../server/db/database.js';
 import { GameDataRepository } from '../server/db/game-data.js';
 import { MapRepository } from '../server/db/maps.js';
 import { listMigrations, migrate } from '../server/db/migrate.js';
@@ -152,5 +152,26 @@ test('records written by a transaction that fails never stay in memory', () => {
   );
   // ...but not once it is rolled back.
   assert.notEqual(data.get('item', 1)!.name, 'Never stored');
+  db.close();
+});
+
+test('safeJsonParse falls back on malformed JSON and SettingsRepository cache stays consistent across rollbacks', () => {
+  assert.deepEqual(safeJsonParse('{not json', { ok: false }), { ok: false });
+  assert.deepEqual(safeJsonParse('{"ok":true}', { ok: false }), { ok: true });
+  const db = openDatabase(':memory:');
+  migrate(db, PATHS.migrations);
+  const a = new SettingsRepository(db);
+  const b = new SettingsRepository(db);
+  a.set('tileSize', 64);
+  assert.equal(b.get('tileSize', 48), 64);
+  assert.throws(() =>
+    db.transaction(() => {
+      a.set('tileSize', 96);
+      assert.equal(a.get('tileSize', 48), 96);
+      throw new Error('rollback');
+    })(),
+  );
+  assert.equal(a.get('tileSize', 48), 64);
+  assert.equal(b.get('tileSize', 48), 64);
   db.close();
 });

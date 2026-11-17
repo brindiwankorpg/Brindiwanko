@@ -18,6 +18,7 @@ import type { Account } from '../db/accounts.js';
 import { readCookie, safeRedirectPath } from '../http/cookies.js';
 import { addressKey } from '../http/address.js';
 import { CSRF_COOKIE, verifyCsrf } from '../http/csrf.js';
+import { field } from '../http/form.js';
 import { SlidingWindowLimiter } from '../http/rate-limit.js';
 import { SESSION_COOKIE } from '../http/session.js';
 import { setLocaleCookie } from '../i18n.js';
@@ -30,11 +31,6 @@ export const AFTER_LOGIN_PATH = '/characters';
 
 /** "Name taken" / "address taken" answers one address may receive per hour. */
 export const TAKEN_ANSWERS_PER_HOUR = 20;
-
-function field(req: Request, name: string): string {
-  const value: unknown = (req.body as Record<string, unknown> | undefined)?.[name];
-  return typeof value === 'string' ? value : '';
-}
 
 /**
  * Opens an authenticated session for an account (with a fresh session id).

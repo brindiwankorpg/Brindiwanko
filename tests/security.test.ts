@@ -13,8 +13,11 @@ import { join } from 'node:path';
 import { after, before, test } from 'node:test';
 import { io as connect, type Socket } from 'socket.io-client';
 import type { ClientToServerEvents, EnterWorldPayload, ServerToClientEvents } from '../shared/protocol.js';
+import { boolFromEnv } from '../server/config.js';
 import { applyPendingRestore, backupNow, checkBackup, lastDue, prepareRestore } from '../server/db/backups.js';
+import { runScript } from '../server/events/sandbox.js';
 import { PATHS, restorePathOf } from '../server/paths.js';
+import { lookup } from '../shared/i18n.js';
 import { backupScheduleOf, DEFAULT_BACKUP_SCHEDULE } from '../shared/settings.js';
 import type { PlayerSession } from '../server/game/world.js';
 import { clientAddress, isSameOrigin } from '../server/net/socket.js';
@@ -179,6 +182,13 @@ test('behind a proxy, the client address and the public origin are read as confi
   assert.equal(isSameOrigin(from('https://jeu.example.org'), true, 'https://jeu.example.org'), true);
   assert.equal(isSameOrigin(from('http://jeu.example.org'), true, 'https://jeu.example.org'), false, 'another scheme');
   assert.equal(isSameOrigin(from('https://evil.example'), true, 'https://jeu.example.org'), false, 'a forged forwarded host does not help');
+  assert.equal(isSameOrigin(request({ 'sec-fetch-site': 'cross-site' }), false), false, 'cross-site fetch metadata rejected even without Origin');
+  assert.equal(isSameOrigin(request({ 'sec-fetch-site': 'same-origin' }), false), true);
+  assert.equal(boolFromEnv('TRUST_PROXY', { TRUST_PROXY: 'true' }), true);
+  assert.equal(boolFromEnv('TRUST_PROXY', { TRUST_PROXY: '1' }), true);
+  assert.equal(boolFromEnv('TRUST_PROXY', { TRUST_PROXY: 'false' }), false);
+  assert.throws(() => boolFromEnv('TRUST_PROXY', { TRUST_PROXY: 'yes' }), /must be/);
+  assert.equal(lookup({ game: { ok: 'OK' } }, 'game.constructor.name'), undefined);
 });
 
 test('an exception in a socket handler is logged, the server keeps serving', async () => {
@@ -244,8 +254,8 @@ test('a backup put back with the restore command replaces the database and the r
     const backup = await backupNow(server.ctx.db, join(root, 'backups'), 31, uploads);
     writeFileSync(join(uploads, 'New.png'), 'new');
     writeFileSync(dbPath, 'current database');
-    assert.equal(prepareRestore(join(root, 'nothing.db'), dbPath), null, 'not a backup');
-    assert.deepEqual(prepareRestore(backup, dbPath), { uploads: true });
+    assert.equal(await prepareRestore(join(root, 'nothing.db'), dbPath), null, 'not a backup');
+    assert.deepEqual(await prepareRestore(backup, dbPath), { uploads: true });
     assert.equal(readFileSync(dbPath, 'utf8'), 'current database', 'nothing changes before the next start');
     assert.equal(applyPendingRestore(dbPath, uploads), true);
     assert.ok(checkBackup(dbPath), 'the database of the backup is in place');
@@ -263,31 +273,31 @@ test('a restore command that fails on the way leaves the previous preparation as
   const uploads = join(root, 'uploads');
   const dbPath = join(root, 'game.db');
   // The disk fills up while the resources are copied.
-  const fs = createRequire(import.meta.url)('node:fs') as typeof import('node:fs');
-  const copy = fs.cpSync;
-  const failing: typeof copy = (from, to, options) => {
+  const fsPromises = createRequire(import.meta.url)('node:fs/promises') as typeof import('node:fs/promises');
+  const copy = fsPromises.cp;
+  const failing: typeof copy = async (from, to, options) => {
     if (String(from).endsWith('uploads')) throw Object.assign(new Error('no space left on device'), { code: 'ENOSPC' });
-    copy(from, to, options);
+    return copy(from, to, options);
   };
   try {
     mkdirSync(uploads);
     writeFileSync(join(uploads, 'Old.png'), 'old');
     const backup = await backupNow(server.ctx.db, join(root, 'backups'), 31, uploads);
-    assert.deepEqual(prepareRestore(backup, dbPath), { uploads: true });
+    assert.deepEqual(await prepareRestore(backup, dbPath), { uploads: true });
     const pending = restorePathOf(dbPath);
     const prepared = readFileSync(pending);
-    fs.cpSync = failing;
+    fsPromises.cp = failing;
     syncBuiltinESMExports();
-    assert.throws(() => prepareRestore(backup, dbPath), /no space/);
+    await assert.rejects(() => prepareRestore(backup, dbPath), /no space/);
     assert.deepEqual(readFileSync(pending), prepared, 'the previous database still waits, unchanged');
     assert.deepEqual(readdirSync(`${dbPath}.restore-pending-uploads`), ['Old.png'], 'with its resources');
     assert.deepEqual(readdirSync(root).filter((f) => f.includes('partial')), [], 'nothing half copied is left');
     // Without a previous preparation, a failed one leaves nothing that would apply at the next start.
     rmSync(pending);
-    assert.throws(() => prepareRestore(backup, dbPath), /no space/);
+    await assert.rejects(() => prepareRestore(backup, dbPath), /no space/);
     assert.equal(applyPendingRestore(dbPath, uploads), false);
   } finally {
-    fs.cpSync = copy;
+    fsPromises.cp = copy;
     syncBuiltinESMExports();
     rmSync(root, { recursive: true, force: true });
   }
@@ -298,4 +308,25 @@ test('criterion (short): dozens of clients without noticeable degradation', asyn
   assert.ok(report.accepted > 0);
   assert.ok(report.lagP95 <= 100, `event loop lag p95 ${report.lagP95} ms`);
   assert.ok(report.tickP95 <= 25, `tick p95 ${report.tickP95} ms`);
+});
+
+test('reconnect rejects stale characterId in handshake auth and script sandbox caps ids', async () => {
+  const client = new TestClient(server.url);
+  await client.post('/register', { _csrf: await client.csrf('/register'), username: 'TabUser', email: 'tabuser@example.com', password: 'secret password', passwordConfirm: 'secret password' });
+  const accountId = server.ctx.accounts.findByUsername('TabUser')!.id;
+  await client.post('/characters', { _csrf: await client.csrf('/characters/new'), name: 'FirstHero', classId: '1' });
+  await client.post('/characters', { _csrf: await client.csrf('/characters/new'), name: 'SecondHero', classId: '1' });
+  const [c1, c2] = server.ctx.characters.listByAccount(accountId);
+  await client.post(`/characters/${c2!.id}/play`, { _csrf: await client.csrf('/characters') });
+  const err = await new Promise<string>((resolve) => {
+    const s = connect(server.url, { transports: ['websocket'], reconnection: false, extraHeaders: { cookie: client.cookieHeader() }, auth: { characterId: c1!.id } });
+    s.on('enterWorld', () => { s.close(); resolve('ok'); });
+    s.on('connect_error', (e) => { s.close(); resolve(e.message); });
+  });
+  assert.equal(err, 'error.character.not_selected');
+
+  const ops = await runScript('setS(0, true); setS(10000, true); setV(1, 1e20); setV(10000, 5); setS(2, true);', {
+    switches: {}, variables: {}, selfSwitches: {}, gold: 0, level: 1, items: {}, player: { name: 'x', mapId: 1, x: 0, y: 0 },
+  });
+  assert.deepEqual(ops, [{ op: 'switch', id: 2, value: true }]);
 });

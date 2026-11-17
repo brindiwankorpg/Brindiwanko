@@ -20,6 +20,7 @@ import { DEFAULT_LOCALE, isLocale, type Locale } from '../../shared/i18n.js';
 import type { ServerContext } from '../context.js';
 import { addressKey } from '../http/address.js';
 import { verifyCsrf } from '../http/csrf.js';
+import { field } from '../http/form.js';
 import { SlidingWindowLimiter } from '../http/rate-limit.js';
 import { SESSION_COOKIE } from '../http/session.js';
 import { translatorFor } from '../i18n.js';
@@ -45,11 +46,6 @@ const DONE_KEYS: Record<string, string> = { password: 'account.done.password', e
 /** Messages the login page may show (`?notice=`). */
 export const LOGIN_NOTICES: Record<string, string> = { reset: 'account.notice.reset', deleted: 'account.notice.deleted' };
 
-function field(req: Request, name: string): string {
-  const value: unknown = (req.body as Record<string, unknown> | undefined)?.[name];
-  return typeof value === 'string' ? value : '';
-}
-
 /**
  * Creates the router of the account pages.
  * @param ctx - Server context.
@@ -64,7 +60,11 @@ export function accountRouter(ctx: ServerContext): Router {
   // --- My account ------------------------------------------------------------------
 
   const renderAccount = (res: Response, status: number, error: { form: string; key: string; params?: Record<string, string | number> } | null, doneKey: string | null = null) => {
-    const account = ctx.accounts.findById(currentAccount(res)!.id)!;
+    const account = ctx.accounts.findById(currentAccount(res)!.id);
+    if (!account) {
+      res.redirect(303, '/login');
+      return;
+    }
     res.status(status).render('account', {
       details: { username: account.username, email: account.email, role: account.role, createdAt: account.createdAt, lastLogin: account.lastLogin },
       isOwner: account.id === ctx.accounts.ownerId(),
@@ -88,6 +88,7 @@ export function accountRouter(ctx: ServerContext): Router {
     // Whoever knew the old password is logged out everywhere else (other browsers, the game).
     ctx.sessionStore.destroyAccountSessions(id, req.sessionID);
     ctx.world.kickAccount(id, 'error.account.password_changed');
+    ctx.editLocks.releaseAll(id);
     setDeviceCookie(res, result.deviceToken);
     // A new session id too, as after a login.
     req.session.regenerate((err) => {
@@ -217,9 +218,16 @@ export function accountRouter(ctx: ServerContext): Router {
 export function deleteAccount(ctx: ServerContext, accountId: number): void {
   ctx.world.kickAccount(accountId, 'error.account.deleted');
   ctx.editLocks.releaseAll(accountId);
-  for (const c of ctx.characters.listByAccount(accountId)) ctx.world.guilds.characterDeleted(c.id, c.name);
-  ctx.sessionStore.destroyAccountSessions(accountId);
-  ctx.accounts.delete(accountId);
-  // The logs keep the account's number for the moderators, but not where it connected from.
-  ctx.admin.forgetAddresses(accountId);
+  const notifyGuilds = new Set<number>();
+  ctx.db.transaction(() => {
+    for (const c of ctx.characters.listByAccount(accountId)) {
+      const guildId = ctx.world.guilds.characterDeleted(c.id, c.name, false);
+      if (guildId !== null) notifyGuilds.add(guildId);
+    }
+    ctx.sessionStore.destroyAccountSessions(accountId);
+    ctx.accounts.delete(accountId);
+    // The logs keep the account's number for the moderators, but not where it connected from.
+    ctx.admin.forgetAddresses(accountId);
+  })();
+  for (const guildId of notifyGuilds) ctx.world.guilds.notifyGuildUpdated(guildId);
 }

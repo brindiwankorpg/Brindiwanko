@@ -330,12 +330,12 @@ export function uploadsRestorePathOf(dbPath: string): string {
  * @param dbPath - Database of the server.
  * @returns Whether the backup also had resources, or the reason it is refused (translation key).
  */
-export function prepareRestore(backup: string, dbPath: string): { uploads: boolean } | { problem: string } | null {
+export async function prepareRestore(backup: string, dbPath: string): Promise<{ uploads: boolean } | { problem: string } | null> {
   if (!existsSync(backup)) return null;
   const folder = statSync(backup).isDirectory();
   const db = folder ? join(backup, BACKUP_DB) : backup;
   if (!existsSync(db)) return null;
-  const problem = backupProblem(db);
+  const problem = await inspectBackup(db);
   if (problem) return { problem };
   const pending = restorePathOf(dbPath);
   const pendingUploads = uploadsRestorePathOf(dbPath);
@@ -349,12 +349,12 @@ export function prepareRestore(backup: string, dbPath: string): { uploads: boole
   const uploads = join(backup, BACKUP_UPLOADS);
   const withUploads = folder && existsSync(uploads);
   try {
-    cpSync(db, stage);
+    await cp(db, stage);
     // The backup was copied while the database was in WAL mode: its last pages may be in the side file.
-    for (const suffix of ['-wal', '-shm']) if (existsSync(db + suffix)) cpSync(db + suffix, stage + suffix);
+    for (const suffix of ['-wal', '-shm']) if (existsSync(db + suffix)) await cp(db + suffix, stage + suffix);
     stripSecrets(stage);
     for (const suffix of ['-wal', '-shm']) rmSync(stage + suffix, { force: true });
-    if (withUploads) cpSync(uploads, stageUploads, { recursive: true });
+    if (withUploads) await cp(uploads, stageUploads, { recursive: true });
   } catch (err) {
     removeStage();
     throw err;

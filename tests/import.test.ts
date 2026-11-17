@@ -134,6 +134,9 @@ test('uploads are recognised by content; unsafe SVG and names are refused', () =
   assert.equal(isSafeSvg('<svg><style>@import "https://evil.example/x.css";</style></svg>'), false);
   assert.equal(isSafeSvg('<svg><set attributeName="onmouseover" to="alert(1)"/></svg>'), false);
   assert.equal(isSafeSvg('<svg><text>Tom &amp; Jerry &#233;t&#233;</text></svg>'), true);
+  assert.equal(isSafeSvg(`<svg>${'<use href="#a"/>'.repeat(33)}</svg>`), false, 'excessive <use> nesting is refused');
+  assert.equal(isSafeSvg('<svg><style>path { background: \\75rl(https://evil.example/x); }</style></svg>'), false, 'CSS hex escape cannot hide url()');
+  assert.equal(storeUpload('pictures', 'NoSize', Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"></svg>')).ok, false, 'SVG without explicit numeric size is refused');
   assert.equal(sanitizeName('../../etc/$Hero!.png'), '$Hero!');
   assert.equal(guessKind('Outside_A2', 768, 576), 'tilesets');
   assert.equal(guessKind('Chipset', 480, 256), 'tilesets');
@@ -441,4 +444,18 @@ test('calls to common events of an imported map are disabled: the common events 
 test('the import report only lists commands the interpreter really ignores', () => {
   for (const code of [101, 102, 111, 121, 122, 123, 205, 213, 230, 302, 402, 404, 411, 412, 1001, 1020]) assert.ok(SUPPORTED_COMMANDS.has(code), `command ${code} is run by the interpreter`);
   for (const code of [132, 340, 342]) assert.ok(!SUPPORTED_COMMANDS.has(code), `command ${code} is ignored`);
+});
+
+test('readZip refuses overlapping local entry offsets and mismatched uncompressed sizes', async () => {
+  const overlap = makeZip({ 'a.txt': 'hello', 'b.txt': 'hello' });
+  const sig = Buffer.from([0x50, 0x4b, 0x01, 0x02]);
+  const first = overlap.indexOf(sig);
+  const second = overlap.indexOf(sig, first + 1);
+  overlap.writeUInt32LE(0, second + 42);
+  await assert.rejects(() => readZip(overlap), (e: unknown) => e instanceof ZipError && e.key === 'error.import.corrupt');
+
+  const wrongSize = makeZip({ 'a.txt': 'hello' });
+  const c = wrongSize.indexOf(sig);
+  wrongSize.writeUInt32LE(10, c + 24);
+  await assert.rejects(() => readZip(wrongSize), (e: unknown) => e instanceof ZipError && e.key === 'error.import.corrupt');
 });

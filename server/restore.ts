@@ -37,7 +37,7 @@ if (!name) {
   console.error(`No backup named "${wanted}" in ${dir} (npm run restore lists them).`);
   process.exit(1);
 }
-const prepared = prepareRestore(join(dir, name), config.dbPath);
+const prepared = await prepareRestore(join(dir, name), config.dbPath);
 if (!prepared || 'problem' in prepared) {
   const why = prepared?.problem === 'error.admin.backup_newer' ? ' (it was made by a newer version of the game: update it first)' : prepared?.problem === 'error.admin.backup_unsafe' ? ' (it holds triggers or views, which a backup of the game never has)' : '';
   console.error(`${name} is not a valid backup of this game${why}: nothing was changed.`);

@@ -6,7 +6,7 @@
 import { DEFAULT_RANKS, GUILD_DIRECTORY_PAGE, sanitizeEmblem, type Emblem, type GuildDirectoryPage } from '../../shared/guild.js';
 import { nameKey } from '../../shared/names.js';
 import type { Statement } from 'better-sqlite3';
-import { prepareCached, type Db } from './database.js';
+import { prepareCached, safeJsonParse, type Db } from './database.js';
 import { MAX_GOLD, type InventoryRow, type ItemKind } from './inventory.js';
 
 /** A guild row. */
@@ -48,7 +48,7 @@ export class GuildRepository {
   }
 
   private toGuild(r: GuildRow | undefined): Guild | undefined {
-    return r ? { ...r, emblem: sanitizeEmblem(JSON.parse(r.emblem)) } : undefined;
+    return r ? { ...r, emblem: sanitizeEmblem(safeJsonParse(r.emblem, {})) } : undefined;
   }
 
   get(id: number): Guild | undefined {
@@ -63,19 +63,22 @@ export class GuildRepository {
    * @param page - Page wanted (from 0; past the last one, the last one is given).
    */
   directory(search = '', page = 0, pageSize = GUILD_DIRECTORY_PAGE): GuildDirectoryPage {
-    type Row = { id: number; name: string; tag: string; level: number; members: number };
-    const rows = prepareCached<[], Row>(this.db, `SELECT g.id, g.name, g.tag, g.level, COUNT(m.character_id) AS members
+    type Row = { id: number; name: string; tag: string; emblem: string; level: number; members: number; leader: string | null };
+    const rows = prepareCached<[], Row>(this.db, `SELECT g.id, g.name, g.tag, g.emblem, g.level, COUNT(m.character_id) AS members,
+      (SELECT c.name FROM guild_members gm JOIN characters c ON c.id = gm.character_id WHERE gm.guild_id = g.id AND gm.rank = 0 LIMIT 1) AS leader
       FROM guilds g LEFT JOIN guild_members m ON m.guild_id = g.id GROUP BY g.id ORDER BY members DESC, g.name`).all();
     const needle = foldText(search);
     const found = needle ? rows.filter((r) => foldText(r.name).includes(needle) || foldText(r.tag).includes(needle)) : rows;
     const pages = Math.max(1, Math.ceil(found.length / pageSize));
     const current = Math.max(0, Math.min(pages - 1, Math.trunc(page) || 0));
-    const emblem = prepareCached<[number], string>(this.db, 'SELECT emblem FROM guilds WHERE id = ?').pluck();
-    const leader = prepareCached<[number], string>(this.db, 'SELECT c.name FROM guild_members m JOIN characters c ON c.id = m.character_id WHERE m.guild_id = ? AND m.rank = 0 LIMIT 1').pluck();
     const guilds = found.slice(current * pageSize, (current + 1) * pageSize).map((r) => ({
-      ...r,
-      emblem: sanitizeEmblem(JSON.parse(emblem.get(r.id) ?? '{}')),
-      leader: leader.get(r.id) ?? '',
+      id: r.id,
+      name: r.name,
+      tag: r.tag,
+      level: r.level,
+      members: r.members,
+      emblem: sanitizeEmblem(safeJsonParse(r.emblem, {})),
+      leader: r.leader ?? '',
     }));
     return { guilds, total: found.length, page: current, pageSize };
   }
@@ -224,6 +227,6 @@ export class GuildRepository {
         'SELECT l.action, c.name, l.details, l.created_at FROM guild_log l LEFT JOIN characters c ON c.id = l.character_id WHERE l.guild_id = ? ORDER BY l.id DESC LIMIT ?',
       )
       .all(guildId, limit)
-      .map((r) => ({ action: r.action, who: r.name ?? '?', details: JSON.parse(r.details) as Record<string, string | number>, at: r.created_at }));
+      .map((r) => ({ action: r.action, who: r.name ?? '?', details: safeJsonParse<Record<string, string | number>>(r.details, {}), at: r.created_at }));
   }
 }

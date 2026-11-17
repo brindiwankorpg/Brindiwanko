@@ -65,16 +65,10 @@ export function adminRouter(ctx: ServerContext): Router {
   const adminOnly = (req: Request, res: Response, next: () => void) => (isAdmin(res) ? next() : fail(res, 403, 'error.http.forbidden'));
   const log = (res: Response, action: string, target: string, details: Record<string, unknown> = {}) => ctx.admin.logAdmin(me(res).id, action, target, details);
   const world = ctx.world;
-  let lastCpu = process.cpuUsage();
-  let lastCpuAt = Date.now();
 
   // --- Dashboard -----------------------------------------------------------------
 
   router.get('/dashboard', (_req, res) => {
-    const cpu = process.cpuUsage(lastCpu);
-    const elapsed = Math.max(1, Date.now() - lastCpuAt) * 1000;
-    lastCpu = process.cpuUsage();
-    lastCpuAt = Date.now();
     const players = [...world.allPlayers()].filter((p) => world.isLive(p));
     const maps = new Map<string, { mapId: number; instance: number; name: string; players: number }>();
     for (const p of players) {
@@ -92,7 +86,7 @@ export function adminRouter(ctx: ServerContext): Router {
         uptime: Math.round(process.uptime()),
         rss: memory.rss,
         heapUsed: memory.heapUsed,
-        cpu: Math.round(((cpu.user + cpu.system) / elapsed) * 100),
+        cpu: world.cpuPercent,
         lag: world.eventLoopLag,
         load: os.loadavg()[0],
         node: process.version,
@@ -236,6 +230,7 @@ export function adminRouter(ctx: ServerContext): Router {
     // Whoever knew the old password is logged out of the site too (the caller keeps its own session).
     ctx.sessionStore.destroyAccountSessions(id, id === me(res).id ? req.sessionID : '');
     world.kickAccount(id, 'error.net.kicked');
+    ctx.editLocks.releaseAll(id);
     log(res, 'reset_password', `account:${id}`);
     res.json({ ok: true, password });
   });
@@ -405,7 +400,7 @@ export function adminRouter(ctx: ServerContext): Router {
    */
   router.get('/backup', adminOnly, async (_req, res) => {
     const dir = dataDirOf(ctx.config.dbPath);
-    const file = join(dir, `backup-${Date.now()}.db`);
+    const file = join(dir, `backup-${Date.now()}-${randomBytes(6).toString('hex')}.db`);
     const cleanUp = () => {
       for (const suffix of ['', '-journal', '-wal', '-shm']) if (existsSync(file + suffix)) unlinkSync(file + suffix);
     };
@@ -428,10 +423,9 @@ export function adminRouter(ctx: ServerContext): Router {
    */
   // One restoration at a time (a double click, two administrators): the second must not replace or delete
   // the file the first one is checking.
+  const parseRestoreBody = express.raw({ type: '*/*', limit: MAX_RESTORE_BYTES });
   let restoring = false;
-  router.post('/restore', adminOnly, express.raw({ type: '*/*', limit: MAX_RESTORE_BYTES }), async (req, res) => {
-    const body = req.body as Buffer;
-    if (!Buffer.isBuffer(body) || body.subarray(0, 16).toString('latin1') !== SQLITE_HEADER) return fail(res, 400, 'error.admin.invalid_backup');
+  router.post('/restore', adminOnly, async (req, res) => {
     const refused = await ctx.auth.verifyPassword(me(res).id, confirmedPassword(req));
     if (refused) return fail(res, refused.errorKey === 'error.auth.too_many_attempts' ? 429 : 403, refused.errorKey, refused.params);
     // Checked after the password, and set below with no wait in between: two uploads cannot both pass it.
@@ -443,6 +437,9 @@ export function adminRouter(ctx: ServerContext): Router {
     const upload = `${pending}.${randomBytes(8).toString('hex')}.upload`;
     restoring = true;
     try {
+      await new Promise<void>((ok, ko) => parseRestoreBody(req, res, (err?: unknown) => (err ? ko(err) : ok())));
+      const body = req.body as Buffer;
+      if (!Buffer.isBuffer(body) || body.subarray(0, 16).toString('latin1') !== SQLITE_HEADER) return fail(res, 400, 'error.admin.invalid_backup');
       mkdirSync(dirname(upload), { recursive: true });
       await writeFile(upload, body);
       const problem = await inspectBackup(upload);
@@ -483,9 +480,9 @@ export function adminRouter(ctx: ServerContext): Router {
     if (refused) return fail(res, refused.errorKey === 'error.auth.too_many_attempts' ? 429 : 403, refused.errorKey, refused.params);
     if (restoring) return fail(res, 409, 'error.admin.restore_busy');
     restoring = true;
-    let prepared: ReturnType<typeof prepareRestore>;
+    let prepared: Awaited<ReturnType<typeof prepareRestore>>;
     try {
-      prepared = prepareRestore(join(dir, name), ctx.config.dbPath);
+      prepared = await prepareRestore(join(dir, name), ctx.config.dbPath);
     } finally {
       restoring = false;
     }

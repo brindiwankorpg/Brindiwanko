@@ -11,7 +11,7 @@ import type { Statement } from 'better-sqlite3';
 import { sanitizeAppearance, type CharacterAppearance } from '../../shared/art/character.js';
 import { nameKey } from '../../shared/names.js';
 import type { Direction } from '../../shared/settings.js';
-import type { Db } from './database.js';
+import { safeJsonParse, type Db } from './database.js';
 import { takeId } from './ids.js';
 
 /** A character as used by the server. */
@@ -62,7 +62,7 @@ function toCharacter(row: CharacterRow): Character {
     accountId: row.account_id,
     name: row.name,
     classId: row.class_id,
-    appearance: sanitizeAppearance(JSON.parse(row.appearance)),
+    appearance: sanitizeAppearance(safeJsonParse(row.appearance, {})),
     level: row.level,
     xp: row.xp,
     hp: row.hp,

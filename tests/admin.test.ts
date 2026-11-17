@@ -206,6 +206,19 @@ test('resetting a password logs the account out of every web session', async () 
   // An administrator resetting its own password keeps its current session.
   assert.equal((await boss.api('POST', `/accounts/${boss.id}/reset-password`)).status, 200);
   assert.equal((await boss.client.request('/characters')).status, 200);
+
+  // Changing or resetting a password releases editor locks even without an active game socket,
+  // and another administrator cannot rename a map locked by someone else (while expanding/reordering still works).
+  server.ctx.editLocks.acquire(1, victim.id, 'Victim');
+  assert.equal((await boss.api('POST', `/accounts/${victim.id}/reset-password`)).status, 200);
+  assert.equal(server.ctx.editLocks.holder(1), undefined);
+  server.ctx.editLocks.acquire(1, victim.id, 'Victim');
+  const bossCsrf = await boss.client.csrf('/characters');
+  const renameLocked = await boss.client.request('/api/editor/maps/1/info', { method: 'PATCH', headers: { 'content-type': 'application/json', 'x-csrf-token': bossCsrf }, body: JSON.stringify({ name: 'Hijacked' }) });
+  assert.equal(renameLocked.status, 409);
+  const expandLocked = await boss.client.request('/api/editor/maps/1/info', { method: 'PATCH', headers: { 'content-type': 'application/json', 'x-csrf-token': bossCsrf }, body: JSON.stringify({ expanded: false }) });
+  assert.equal(expandLocked.status, 200);
+  server.ctx.editLocks.releaseAll(victim.id);
 });
 
 test('game tools, sales log and backups (administrators)', async () => {
@@ -252,7 +265,10 @@ test('game tools, sales log and backups (administrators)', async () => {
   const backup = await boss2.api<ArrayBuffer>('GET', '/backup');
   assert.equal(backup.status, 200);
   assert.equal(Buffer.from(backup.body).subarray(0, 15).toString('latin1'), 'SQLite format 3');
-  const junk = await boss2.client.request('/api/admin/restore', { method: 'POST', headers: { 'content-type': 'application/octet-stream', 'x-csrf-token': await boss2.client.csrf('/characters') }, body: 'not a database' });
+  const csrf = await boss2.client.csrf('/characters');
+  const unconfirmed = await boss2.client.request('/api/admin/restore', { method: 'POST', headers: { 'content-type': 'application/octet-stream', 'x-csrf-token': csrf, 'x-confirm-password': 'wrong password' }, body: 'not a database' });
+  assert.equal(unconfirmed.status, 403);
+  const junk = await boss2.client.request('/api/admin/restore', { method: 'POST', headers: { 'content-type': 'application/octet-stream', 'x-csrf-token': csrf, 'x-confirm-password': 'secret password' }, body: 'not a database' });
   assert.equal(junk.status, 400);
 
   // Daily automatic backups: the hour and the days kept are set by administrators.

@@ -199,6 +199,7 @@ export class GameWindow {
 /** Keeps the stack of open windows. */
 export class WindowManager {
   private readonly stack: GameWindow[] = [];
+  private readonly lifecycle = new AbortController();
 
   /**
    * @param layer - DOM container of windows.
@@ -213,7 +214,12 @@ export class WindowManager {
     // A resized or rotated screen: windows keep to the screen (or give back their desktop-only inline styles).
     window.addEventListener('resize', () => {
       for (const w of this.stack) adaptToViewport(w.element);
-    });
+    }, { signal: this.lifecycle.signal });
+  }
+
+  /** Removes global window listeners registered by this manager. */
+  destroy(): void {
+    this.lifecycle.abort();
   }
 
   /** Tells whether any window is open. */

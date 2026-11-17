@@ -304,6 +304,7 @@ export class EventRunner {
       }
       if (page.trigger === Trigger.Autorun) this.autorunEnded(p, finished, `map ${mapId}, event ${e.def.id}`);
       else if (!finished) this.reportRunaway(`map ${mapId}, event ${e.def.id}`);
+      if (this.world.isLive(p)) this.ctx.progression.flush(p.characterId, p.progress);
       this.world.setBusy(p, false);
       this.world.refreshEvents(p);
     }
@@ -319,6 +320,7 @@ export class EventRunner {
 
   /** Runs an automatic common event. */
   private async runCommon(p: PlayerSession, list: EventCommand[], id: number): Promise<void> {
+    if (p.busy) return;
     this.world.setBusy(p, true);
     this.world.trade.cancel(p);
     let finished = true;
@@ -326,6 +328,7 @@ export class EventRunner {
       finished = await runCommands(list, this.host({ p, event: null, mapId: p.mapId, eventId: 0, gen: p.mapGen, routes: [], valid: () => true, freezing: `common event ${id}` }));
     } finally {
       this.autorunEnded(p, finished, `common event ${id}`);
+      if (this.world.isLive(p)) this.ctx.progression.flush(p.characterId, p.progress);
       this.world.setBusy(p, false);
       this.world.refreshEvents(p);
     }
@@ -552,9 +555,10 @@ export class EventRunner {
         if (price > 0) w.changeGold(p, -price);
         emitEffect({ kind: 'fade', ms: 1200 });
         await sleep(600);
+        if (!w.isLive(p) || p.combat.dead) return;
         this.recoverAll(p);
         await sleep(600);
-        p.socket.emit('notify', { key: 'notify.inn_rested' });
+        if (w.isLive(p) && !p.combat.dead) p.socket.emit('notify', { key: 'notify.inn_rested' });
       },
       setRespawn: (point) => {
         const target = point ?? { mapId: p.mapId, x: p.x, y: p.y };

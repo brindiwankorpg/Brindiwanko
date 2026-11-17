@@ -71,6 +71,12 @@ export function isSafeSvg(svg: string): boolean {
   for (const m of lower.matchAll(/(?:xlink:)?href\s*=\s*["']([^"']*)["']/g)) if (!m[1]!.trim().startsWith('#')) return false;
   if (/(?:xlink:)?href\s*=\s*[^"'\s]/.test(lower)) return false;
   if (/url\(\s*["']?(?!#)/.test(lower) || /@import/.test(lower)) return false;
+  const cssDecoded = lower.replace(/\\([0-9a-f]{1,6})\s?/gi, (_, h: string) => {
+    const code = Number.parseInt(h, 16);
+    return code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : '';
+  });
+  if (/url\(\s*["']?(?!#)/.test(cssDecoded) || /@import/.test(cssDecoded)) return false;
+  if ((lower.match(/<use\b/g)?.length ?? 0) > 32) return false;
   return true;
 }
 
@@ -233,7 +239,7 @@ export function storeUpload(kind: string, name: string, data: Buffer): StoreResu
   if (!kindMatchesType(kind as ResourceKind, type)) return { ok: false, errorKey: 'error.resources.wrong_kind' };
   if (type === 'svg' && !isSafeSvg(data.toString('utf8'))) return { ok: false, errorKey: 'error.resources.unsafe_svg' };
   const size = pixelSize(data, type);
-  if (size && (size.width > MAX_IMAGE_SIDE || size.height > MAX_IMAGE_SIDE || size.width * size.height > MAX_IMAGE_PIXELS)) {
+  if ((type === 'svg' && !size) || (size && (size.width > MAX_IMAGE_SIDE || size.height > MAX_IMAGE_SIDE || size.width * size.height > MAX_IMAGE_PIXELS))) {
     return { ok: false, errorKey: 'error.resources.image_too_large', params: { max: MAX_IMAGE_SIDE, pixels: MAX_IMAGE_PIXELS / 1_000_000 } };
   }
   if (!isCompleteImage(data, type)) return { ok: false, errorKey: 'error.resources.damaged_image' };

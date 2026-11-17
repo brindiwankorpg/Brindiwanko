@@ -24,6 +24,12 @@ test('reverse friend and ignore lookups, map versions by author and logs by date
     for (const table of ['connection_log', 'admin_log', 'sale_log', 'drop_log', 'trade_log', 'guild_log', 'report_log']) {
       assert.match(plan(db, `SELECT id FROM ${table} WHERE created_at < '2000-01-01'`), new RegExp(`USING (COVERING )?INDEX ${table}_created`), table);
     }
+    assert.match(plan(db, "SELECT id FROM admin_log WHERE target = 'server'"), /USING (COVERING )?INDEX idx_admin_log_target/);
+    assert.match(plan(db, 'SELECT character_id FROM character_self_switches WHERE map_id = 1'), /USING (COVERING )?INDEX idx_char_self_switches_map/);
+    assert.match(plan(db, 'SELECT id FROM characters WHERE class_id = 1'), /USING (COVERING )?INDEX idx_characters_class/);
+    assert.match(plan(db, 'SELECT id FROM characters WHERE respawn_map = 1'), /USING (COVERING )?INDEX idx_characters_respawn_map/);
+    assert.match(plan(db, 'SELECT character_id FROM character_skills WHERE skill_id = 1'), /USING (COVERING )?INDEX idx_character_skills_skill/);
+    assert.match(plan(db, 'SELECT character_id FROM character_quests WHERE quest_id = 1'), /USING (COVERING )?INDEX idx_character_quests_quest/);
     assert.equal(db.pragma('cache_size', { simple: true }), -32000);
   } finally {
     db.close();
