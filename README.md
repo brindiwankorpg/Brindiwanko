@@ -276,43 +276,38 @@ pm2 startup && pm2 save
 > **Règles d'exploitation :** écoutez sur `127.0.0.1` derrière HTTPS avec `PUBLIC_URL` défini, utilisez un utilisateur système non privilégié et **n'activez jamais** le mode cluster pm2 (`-i`) : l'état du monde et des combats vit dans un processus unique.
 
 <details>
-<summary>🌐 Configuration nginx recommandée (SSL, WebSocket & limites d'upload 500 Mo)</summary>
+<summary>🌐 Configuration nginx recommandée (WebSocket & limites d'upload 500 Mo)</summary>
 
 ```nginx
 server {
-  listen 80;
-  server_name jeu.mondomaine.org;
-  return 301 https://$host$request_uri;
-}
+    listen 80;
+    listen [::]:80;
+    server_name game.com www.game.com;
 
-server {
-  listen 443 ssl http2;
-  server_name jeu.mondomaine.org;
+    client_max_body_size 500m;
 
-  ssl_certificate /etc/letsencrypt/live/jeu.mondomaine.org/fullchain.pem;
-  ssl_certificate_key /etc/letsencrypt/live/jeu.mondomaine.org/privkey.pem;
-
-  client_max_body_size 500m;
-
-  location / {
-    proxy_pass http://127.0.0.1:3000;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Host $host;
-    proxy_set_header X-Forwarded-Host $host;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-  }
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }
 ```
+
+> Activez ensuite HTTPS devant ce bloc (par exemple via Certbot / Let's Encrypt ou terminaison SSL en amont).
 
 </details>
 
 <details>
 <summary>☁️ Derrière Cloudflare ou un proxy amont (module realip nginx)</summary>
 
-Avec un proxy devant nginx, `TRUST_PROXY=1` seul ferait voir à l'application l'IP du proxy (partage des quotas d'inscription et de connexion). Ajoutez dans le bloc `server { listen 443 … }` :
+Avec un proxy devant nginx, `TRUST_PROXY=1` seul ferait voir à l'application l'IP du proxy (partage des quotas d'inscription et de connexion). Ajoutez dans le bloc `server { ... }` :
 
 ```nginx
 # Plages officielles Cloudflare (https://www.cloudflare.com/ips/)
@@ -672,43 +667,38 @@ pm2 startup && pm2 save
 > **Operational checklist:** bind locally (`127.0.0.1`) behind HTTPS with `PUBLIC_URL` configured, run under an unprivileged OS user, and **never** enable PM2 cluster mode (`-i`) because world simulation and combat require a single process.
 
 <details>
-<summary>🌐 Recommended nginx config (SSL, WebSockets & 500 MB restore/import uploads)</summary>
+<summary>🌐 Recommended nginx config (WebSockets & 500 MB restore/import uploads)</summary>
 
 ```nginx
 server {
-  listen 80;
-  server_name game.example.org;
-  return 301 https://$host$request_uri;
-}
+    listen 80;
+    listen [::]:80;
+    server_name game.com www.game.com;
 
-server {
-  listen 443 ssl http2;
-  server_name game.example.org;
+    client_max_body_size 500m;
 
-  ssl_certificate /etc/letsencrypt/live/game.example.org/fullchain.pem;
-  ssl_certificate_key /etc/letsencrypt/live/game.example.org/privkey.pem;
-
-  client_max_body_size 500m;
-
-  location / {
-    proxy_pass http://127.0.0.1:3000;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Host $host;
-    proxy_set_header X-Forwarded-Host $host;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-  }
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }
 ```
+
+> Enable HTTPS in front of this block (for example with Certbot / Let's Encrypt or an upstream SSL terminator).
 
 </details>
 
 <details>
 <summary>☁️ Behind Cloudflare or an upstream proxy (nginx realip module)</summary>
 
-When another proxy sits in front of nginx, `TRUST_PROXY=1` alone makes the app see the proxy's address instead of the player's (sharing registration and login rate limits). Add inside `server { listen 443 … }`:
+When another proxy sits in front of nginx, `TRUST_PROXY=1` alone makes the app see the proxy's address instead of the player's (sharing registration and login rate limits). Add inside the `server { ... }` block:
 
 ```nginx
 # Cloudflare IP ranges (https://www.cloudflare.com/ips/)
