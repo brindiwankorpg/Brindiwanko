@@ -260,40 +260,78 @@ npm run load-test -- 80 15
 
 <a id="fr-deploiement"></a>
 
-## 🌐 Déploiement en Production (VPS Ubuntu / Debian)
+## 🌐 Mettre son jeu en ligne sur un VPS (Guide pas à pas)
 
-| Domaine cible | Serveur interne | Reverse proxy | Autorité SSL |
-| :--- | :--- | :--- | :--- |
-| `mondomaine.fr` (et `www`) | Node.js sur `127.0.0.1:3000` | Nginx (ports `80` et `443`) | Let's Encrypt (`Certbot`) |
+Pas besoin d'être administrateur système pour héberger Brindiwanko. Voici l'idée générale en deux phrases :
 
-En production, Node.js ne gère pas directement le certificat SSL : **Nginx** reçoit les connexions chiffrées sur le port `443`, déchiffre le trafic HTTPS puis relaie localement vers `http://127.0.0.1:3000`.
+- Ton jeu tourne **en privé à l'intérieur du VPS** (sur `127.0.0.1:3000`, fermé à Internet).
+- **Nginx** sert de porte d'entrée publique : il accueille les joueurs sur `https://mondomaine.fr`, gère le **cadenas HTTPS** gratuit (via Certbot) et transmet tout au jeu en coulisses.
 
-### Étape 1 — Pointer le domaine vers l'IP du VPS & ouvrir le pare-feu
+| Ce que tapent les joueurs | Porte d'entrée publique | Où tourne réellement le jeu |
+| :--- | :--- | :--- |
+| `https://mondomaine.fr` | **Nginx** (ports `80` / `443` + cadenas SSL) | **Node.js** en local (`127.0.0.1:3000`) |
 
-> [!IMPORTANT]
-> **Prérequis DNS indispensable :** chez votre hébergeur de nom de domaine (registrar), vous devez créer un enregistrement DNS de type **`A`** faisant pointer `mondomaine.fr` (et `www.mondomaine.fr` en `A` ou `CNAME` si utilisé) vers **l'adresse IPv4 publique du VPS** sur lequel le jeu va tourner. Attendez la propagation DNS avant de lancer Certbot.
+---
+
+### Étape 1 — Faire pointer ton nom de domaine vers l'IP du VPS
+
+Avant d'installer quoi que ce soit, il faut dire à Internet que `mondomaine.fr` correspond à ton serveur (VPS) :
+
+1. Connecte-toi chez le fournisseur où tu as acheté ton nom de domaine (OVH, Namecheap, Gandi, Cloudflare…) et ouvre la rubrique **Zone DNS**.
+2. Crée un enregistrement de type **`A`** :
+   - **Nom / Hôte :** `@` *(ou laisse vide selon le site — cela correspond au domaine principal `mondomaine.fr`)*
+   - **Cible / IPv4 :** **l'adresse IP publique de ton VPS** *(là où le jeu va se lancer)*
+3. *(Optionnel, pour que `www.mondomaine.fr` fonctionne aussi)* Ajoute un second enregistrement **`A`** avec **Nom :** `www` et la **même adresse IP du VPS**.
+4. Attends quelques minutes que la modification soit prise en compte, puis connecte-toi en SSH sur ton VPS (Ubuntu ou Debian) pour vérifier et ouvrir les ports web du pare-feu :
 
 ```bash
-# 1. Vérifier que votre domaine renvoie bien l'IP publique de votre VPS
+# Doit afficher exactement l'adresse IP publique de ton VPS :
 dig +short mondomaine.fr
 
-# 2. Si le pare-feu UFW est actif, autoriser HTTP (80) et HTTPS (443)
+# Si tu utilises le pare-feu UFW sur ton VPS, autorise le trafic web (ports 80 et 443) :
 sudo ufw allow 'Nginx Full'
 sudo ufw status
 ```
 
-> Contrôle : `dig` affiche exactement l'IPv4 de votre VPS et `Nginx Full` apparaît en statut `ALLOW`.
+---
 
-### Étape 2 — Installer et configurer Nginx
+### Étape 2 — Préparer et lancer Brindiwanko en tâche de fond (`pm2`)
 
-1. Installez Nginx puis créez le fichier de configuration du domaine *(retirez `www.mondomaine.fr` si vous n'avez déclaré que le domaine racine)* :
+Si tu lances le jeu avec un simple `npm start`, **il s'arrêtera dès que tu fermeras la fenêtre SSH**. On utilise donc **`pm2`** pour le garder allumé 24h/24 et le relancer automatiquement si le VPS redémarre.
+
+Depuis le dossier du projet *(après avoir vérifié que `node -v` affiche `24` ou `26`)* :
+
+```bash
+# 1. Installer pm2 et compiler le jeu pour la production
+sudo npm install -g pm2
+npm ci && npm run build
+
+# 2. Démarrer le jeu en arrière-plan (remplace mondomaine.fr par ton vrai domaine)
+NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 CONTENT_LANGUAGE=fr PUBLIC_URL=https://mondomaine.fr PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
+
+# 3. Enregistrer le démarrage automatique au reboot du VPS
+pm2 startup
+pm2 save
+```
+
+> [!IMPORTANT]
+> **À retenir :**
+> - `HOST=127.0.0.1` garantit que personne ne peut contourner Nginx en tapant `http://IP_DU_VPS:3000`.
+> - N'utilise **jamais** l'option cluster (`-i`) de `pm2` : le monde du jeu doit vivre dans un seul processus.
+> - Évite de lancer le jeu en `root` si possible (crée un utilisateur Linux standard pour ton serveur).
+
+---
+
+### Étape 3 — Installer Nginx (la porte d'entrée)
+
+1. Installe Nginx et ouvre un nouveau fichier de configuration pour ton domaine *(remplace `mondomaine.fr` partout par ton vrai domaine)* :
 
 ```bash
 sudo apt update && sudo apt install nginx -y
 sudo nano /etc/nginx/sites-available/mondomaine.fr
 ```
 
-2. Collez cette configuration dans le fichier :
+2. Colle exactement ce texte dans l'éditeur *(si tu n'as pas créé le sous-domaine `www` à l'étape 1, enlève simplement `www.mondomaine.fr` sur la ligne `server_name`)* :
 
 ```nginx
 server {
@@ -317,7 +355,9 @@ server {
 }
 ```
 
-3. Activez la configuration, vérifiez la syntaxe puis rechargez Nginx :
+> 💡 **Pour enregistrer et quitter `nano` :** appuie sur <kbd>Ctrl</kbd>+<kbd>O</kbd>, puis <kbd>Entrée</kbd>, puis <kbd>Ctrl</kbd>+<kbd>X</kbd>.
+
+3. Active ce fichier, teste que tout est bien écrit, puis recharge Nginx :
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/mondomaine.fr /etc/nginx/sites-enabled/
@@ -325,48 +365,52 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-> Contrôle : `sudo nginx -t` affiche `syntax is ok` et `test is successful`.
+> ✅ **Contrôle :** `sudo nginx -t` doit afficher `syntax is ok` et `test is successful`.
 
-### Étape 3 — Activer le certificat SSL/TLS avec Certbot
+---
 
-Certbot génère gratuitement le certificat Let's Encrypt, configure automatiquement le port `443` dans Nginx et force la redirection HTTPS *(supprimez `-d www.mondomaine.fr` si le sous-domaine `www` n'est pas configuré)* :
+### Étape 4 — Ajouter le cadenas HTTPS gratuitement (`Certbot`)
+
+Certbot va demander un certificat SSL gratuit à Let's Encrypt et modifier le fichier Nginx tout seul pour activer `https://` *(enlève `-d www.mondomaine.fr` si tu n'as pas configuré `www`)* :
 
 ```bash
 sudo apt install certbot python3-certbot-nginx -y
 sudo certbot --nginx --cert-name mondomaine.fr -d mondomaine.fr -d www.mondomaine.fr
+```
 
-# Vérifier le renouvellement automatique (validité 90 jours)
+Pendant l'installation, réponds aux questions à l'écran :
+1. Entre ton **adresse e-mail** *(pour les alertes d'expiration)*.
+2. Accepte les conditions (`Y`) et valide la redirection automatique vers HTTPS.
+3. Vérifie que le renouvellement automatique fonctionne bien :
+
+```bash
 sudo certbot renew --dry-run
 ```
 
-> Contrôle : renseignez votre e-mail d'alerte, validez les conditions et la redirection HTTPS ; `https://mondomaine.fr` doit s'ouvrir avec un cadenas valide.
+---
 
-### Étape 4 — Lancer et verrouiller Brindiwanko (`127.0.0.1:3000`)
+### Étape 5 — Créer ton premier compte Administrateur 🎉
 
-Brindiwanko écoute uniquement sur l'interface locale grâce à `HOST=127.0.0.1` et active la prise en charge du reverse proxy via `TRUST_PROXY=1` *(aucune modification du code requise)*.
+1. Ouvre **`https://mondomaine.fr`** dans ton navigateur : le cadenas vert/sécurisé doit être présent et le jeu s'affiche !
+2. Clique sur **Créer un compte** *(le tout premier compte créé obtient automatiquement les droits d'administrateur)*.
+3. En production, un **code d'installation** est demandé la première fois : récupère-le dans les journaux du serveur avec :
 
 ```bash
-# Installation globale de pm2 et compilation propre
-npm install -g pm2
-npm ci && npm run build
-
-# Démarrage en processus unique derrière Nginx
-NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 PUBLIC_URL=https://mondomaine.fr PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
-pm2 startup && pm2 save
+pm2 logs Brindiwanko --lines 30
 ```
 
-> [!IMPORTANT]
-> **Règles d'exploitation :** écoutez sur `127.0.0.1` derrière HTTPS avec `PUBLIC_URL` défini (empêche l'accès direct non chiffré `http://IP_DU_VPS:3000` et bloque les attaques CSWSH), utilisez un utilisateur système non privilégié et **n'activez jamais** le mode cluster pm2 (`-i`) : l'état du monde et des combats vit dans un processus unique.
+*(Tu peux aussi fixer ton propre code au lancement à l'étape 2 en ajoutant `SETUP_CODE=mon-code-secret` devant la commande `pm2 start`).*
 
 <details>
-<summary>🩺 Diagnostic rapide en cas d'incident</summary>
+<summary>🩺 En cas de problème (blocages courants & solutions)</summary>
 
-| Symptôme | Cause probable | Action corrective |
+| Ce que tu vois | Ce qui se passe | Comment régler ça |
 | :--- | :--- | :--- |
-| `502 Bad Gateway` | Le processus Node.js est arrêté ou n'écoute pas sur le port `3000`. | Vérifier avec `ss -tulpn \| grep 3000` et relancer via `pm2 restart Brindiwanko`. |
-| `nginx -t` signale `No such file` | Lien symbolique cassé dans `/etc/nginx/sites-enabled/`. | Supprimer le lien invalide (`sudo rm /etc/nginx/sites-enabled/<nom>`) puis recréer le lien vers `mondomaine.fr`. |
-| `bind() to 0.0.0.0:80 failed` | Un autre serveur web (ex. Apache2) occupe le port `80`. | Identifier le service (`sudo ss -tulpn \| grep :80`) et l'arrêter (`sudo systemctl stop apache2`). |
-| Échec Certbot sur `www` | Aucun enregistrement DNS `A` ou `CNAME` pour `www.mondomaine.fr`. | Relancer sur le domaine racine seul : `sudo certbot --nginx --cert-name mondomaine.fr -d mondomaine.fr`. |
+| Page **`502 Bad Gateway`** | Nginx fonctionne, mais le jeu est arrêté ou plante au démarrage. | Lance `pm2 status` et `pm2 logs Brindiwanko` pour voir l'erreur, puis `pm2 restart Brindiwanko`. |
+| `dig +short mondomaine.fr` n'affiche pas l'IP du VPS | Le DNS n'est pas encore configuré ou pas encore propagé. | Vérifie ton enregistrement `A` chez ton registrar et patiente 5–15 min avant de lancer Certbot. |
+| `nginx -t` dit `No such file` | Un lien symbolique dans `/etc/nginx/sites-enabled/` pointe vers un fichier supprimé. | Supprime le lien cassé (`sudo rm /etc/nginx/sites-enabled/<nom>`) et refais `sudo ln -s ...`. |
+| `bind() to 0.0.0.0:80 failed` | Un autre serveur web (souvent **Apache2**) est déjà allumé sur le port `80`. | Trouve-le avec `sudo ss -tulpn \| grep :80` puis arrête Apache : `sudo systemctl stop apache2 && sudo systemctl disable apache2`. |
+| Certbot échoue sur `www` | Tu n'as pas mis d'enregistrement DNS pour `www.mondomaine.fr`. | Relance sans `www` : `sudo certbot --nginx --cert-name mondomaine.fr -d mondomaine.fr`. |
 
 </details>
 
@@ -717,40 +761,78 @@ npm run load-test -- 80 15
 
 <a id="en-deployment"></a>
 
-## 🌐 Production Deployment (Ubuntu / Debian VPS)
+## 🌐 Putting Your Game Online on a VPS (Beginner Step-by-Step Guide)
 
-| Target domain | Internal server | Reverse proxy | SSL authority |
-| :--- | :--- | :--- | :--- |
-| `mydomain.com` (and `www`) | Node.js on `127.0.0.1:3000` | Nginx (ports `80` and `443`) | Let's Encrypt (`Certbot`) |
+You don't need to be a Linux sysadmin to host Brindiwanko. Here is how it works in two sentences:
 
-In production, Node.js does not handle TLS certificates directly: **Nginx** accepts encrypted connections on port `443`, terminates HTTPS, and proxies traffic locally to `http://127.0.0.1:3000`.
+- Your game runs **privately inside your VPS** (on `127.0.0.1:3000`, hidden from the public internet).
+- **Nginx** acts as the public front door: it greets players on `https://mydomain.com`, handles the free **HTTPS padlock** (via Certbot), and passes traffic to the game behind the scenes.
 
-### Step 1 — Point your domain to the VPS IP & open the firewall
+| What players type | Public front door | Where the game actually runs |
+| :--- | :--- | :--- |
+| `https://mydomain.com` | **Nginx** (ports `80` / `443` + SSL padlock) | **Node.js** locally (`127.0.0.1:3000`) |
 
-> [!IMPORTANT]
-> **Required DNS setup:** at your domain registrar / DNS provider, create an **`A` record** pointing `mydomain.com` (and an `A` or `CNAME` record for `www.mydomain.com` if used) to the **public IPv4 address of the VPS** where Brindiwanko will run. Wait for DNS propagation before requesting an SSL certificate.
+---
+
+### Step 1 — Point your domain to your VPS IP address
+
+Before installing anything on the server, tell the internet that `mydomain.com` belongs to your VPS:
+
+1. Log in to the website where you bought your domain (Namecheap, OVH, Cloudflare, GoDaddy…) and open **DNS Records / DNS Zone**.
+2. Add an **`A` record**:
+   - **Name / Host:** `@` *(or leave empty, depending on your provider — this stands for your main domain `mydomain.com`)*
+   - **Value / Target:** **your VPS's public IPv4 address** *(where the game will run)*
+3. *(Optional, so `www.mydomain.com` works too)* Add a second **`A` record** with **Name:** `www` pointing to the **same VPS IP address**.
+4. Wait a few minutes for DNS to update, then connect to your VPS via SSH (Ubuntu or Debian) to verify it and open the web ports in your firewall:
 
 ```bash
-# 1. Verify that your domain resolves to your VPS public IPv4
+# Should print your VPS public IP address:
 dig +short mydomain.com
 
-# 2. If UFW firewall is enabled, allow HTTP (80) and HTTPS (443)
+# If UFW firewall is active on your VPS, allow web traffic (ports 80 and 443):
 sudo ufw allow 'Nginx Full'
 sudo ufw status
 ```
 
-> Verification: `dig` prints your VPS IPv4 address and `Nginx Full` shows status `ALLOW`.
+---
 
-### Step 2 — Install and configure Nginx
+### Step 2 — Build and keep Brindiwanko running in the background (`pm2`)
 
-1. Install Nginx and create the site configuration file *(omit `www.mydomain.com` if only the root domain is configured in DNS)*:
+If you start the server with plain `npm start`, **the game will stop the moment you close your SSH window**. **`pm2`** keeps it running 24/7 in the background and starts it automatically if the VPS reboots.
+
+Inside the project folder *(after making sure `node -v` shows `24` or `26`)*:
+
+```bash
+# 1. Install pm2 and build the game for production
+sudo npm install -g pm2
+npm ci && npm run build
+
+# 2. Start the game in the background (replace mydomain.com with your real domain)
+NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 CONTENT_LANGUAGE=en PUBLIC_URL=https://mydomain.com PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
+
+# 3. Make sure pm2 restarts automatically when the VPS reboots
+pm2 startup
+pm2 save
+```
+
+> [!IMPORTANT]
+> **Good to know:**
+> - `HOST=127.0.0.1` ensures nobody can bypass Nginx by visiting `http://YOUR_VPS_IP:3000`.
+> - **Never** pass cluster mode (`-i`) to `pm2` — the game world and combat state must stay in a single process.
+> - Avoid running the game as `root` when possible (use a standard Linux user account).
+
+---
+
+### Step 3 — Install and set up Nginx (the front door)
+
+1. Install Nginx and create a config file for your domain *(replace `mydomain.com` everywhere with your real domain)*:
 
 ```bash
 sudo apt update && sudo apt install nginx -y
 sudo nano /etc/nginx/sites-available/mydomain.com
 ```
 
-2. Paste the following configuration:
+2. Paste this exact text inside the editor *(if you didn't set up `www` in Step 1, simply remove `www.mydomain.com` from the `server_name` line)*:
 
 ```nginx
 server {
@@ -774,7 +856,9 @@ server {
 }
 ```
 
-3. Enable the site via symlink, validate syntax, and reload Nginx:
+> 💡 **To save and exit `nano`:** press <kbd>Ctrl</kbd>+<kbd>O</kbd>, then <kbd>Enter</kbd>, then <kbd>Ctrl</kbd>+<kbd>X</kbd>.
+
+3. Enable this config, test for typos, and reload Nginx:
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/mydomain.com /etc/nginx/sites-enabled/
@@ -782,48 +866,54 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-> Verification: `sudo nginx -t` outputs `syntax is ok` and `test is successful`.
+> ✅ **Check:** `sudo nginx -t` should print `syntax is ok` and `test is successful`.
 
-### Step 3 — Enable HTTPS with Certbot (Let's Encrypt)
+---
 
-Certbot issues a free Let's Encrypt certificate, automatically configures port `443` in your Nginx file, and enables HTTP-to-HTTPS redirection *(drop `-d www.mydomain.com` if you only use the root domain)*:
+### Step 4 — Turn on the free HTTPS padlock (`Certbot`)
+
+Certbot gets a free SSL certificate from Let's Encrypt and automatically updates your Nginx file so `https://` works *(omit `-d www.mydomain.com` if you didn't configure `www`)*:
 
 ```bash
 sudo apt install certbot python3-certbot-nginx -y
 sudo certbot --nginx --cert-name mydomain.com -d mydomain.com -d www.mydomain.com
+```
 
-# Test automatic renewal (90-day certificates)
+Answer the prompts shown on screen:
+1. Enter your **email address** *(for certificate renewal warnings)*.
+2. Accept the terms (`Y`) and confirm redirecting HTTP traffic to HTTPS.
+3. Verify automatic renewal works properly:
+
+```bash
 sudo certbot renew --dry-run
 ```
 
-> Verification: enter an alert email, accept the terms, confirm HTTPS redirection, and check that `https://mydomain.com` loads with a valid lock icon.
+---
 
-### Step 4 — Launch and lock down Brindiwanko (`127.0.0.1:3000`)
+### Step 5 — Create your first Administrator account 🎉
 
-Brindiwanko binds strictly to localhost via `HOST=127.0.0.1` and enables reverse-proxy header trust via `TRUST_PROXY=1` *(no source code edits needed)*.
+1. Open **`https://mydomain.com`** in your browser — you should see the HTTPS padlock and your game!
+2. Click **Register** *(the very first account created automatically becomes the server administrator)*.
+3. In production, registration asks for a **Setup Code** on first boot — view it in your server logs with:
 
 ```bash
-# Global pm2 setup and clean build
-npm install -g pm2
-npm ci && npm run build
-
-# Start single-process server behind Nginx
-NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 PUBLIC_URL=https://mydomain.com PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
-pm2 startup && pm2 save
+pm2 logs Brindiwanko --lines 30
 ```
 
-> [!IMPORTANT]
-> **Operational checklist:** bind locally (`127.0.0.1`) behind HTTPS with `PUBLIC_URL` configured (blocks direct unencrypted `http://VPS_IP:3000` access and prevents CSWSH attacks), run under an unprivileged OS user, and **never** enable PM2 cluster mode (`-i`) because world simulation and combat require a single process.
+*(Or set your own code in Step 2 by adding `SETUP_CODE=my-secret-code` right before `pm2 start`).*
+
+---
 
 <details>
-<summary>🩺 Quick troubleshooting guide</summary>
+<summary>🩺 Troubleshooting (common beginner issues & quick fixes)</summary>
 
-| Symptom | Likely cause | Fix / command |
+| What you see | Why it happens | How to fix it |
 | :--- | :--- | :--- |
-| `502 Bad Gateway` | Node.js process is stopped or not listening on port `3000`. | Check local listener (`ss -tulpn \| grep 3000`) and restart with `pm2 restart Brindiwanko`. |
-| `nginx -t` reports `No such file` | Broken symlink inside `/etc/nginx/sites-enabled/`. | Remove stale link (`sudo rm /etc/nginx/sites-enabled/<name>`) and recreate symlink to `mydomain.com`. |
-| `bind() to 0.0.0.0:80 failed` | Another web server (e.g., Apache2) already holds port `80`. | Identify it (`sudo ss -tulpn \| grep :80`) and stop it (`sudo systemctl stop apache2`). |
-| Certbot fails on `www` | No `A` or `CNAME` DNS record exists for `www.mydomain.com`. | Re-run for root domain only: `sudo certbot --nginx --cert-name mydomain.com -d mydomain.com`. |
+| **`502 Bad Gateway`** page | Nginx is running, but Brindiwanko stopped or crashed on startup. | Run `pm2 status` and `pm2 logs Brindiwanko` to inspect the message, then `pm2 restart Brindiwanko`. |
+| `dig +short mydomain.com` doesn't show your VPS IP | DNS record isn't set or hasn't propagated yet. | Double-check your `A` record at your domain registrar and wait 5–15 minutes before running Certbot. |
+| `nginx -t` says `No such file` | A shortcut inside `/etc/nginx/sites-enabled/` points to a deleted file. | Remove the broken shortcut (`sudo rm /etc/nginx/sites-enabled/<name>`) and recreate `sudo ln -s ...`. |
+| `bind() to 0.0.0.0:80 failed` | Another web server (usually **Apache2**) is already using port `80`. | Check with `sudo ss -tulpn \| grep :80` then stop Apache: `sudo systemctl stop apache2 && sudo systemctl disable apache2`. |
+| Certbot fails on `www` | No DNS record exists for `www.mydomain.com`. | Re-run without `www`: `sudo certbot --nginx --cert-name mydomain.com -d mydomain.com`. |
 
 </details>
 
