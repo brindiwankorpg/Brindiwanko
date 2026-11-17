@@ -11,7 +11,7 @@
   [![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![Socket.io](https://img.shields.io/badge/Socket.io-4.x-010101?style=flat-square&logo=socketdotio&logoColor=white)](https://socket.io/)
   [![SQLite](https://img.shields.io/badge/SQLite-better--sqlite3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://github.com/WiseLibs/better-sqlite3)
-  [![Tests](https://img.shields.io/badge/tests-320%2B%20passed-brightgreen?style=flat-square&logo=node.js&logoColor=white)](tests/)
+  [![Tests](https://img.shields.io/badge/tests-330%20passed-brightgreen?style=flat-square&logo=node.js&logoColor=white)](tests/)
   [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=flat-square)](LICENSE)
 
   <br />
@@ -49,7 +49,7 @@ Le tout s'exécute dans **un seul processus Node.js** adossé à **une seule bas
 > **Brindiwanko a été entièrement conçu et programmé via une intelligence artificielle, et testé rigoureusement par son auteur en complément des batteries de tests de l'IA.** 🧠
 
 * 💻 **Code & Générateurs** : L'ensemble du code source (serveur, client, éditeur, tests), les générateurs d'actifs procéduraux et la documentation sont écrits par l'IA sous la direction créative et technique humaine.
-* 🧪 **Validation rigoureuse** : Le projet est validé par plus de **320 tests automatisés** (`npm test`), un simulateur de charge multi-clients et des campagnes de validation de bout en bout en conditions réelles dans le navigateur.
+* 🧪 **Validation rigoureuse** : Le projet est validé par **330 tests automatisés** (`npm test`), un simulateur de charge multi-clients et des campagnes de validation de bout en bout en conditions réelles dans le navigateur.
 * ⚠️ **Mise en garde** : Comme pour toute réalisation générée, une relecture et des essais attentifs sont conseillés avant toute mise en production. Les signalements de bugs et contributions sont chaleureusement accueillis ! 🙏
 
 ---
@@ -92,7 +92,7 @@ Tilesets, autotiles, personnages animés, visages (facesets), monstres, boss de 
 
 * 🖥️ **Serveur** : TypeScript (mode strict), Express 5, Socket.io 4, better-sqlite3 (moteur unique de persistance), moteurs de vues EJS.
 * 🌐 **Client Web** : TypeScript compilé via esbuild, rendu graphique sur HTML5 Canvas 2D, interfaces modulaires façon RPG classique.
-* 🧪 **Qualité & Tests** : Runner natif `node --test` (plus de 320 tests automatisés), suite de test de charge multi-clients intégrée.
+* 🧪 **Qualité & Tests** : Runner natif `node --test` (330 tests automatisés), suite de test de charge multi-clients intégrée.
 
 ---
 
@@ -278,8 +278,8 @@ Toutes les variables d'environnement suivantes sont optionnelles et disposent de
 | `UPLOADS_DIR` | `uploads/` | Répertoire d'accueil des graphismes et sons importés (exposés sous `/uploads/`). |
 | `NODE_ENV` | — | Définir sur `production` pour activer le mode sécurisé (cookies `Secure`, en-têtes HSTS, mise en cache). |
 | `SESSION_SECRET` | auto-généré | Clé cryptographique préservant les signatures de session. |
-| `TRUST_PROXY` | — | Définir sur `1` derrière un reverse proxy (requis pour la validation HTTPS et le traçage exact des IP). |
-| `SETUP_CODE` | aléatoire | Code secret réclamé lors de l'enregistrement du premier compte administrateur. |
+| `TRUST_PROXY` | — | Définir sur `1` ou `true` derrière un reverse proxy (`0`/`false` pour désactiver ; toute autre valeur refuse le démarrage). Requis pour la validation HTTPS et le traçage exact des IP. |
+| `SETUP_CODE` | aléatoire | Code secret réclamé lors de l'enregistrement du premier compte administrateur (définir explicitement en production si les logs sont centralisés). |
 | `CONTENT_LANGUAGE` | prompt terminal | `fr` ou `en` : force la langue des éléments lors de la génération du monde initial. |
 | `PUBLIC_URL` | — | URL publique d'accès (ex. `https://jeu.mondomaine.org`). Requis en production contre les attaques CSWSH. |
 | `REGISTRATIONS_PER_HOUR` | `10` *(prod)* | Plafond d'inscriptions autorisées par tranche d'une heure depuis une même IP (`0` = illimité). |
@@ -472,6 +472,8 @@ Brindiwanko/
 
 Retrouvez l'historique complet dans [CHANGELOG.md](CHANGELOG.md). Dernières améliorations intégrées depuis la `1.0.0-beta.1` :
 
+* 🔒 **Sécurité & restauration à chaud** : Vérification du mot de passe et du verrou `restoring` avant le buffering des uploads sur `/api/admin/restore`, préparation asynchrone `prepareRestore` sans blocage de la boucle 20 Hz, contrôle anti-chevauchement ZIP, durcissement SVG/sandbox/Socket.io (`Sec-Fetch-Site`) et libération des verrous d'édition au changement de mot de passe.
+* ⚡ **Performance, fiabilité & cycle de vie** : Migration SQL `002_indexes.sql` (6 index secondaires), cache `SettingsRepository`, requêtes unifiées sur l'annuaire des guildes, parsing JSON défensif, suppression atomique de compte par transaction SQLite, contrôle de reconnexion multi-onglets (`characterId`), nettoyage `AbortController`/`destroy()` côté client et validation i18n étendue aux placeholders et vues `.ejs`.
 * 🗺️ **Confinement des monstres en région** : En errance (`idle`) et en fuite sur zone peinte, les monstres restent dans leur région d'origine ; la détection d'aggro et le retour maison encadrent la sortie de zone (jusqu'à 2 cases de marge en poursuite, sans gêner les marqueurs de boss à une case).
 * 🎮 **Contrôles clavier plus réactifs** : Un clic sur la carte libère immédiatement le focus clavier du chat, et un buffer d'action de `150 ms` déclenche les interactions pressées juste avant la fin d'un pas.
 * 📱 **Lisibilité des dialogues & mode tactile dynamique** : Les barres basses, le chat et les contrôles tactiles s'effacent pendant un dialogue actif ; le basculement entre mode tactile et bureau suit les changements de pointeur (`hover: none`) et de redimensionnement sans recharger la page (`F5`).
@@ -501,7 +503,7 @@ Ce projet est distribué sous licence open-source **[Apache 2.0](LICENSE)**.
   [![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![Socket.io](https://img.shields.io/badge/Socket.io-4.x-010101?style=flat-square&logo=socketdotio&logoColor=white)](https://socket.io/)
   [![SQLite](https://img.shields.io/badge/SQLite-better--sqlite3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://github.com/WiseLibs/better-sqlite3)
-  [![Tests](https://img.shields.io/badge/tests-320%2B%20passed-brightgreen?style=flat-square&logo=node.js&logoColor=white)](tests/)
+  [![Tests](https://img.shields.io/badge/tests-330%20passed-brightgreen?style=flat-square&logo=node.js&logoColor=white)](tests/)
   [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=flat-square)](LICENSE)
 
   <br />
@@ -539,7 +541,7 @@ All powered by **a single Node.js process** backed by **a single SQLite database
 > **Brindiwanko was entirely designed and written via artificial intelligence, and rigorously tested by its author alongside standard AI test routines.** 🧠
 
 * 💻 **Code & Generators**: The full codebase (server, client, editor, test suites), procedural asset generators, and documentation are authored by AI under human creative and technical direction.
-* 🧪 **Thorough Validation**: Tested with over **320 automated test cases** (`npm test`), an integrated multi-client load tester, and comprehensive end-to-end browser verification sessions.
+* 🧪 **Thorough Validation**: Tested with **330 automated test cases** (`npm test`), an integrated multi-client load tester, and comprehensive end-to-end browser verification sessions.
 * ⚠️ **Disclaimer**: As with any generated software, careful review and staging tests are encouraged before going live in production. Issue reports and pull requests are warmly appreciated! 🙏
 
 ---
@@ -582,7 +584,7 @@ Tilesets, autotiles, character spritesheets, facesets, monsters, raid bosses, in
 
 * 🖥️ **Server Engine**: Strict TypeScript, Express 5, Socket.io 4, better-sqlite3 (standalone persistent engine), EJS templating.
 * 🌐 **Web Client**: TypeScript bundled via esbuild, high-performance HTML5 2D Canvas rendering, retro-inspired RPG modular windowing.
-* 🧪 **Quality Assurance**: Native `node --test` runner (320+ automated tests), integrated stress-testing suite.
+* 🧪 **Quality Assurance**: Native `node --test` runner (330 automated tests), integrated stress-testing suite.
 
 ---
 
@@ -768,8 +770,8 @@ All environment variables are optional with sensible defaults:
 | `UPLOADS_DIR` | `uploads/` | Storage directory for uploaded user assets (served under `/uploads/`). |
 | `NODE_ENV` | — | Set to `production` to enforce secure cookies, HSTS headers, and asset caching. |
 | `SESSION_SECRET` | auto-generated | Secret key used to sign HTTP session cookies. |
-| `TRUST_PROXY` | — | Set to `1` behind a reverse proxy (required for HTTPS cookie validation and IP tracing). |
-| `SETUP_CODE` | random token | Verification code required when registering the initial admin account in production. |
+| `TRUST_PROXY` | — | Set to `1` or `true` behind a reverse proxy (`0`/`false` to disable; invalid values fail startup). Required for HTTPS cookie validation and IP tracing. |
+| `SETUP_CODE` | random token | Verification code required when registering the initial admin account in production (recommended to set explicitly when using centralized log collection). |
 | `CONTENT_LANGUAGE` | prompt | `en` or `fr`: sets the language for initial database demo generation. |
 | `PUBLIC_URL` | — | Canonical public address (e.g. `https://game.example.org`). Blocks CSWSH attacks. |
 | `REGISTRATIONS_PER_HOUR` | `10` *(prod)* | Maximum account registrations per IP per hour (`0` = unlimited). |
@@ -962,6 +964,8 @@ Brindiwanko/
 
 See [CHANGELOG.md](CHANGELOG.md) for full release notes. Latest improvements integrated since `1.0.0-beta.1`:
 
+* 🔒 **Security & non-blocking restore**: `POST /api/admin/restore` verifies the password and `restoring` lock before body buffering, `prepareRestore` runs asynchronously via Worker + `fs.promises.cp`, and hardening covers ZIP overlaps, SVG bounds/CSS escapes, script ID bounds, `Sec-Fetch-Site` handshakes, and edit-lock release on password resets.
+* ⚡ **Performance, reliability & client lifecycle**: Added migration `002_indexes.sql` (6 secondary indexes), transaction-safe `SettingsRepository` cache, unified guild directory queries, defensive JSON parsing, transactional account deletion, multi-tab reconnect `characterId` checks, `AbortController`/`destroy()` cleanup, and extended `i18n:check` validation for placeholders and `.ejs` views.
 * 🗺️ **Monster region confinement**: Monsters stay within their spawn region while idle (and while fleeing in painted multi-cell zones); aggro spotting and return leashing keep chasing monsters near their hunting region (within a 2-cell margin, leaving single-tile boss markers unrestricted during combat).
 * 🎮 **Responsive controls**: Clicking the map canvas returns keyboard focus from the chat input immediately, and a `150 ms` action buffer executes interactions pressed near the end of a step on arrival.
 * 📱 **Clean dialogue layering & live touch switching**: Bottom bars, chat, and touch controls hide during active dialogues, and automatic `touch-mode` tracks `(hover: none)` and viewport resizes live without needing a manual page reload.
