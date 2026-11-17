@@ -100,8 +100,8 @@ Brindiwanko/
 - **npm** *(inclus avec Node.js)*
 
 <a id="fr-nvm"></a>
-<details open>
-<summary>🐧 Installer Node.js et npm via <code>nvm</code> (Linux / macOS / VPS — recommandé)</summary>
+
+#### 🐧 Installer Node.js et npm via `nvm` (Linux / macOS / VPS — recommandé)
 
 Sur Ubuntu ou Debian, les dépôts `apt` par défaut proposent souvent une version de Node.js inférieure à `24`. **`nvm`** (Node Version Manager) permet d'installer **Node.js 26 LTS** et **`npm`** directement dans ton dossier utilisateur, sans privilèges `root` :
 
@@ -122,9 +122,10 @@ node -v # Doit afficher "v26.13.1".
 npm -v # Doit afficher "11.20.0".
 ```
 
-> **Important :** Avec `nvm`, Node.js, `npm` et les paquets globaux sont installés dans `~/.nvm` (ton dossier personnel) et non dans `/usr/bin`. Pour installer un paquet global comme `pm2`, n'utilise **jamais** `sudo` (`npm install -g pm2` directement). À l'inverse, si Node.js a été installé au niveau système via `apt`, `sudo npm install -g pm2` reste nécessaire.
+> [!IMPORTANT]
+> Avec `nvm`, Node.js, `npm` et les paquets globaux sont installés dans `~/.nvm` (ton dossier personnel) et non dans `/usr/bin`. Pour installer un paquet global comme `pm2`, n'utilise **jamais** `sudo` (`npm install -g pm2` directement). À l'inverse, si Node.js a été installé au niveau système via `apt`, `sudo npm install -g pm2` reste nécessaire.
 
-</details>
+### Lancer le projet
 
 ```bash
 # 1. Installer les dépendances
@@ -649,8 +650,8 @@ Brindiwanko/
 - **npm** *(bundled with Node.js)*
 
 <a id="en-nvm"></a>
-<details open>
-<summary>🐧 Install Node.js and npm via <code>nvm</code> (Linux / macOS / VPS — recommended)</summary>
+
+#### 🐧 Install Node.js and npm via `nvm` (Linux / macOS / VPS — recommended)
 
 On Ubuntu or Debian, default `apt` packages often ship a Node.js version older than `24`. **`nvm`** (Node Version Manager) installs **Node.js 26 LTS** and **`npm`** directly inside your user home directory without `root` privileges:
 
@@ -671,9 +672,10 @@ node -v # Should print "v26.13.1".
 npm -v # Should print "11.20.0".
 ```
 
-> **Important:** With `nvm`, Node.js, `npm`, and global packages live in `~/.nvm` (your home directory) rather than `/usr/bin`. Never use `sudo` when installing global packages like `pm2` (run `npm install -g pm2` directly). Conversely, if Node.js was installed system-wide via `apt`, `sudo npm install -g pm2` is still required.
+> [!IMPORTANT]
+> With `nvm`, Node.js, `npm`, and global packages live in `~/.nvm` (your home directory) rather than `/usr/bin`. Never use `sudo` when installing global packages like `pm2` (run `npm install -g pm2` directly). Conversely, if Node.js was installed system-wide via `apt`, `sudo npm install -g pm2` is still required.
 
-</details>
+### Start the Project
 
 ```bash
 # 1. Install dependencies
