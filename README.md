@@ -260,23 +260,40 @@ npm run load-test -- 80 15
 
 <a id="fr-deploiement"></a>
 
-## 🌐 Déploiement en Production
+## 🌐 Déploiement en Production (VPS Ubuntu / Debian)
 
-```bash
-# Installation et compilation propre
-npm install -g pm2
-npm ci && npm run build
+| Domaine cible | Serveur interne | Reverse proxy | Autorité SSL |
+| :--- | :--- | :--- | :--- |
+| `mondomaine.fr` (et `www`) | Node.js sur `127.0.0.1:3000` | Nginx (ports `80` et `443`) | Let's Encrypt (`Certbot`) |
 
-# Lancement en processus unique derrière nginx
-NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 PUBLIC_URL=https://mondomaine.fr PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
-pm2 startup && pm2 save
-```
+En production, Node.js ne gère pas directement le certificat SSL : **Nginx** reçoit les connexions chiffrées sur le port `443`, déchiffre le trafic HTTPS puis relaie localement vers `http://127.0.0.1:3000`.
+
+### Étape 1 — Pointer le domaine vers l'IP du VPS & ouvrir le pare-feu
 
 > [!IMPORTANT]
-> **Règles d'exploitation :** écoutez sur `127.0.0.1` derrière HTTPS avec `PUBLIC_URL` défini, utilisez un utilisateur système non privilégié et **n'activez jamais** le mode cluster pm2 (`-i`) : l'état du monde et des combats vit dans un processus unique.
+> **Prérequis DNS indispensable :** chez votre hébergeur de nom de domaine (registrar), vous devez créer un enregistrement DNS de type **`A`** faisant pointer `mondomaine.fr` (et `www.mondomaine.fr` en `A` ou `CNAME` si utilisé) vers **l'adresse IPv4 publique du VPS** sur lequel le jeu va tourner. Attendez la propagation DNS avant de lancer Certbot.
 
-<details>
-<summary>🌐 Configuration nginx recommandée (WebSocket & limites d'upload 500 Mo)</summary>
+```bash
+# 1. Vérifier que votre domaine renvoie bien l'IP publique de votre VPS
+dig +short mondomaine.fr
+
+# 2. Si le pare-feu UFW est actif, autoriser HTTP (80) et HTTPS (443)
+sudo ufw allow 'Nginx Full'
+sudo ufw status
+```
+
+> Contrôle : `dig` affiche exactement l'IPv4 de votre VPS et `Nginx Full` apparaît en statut `ALLOW`.
+
+### Étape 2 — Installer et configurer Nginx
+
+1. Installez Nginx puis créez le fichier de configuration du domaine *(retirez `www.mondomaine.fr` si vous n'avez déclaré que le domaine racine)* :
+
+```bash
+sudo apt update && sudo apt install nginx -y
+sudo nano /etc/nginx/sites-available/mondomaine.fr
+```
+
+2. Collez cette configuration dans le fichier :
 
 ```nginx
 server {
@@ -300,7 +317,56 @@ server {
 }
 ```
 
-> Activez ensuite HTTPS devant ce bloc (par exemple via Certbot / Let's Encrypt ou terminaison SSL en amont).
+3. Activez la configuration, vérifiez la syntaxe puis rechargez Nginx :
+
+```bash
+sudo ln -s /etc/nginx/sites-available/mondomaine.fr /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+> Contrôle : `sudo nginx -t` affiche `syntax is ok` et `test is successful`.
+
+### Étape 3 — Activer le certificat SSL/TLS avec Certbot
+
+Certbot génère gratuitement le certificat Let's Encrypt, configure automatiquement le port `443` dans Nginx et force la redirection HTTPS *(supprimez `-d www.mondomaine.fr` si le sous-domaine `www` n'est pas configuré)* :
+
+```bash
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx --cert-name mondomaine.fr -d mondomaine.fr -d www.mondomaine.fr
+
+# Vérifier le renouvellement automatique (validité 90 jours)
+sudo certbot renew --dry-run
+```
+
+> Contrôle : renseignez votre e-mail d'alerte, validez les conditions et la redirection HTTPS ; `https://mondomaine.fr` doit s'ouvrir avec un cadenas valide.
+
+### Étape 4 — Lancer et verrouiller Brindiwanko (`127.0.0.1:3000`)
+
+Brindiwanko écoute uniquement sur l'interface locale grâce à `HOST=127.0.0.1` et active la prise en charge du reverse proxy via `TRUST_PROXY=1` *(aucune modification du code requise)*.
+
+```bash
+# Installation globale de pm2 et compilation propre
+npm install -g pm2
+npm ci && npm run build
+
+# Démarrage en processus unique derrière Nginx
+NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 PUBLIC_URL=https://mondomaine.fr PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
+pm2 startup && pm2 save
+```
+
+> [!IMPORTANT]
+> **Règles d'exploitation :** écoutez sur `127.0.0.1` derrière HTTPS avec `PUBLIC_URL` défini (empêche l'accès direct non chiffré `http://IP_DU_VPS:3000` et bloque les attaques CSWSH), utilisez un utilisateur système non privilégié et **n'activez jamais** le mode cluster pm2 (`-i`) : l'état du monde et des combats vit dans un processus unique.
+
+<details>
+<summary>🩺 Diagnostic rapide en cas d'incident</summary>
+
+| Symptôme | Cause probable | Action corrective |
+| :--- | :--- | :--- |
+| `502 Bad Gateway` | Le processus Node.js est arrêté ou n'écoute pas sur le port `3000`. | Vérifier avec `ss -tulpn \| grep 3000` et relancer via `pm2 restart Brindiwanko`. |
+| `nginx -t` signale `No such file` | Lien symbolique cassé dans `/etc/nginx/sites-enabled/`. | Supprimer le lien invalide (`sudo rm /etc/nginx/sites-enabled/<nom>`) puis recréer le lien vers `mondomaine.fr`. |
+| `bind() to 0.0.0.0:80 failed` | Un autre serveur web (ex. Apache2) occupe le port `80`. | Identifier le service (`sudo ss -tulpn \| grep :80`) et l'arrêter (`sudo systemctl stop apache2`). |
+| Échec Certbot sur `www` | Aucun enregistrement DNS `A` ou `CNAME` pour `www.mondomaine.fr`. | Relancer sur le domaine racine seul : `sudo certbot --nginx --cert-name mondomaine.fr -d mondomaine.fr`. |
 
 </details>
 
@@ -651,23 +717,40 @@ npm run load-test -- 80 15
 
 <a id="en-deployment"></a>
 
-## 🌐 Production Deployment
+## 🌐 Production Deployment (Ubuntu / Debian VPS)
 
-```bash
-# Clean install and build
-npm install -g pm2
-npm ci && npm run build
+| Target domain | Internal server | Reverse proxy | SSL authority |
+| :--- | :--- | :--- | :--- |
+| `mydomain.com` (and `www`) | Node.js on `127.0.0.1:3000` | Nginx (ports `80` and `443`) | Let's Encrypt (`Certbot`) |
 
-# Launch single-process service behind nginx
-NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 PUBLIC_URL=https://mydomain.com PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
-pm2 startup && pm2 save
-```
+In production, Node.js does not handle TLS certificates directly: **Nginx** accepts encrypted connections on port `443`, terminates HTTPS, and proxies traffic locally to `http://127.0.0.1:3000`.
+
+### Step 1 — Point your domain to the VPS IP & open the firewall
 
 > [!IMPORTANT]
-> **Operational checklist:** bind locally (`127.0.0.1`) behind HTTPS with `PUBLIC_URL` configured, run under an unprivileged OS user, and **never** enable PM2 cluster mode (`-i`) because world simulation and combat require a single process.
+> **Required DNS setup:** at your domain registrar / DNS provider, create an **`A` record** pointing `mydomain.com` (and an `A` or `CNAME` record for `www.mydomain.com` if used) to the **public IPv4 address of the VPS** where Brindiwanko will run. Wait for DNS propagation before requesting an SSL certificate.
 
-<details>
-<summary>🌐 Recommended nginx config (WebSockets & 500 MB restore/import uploads)</summary>
+```bash
+# 1. Verify that your domain resolves to your VPS public IPv4
+dig +short mydomain.com
+
+# 2. If UFW firewall is enabled, allow HTTP (80) and HTTPS (443)
+sudo ufw allow 'Nginx Full'
+sudo ufw status
+```
+
+> Verification: `dig` prints your VPS IPv4 address and `Nginx Full` shows status `ALLOW`.
+
+### Step 2 — Install and configure Nginx
+
+1. Install Nginx and create the site configuration file *(omit `www.mydomain.com` if only the root domain is configured in DNS)*:
+
+```bash
+sudo apt update && sudo apt install nginx -y
+sudo nano /etc/nginx/sites-available/mydomain.com
+```
+
+2. Paste the following configuration:
 
 ```nginx
 server {
@@ -691,7 +774,56 @@ server {
 }
 ```
 
-> Enable HTTPS in front of this block (for example with Certbot / Let's Encrypt or an upstream SSL terminator).
+3. Enable the site via symlink, validate syntax, and reload Nginx:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/mydomain.com /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+> Verification: `sudo nginx -t` outputs `syntax is ok` and `test is successful`.
+
+### Step 3 — Enable HTTPS with Certbot (Let's Encrypt)
+
+Certbot issues a free Let's Encrypt certificate, automatically configures port `443` in your Nginx file, and enables HTTP-to-HTTPS redirection *(drop `-d www.mydomain.com` if you only use the root domain)*:
+
+```bash
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx --cert-name mydomain.com -d mydomain.com -d www.mydomain.com
+
+# Test automatic renewal (90-day certificates)
+sudo certbot renew --dry-run
+```
+
+> Verification: enter an alert email, accept the terms, confirm HTTPS redirection, and check that `https://mydomain.com` loads with a valid lock icon.
+
+### Step 4 — Launch and lock down Brindiwanko (`127.0.0.1:3000`)
+
+Brindiwanko binds strictly to localhost via `HOST=127.0.0.1` and enables reverse-proxy header trust via `TRUST_PROXY=1` *(no source code edits needed)*.
+
+```bash
+# Global pm2 setup and clean build
+npm install -g pm2
+npm ci && npm run build
+
+# Start single-process server behind Nginx
+NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 PUBLIC_URL=https://mydomain.com PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
+pm2 startup && pm2 save
+```
+
+> [!IMPORTANT]
+> **Operational checklist:** bind locally (`127.0.0.1`) behind HTTPS with `PUBLIC_URL` configured (blocks direct unencrypted `http://VPS_IP:3000` access and prevents CSWSH attacks), run under an unprivileged OS user, and **never** enable PM2 cluster mode (`-i`) because world simulation and combat require a single process.
+
+<details>
+<summary>🩺 Quick troubleshooting guide</summary>
+
+| Symptom | Likely cause | Fix / command |
+| :--- | :--- | :--- |
+| `502 Bad Gateway` | Node.js process is stopped or not listening on port `3000`. | Check local listener (`ss -tulpn \| grep 3000`) and restart with `pm2 restart Brindiwanko`. |
+| `nginx -t` reports `No such file` | Broken symlink inside `/etc/nginx/sites-enabled/`. | Remove stale link (`sudo rm /etc/nginx/sites-enabled/<name>`) and recreate symlink to `mydomain.com`. |
+| `bind() to 0.0.0.0:80 failed` | Another web server (e.g., Apache2) already holds port `80`. | Identify it (`sudo ss -tulpn \| grep :80`) and stop it (`sudo systemctl stop apache2`). |
+| Certbot fails on `www` | No `A` or `CNAME` DNS record exists for `www.mydomain.com`. | Re-run for root domain only: `sudo certbot --nginx --cert-name mydomain.com -d mydomain.com`. |
 
 </details>
 
