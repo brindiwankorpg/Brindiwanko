@@ -100,7 +100,7 @@ Brindiwanko/
 - **npm** *(inclus avec Node.js)*
 
 <a id="fr-nvm"></a>
-<details>
+<details open>
 <summary>🐧 Installer Node.js et npm via <code>nvm</code> (Linux / macOS / VPS — recommandé)</summary>
 
 Sur Ubuntu ou Debian, les dépôts `apt` par défaut proposent souvent une version de Node.js inférieure à `24`. **`nvm`** (Node Version Manager) permet d'installer **Node.js 26 LTS** et **`npm`** directement dans ton dossier utilisateur, sans privilèges `root` :
@@ -649,7 +649,7 @@ Brindiwanko/
 - **npm** *(bundled with Node.js)*
 
 <a id="en-nvm"></a>
-<details>
+<details open>
 <summary>🐧 Install Node.js and npm via <code>nvm</code> (Linux / macOS / VPS — recommended)</summary>
 
 On Ubuntu or Debian, default `apt` packages often ship a Node.js version older than `24`. **`nvm`** (Node Version Manager) installs **Node.js 26 LTS** and **`npm`** directly inside your user home directory without `root` privileges:
