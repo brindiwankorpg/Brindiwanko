@@ -303,7 +303,7 @@ Pas besoin d'être administrateur système pour héberger Brindiwanko. Voici l'i
 
 <a id="fr-nvm"></a>
 
-### 🐧 Installer Node.js et `npm` via `nvm` (VPS Linux — recommandé)
+### 🐧 Installer Node.js et `npm` via `nvm`
 
 Sur Ubuntu ou Debian, les dépôts `apt` par défaut proposent souvent une version de Node.js inférieure à `24`. **`nvm`** (Node Version Manager) permet d'installer **Node.js 26 LTS** et **`npm`** directement dans ton dossier utilisateur, sans privilèges `root` :
 
@@ -882,7 +882,7 @@ You don't need to be a Linux sysadmin to host Brindiwanko. Here is how it works 
 
 <a id="en-nvm"></a>
 
-### 🐧 Install Node.js and `npm` via `nvm` (Linux VPS — recommended)
+### 🐧 Install Node.js and `npm` via `nvm`
 
 On Ubuntu or Debian, default `apt` packages often ship a Node.js version older than `24`. **`nvm`** (Node Version Manager) installs **Node.js 26 LTS** and **`npm`** directly inside your user home directory without `root` privileges:
 
