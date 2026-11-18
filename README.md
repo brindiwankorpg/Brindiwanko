@@ -287,6 +287,9 @@ npm run load-test -- 80 15
 
 ## 🌐 Mettre son jeu en ligne sur un VPS (Guide pas à pas)
 
+> [!NOTE]
+> **Configuration VPS recommandée :** un **VPS Linux** (**Debian / Ubuntu** recommandé) avec **4 Go de RAM** et **au moins 2 vCore**, ainsi qu'un nom de domaine *(ex. `mondomaine.fr`)*.
+
 Pas besoin d'être administrateur système pour héberger Brindiwanko. Voici l'idée générale en deux phrases :
 
 - Ton jeu tourne **en privé à l'intérieur du VPS** (sur `127.0.0.1:3000`, fermé à Internet).
@@ -349,9 +352,6 @@ sudo ufw status
 ### Étape 2 — Télécharger, compiler et lancer Brindiwanko sur le VPS (`git clone` + `pm2`)
 
 Si tu lances le jeu avec un simple `npm start`, **il s'arrêtera dès que tu fermeras la fenêtre SSH**. On clone donc le projet sur le VPS, on le compile, puis on utilise **`pm2`** pour le garder allumé 24h/24 et le relancer automatiquement si le VPS redémarre.
-
-> [!TIP]
-> **Node.js 24/26 et `npm` ne sont pas encore installés sur ton VPS ?** Installe-les d'abord avec [la procédure `nvm` ci-dessus](#fr-nvm) *(recommandée sous Ubuntu/Debian, où `apt` installe souvent une version trop ancienne)*.
 
 **1. Télécharger le projet sur le VPS (`git clone`) :**
 
@@ -866,6 +866,9 @@ npm run load-test -- 80 15
 
 ## 🌐 Putting Your Game Online on a VPS (Beginner Step-by-Step Guide)
 
+> [!NOTE]
+> **Recommended VPS specs:** a **Linux VPS** (**Debian / Ubuntu** recommended) with **4 GB RAM** and **at least 2 vCores**, plus a domain name *(e.g. `mydomain.com`)*.
+
 You don't need to be a Linux sysadmin to host Brindiwanko. Here is how it works in two sentences:
 
 - Your game runs **privately inside your VPS** (on `127.0.0.1:3000`, hidden from the public internet).
@@ -928,9 +931,6 @@ sudo ufw status
 ### Step 2 — Clone, build, and keep Brindiwanko running on the VPS (`git clone` + `pm2`)
 
 If you start the server with plain `npm start`, **the game will stop the moment you close your SSH window**. So we clone the repository onto the VPS, build it once, and use **`pm2`** to keep it running 24/7 (and auto-start on VPS reboot).
-
-> [!TIP]
-> **Don't have Node.js 24/26 or `npm` on your VPS yet?** Install them first using [the `nvm` guide above](#en-nvm) *(recommended on Ubuntu/Debian, where `apt` often ships an outdated version)*.
 
 **1. Clone the repository onto your VPS:**
 
