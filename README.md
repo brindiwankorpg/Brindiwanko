@@ -376,14 +376,15 @@ npm install -g pm2
 
 ```bash
 # Installer les paquets et compiler le jeu pour la production
-npm install && npm run build
+npm install
+npm run build
 
 # Démarrer le jeu en arrière-plan
 NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 CONTENT_LANGUAGE=fr PUBLIC_URL=https://mondomaine.fr PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
 
 # Enregistrer le démarrage automatique au reboot du VPS
-# (copie et exécute la commande sudo affichée par pm2 startup, puis lance pm2 save)
 pm2 startup
+# Après avoir saisi pm2 startup, copie-colle et exécute la commande indiquée dans le terminal, puis lance :
 pm2 save
 ```
 
@@ -540,7 +541,8 @@ pm2 restart Brindiwanko
 # Mise à jour sécurisée
 npm run restore           # Vérifier la présence d'une sauvegarde récente
 git pull
-npm install && npm run build
+npm install
+npm run build
 pm2 restart Brindiwanko
 ```
 
@@ -952,14 +954,15 @@ npm install -g pm2
 
 ```bash
 # Install dependencies and build for production
-npm install && npm run build
+npm install
+npm run build
 
 # Start the game in the background
 NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 CONTENT_LANGUAGE=en PUBLIC_URL=https://mydomain.com PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
 
 # Make sure pm2 restarts automatically when the VPS reboots
-# (copy and run the sudo command printed by pm2 startup, then run pm2 save)
 pm2 startup
+# After running pm2 startup, copy and paste the command printed in the terminal, then run:
 pm2 save
 ```
 
@@ -1118,7 +1121,8 @@ pm2 restart Brindiwanko
 # Safe update workflow
 npm run restore           # Verify a recent backup exists
 git pull
-npm install && npm run build
+npm install
+npm run build
 pm2 restart Brindiwanko
 ```
 
