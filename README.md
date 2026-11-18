@@ -361,19 +361,14 @@ git clone https://github.com/brindiwankorpg/Brindiwanko.git
 cd Brindiwanko
 ```
 
-**2. Installer `pm2`** *(choisis la commande adaptée à ton installation de Node.js / `npm`)* :
+**2. Installer `pm2` :**
 
-- **Installé via `nvm`** *(recommandé — **sans `sudo`**)* :
-  ```bash
-  npm install -g pm2
-  ```
-- **Installé via `apt`** *(installation système — **avec `sudo`**)* :
-  ```bash
-  sudo npm install -g pm2
-  ```
+```bash
+npm install -g pm2
+```
 
-> [!WARNING]
-> **`sudo npm install -g pm2` ne fonctionne pas avec `nvm` :** `sudo` réinitialise le `PATH` et ne voit pas `~/.nvm` (ce qui provoque `sudo: npm: command not found` ou installe `pm2` sur une autre version système de Node.js). N'utilise `sudo` que pour une installation système via `apt`.
+> [!NOTE]
+> Avec `nvm` *(procédure ci-dessus)*, **n'utilise jamais `sudo`** : `sudo` réinitialise le `PATH` et ne voit pas `~/.nvm` *(ce qui provoque `sudo: npm: command not found`)*. Utilise `sudo npm install -g pm2` **uniquement** si tu as installé Node.js `>= 24` au niveau système via `apt`.
 
 **3. Compiler et démarrer le jeu en arrière-plan** *(remplace `mondomaine.fr` par ton vrai domaine)* :
 
@@ -940,19 +935,14 @@ git clone https://github.com/brindiwankorpg/Brindiwanko.git
 cd Brindiwanko
 ```
 
-**2. Install `pm2`** *(pick the command matching how Node.js and `npm` were installed)*:
+**2. Install `pm2`:**
 
-- **Installed via `nvm`** *(recommended — **without `sudo`**)*:
-  ```bash
-  npm install -g pm2
-  ```
-- **Installed via `apt`** *(system-wide install — **with `sudo`**)*:
-  ```bash
-  sudo npm install -g pm2
-  ```
+```bash
+npm install -g pm2
+```
 
-> [!WARNING]
-> **`sudo npm install -g pm2` does not work with `nvm`:** `sudo` resets `PATH` and cannot see `~/.nvm` (resulting in `sudo: npm: command not found` or installing `pm2` under a different system Node.js version). Only use `sudo` when Node.js and `npm` were installed system-wide via `apt`.
+> [!NOTE]
+> With `nvm` *(used above)*, **never use `sudo`**: `sudo` resets `PATH` and cannot see `~/.nvm` *(causing `sudo: npm: command not found`)*. Only use `sudo npm install -g pm2` if you installed Node.js `>= 24` system-wide via `apt`.
 
 **3. Build and start the game in the background** *(replace `mydomain.com` with your real domain)*:
 
