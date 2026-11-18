@@ -93,57 +93,54 @@ Brindiwanko/
 
 <a id="fr-demarrage"></a>
 
-## 🚀 Installation & Démarrage rapide
+## 🚀 Installation & Lancement en local (PC / Mac / Linux)
 
-### Prérequis
-- **Node.js 26 LTS** recommandé *(version minimale : **Node.js 24**)*
-- **npm** *(inclus avec Node.js)*
+Envie de tester ou de créer votre jeu directement sur votre ordinateur ? Suivez ces deux étapes simples :
 
-<a id="fr-nvm"></a>
+### 1. Installer Node.js (et Git)
 
-#### 🐧 Installer Node.js et npm via `nvm` (Linux / macOS / VPS — recommandé)
+Brindiwanko nécessite **Node.js 26 LTS** *(recommandé)* ou **Node.js 24 minimum**.
 
-Sur Ubuntu ou Debian, les dépôts `apt` par défaut proposent souvent une version de Node.js inférieure à `24`. **`nvm`** (Node Version Manager) permet d'installer **Node.js 26 LTS** et **`npm`** directement dans ton dossier utilisateur, sans privilèges `root` :
+| Système | Où télécharger et installer Node.js |
+| :--- | :--- |
+| 🪟 **Windows** | Téléchargez l'installeur **`.msi` (LTS)** sur **[nodejs.org/fr/download](https://nodejs.org/fr/download)** *(ou via PowerShell : `winget install OpenJS.NodeJS.LTS`)*, puis ouvrez un nouveau terminal. Pour cloner avec Git, installez aussi **[git-scm.com](https://git-scm.com/downloads/win)** *(ou téléchargez simplement le ZIP depuis GitHub)*. |
+| 🍎 **macOS** | Téléchargez l'installeur **`.pkg` (LTS)** sur **[nodejs.org/fr/download](https://nodejs.org/fr/download)** *(ou via Homebrew : `brew install node git`)*. |
+| 🐧 **Linux (Ubuntu / Debian / etc.)** | Utilisez le sélecteur officiel Linux (`nvm` / binaire) sur **[nodejs.org/fr/download](https://nodejs.org/fr/download)** *(évitez `sudo apt install nodejs` seul, qui installe souvent une version trop ancienne)* et vérifiez que `git` est installé (`sudo apt install -y git`). |
+
+Vérifiez dans votre terminal que Node.js est bien reconnu *(doit afficher `v24...` ou `v26...`)* :
 
 ```bash
-# Télécharger et installer nvm :
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh | bash
-
-# Charger nvm sans redémarrer le terminal :
-\. "$HOME/.nvm/nvm.sh"
-
-# Télécharger et installer Node.js :
-nvm install 26
-
-# Vérifier la version de Node.js :
-node -v # Doit afficher "v26.13.1".
-
-# Vérifier la version de npm :
-npm -v # Doit afficher "11.20.0".
+node -v
+npm -v
 ```
 
-> [!IMPORTANT]
-> Avec `nvm`, Node.js, `npm` et les paquets globaux sont installés dans `~/.nvm` (ton dossier personnel) et non dans `/usr/bin`. Pour installer un paquet global comme `pm2`, n'utilise **jamais** `sudo` (`npm install -g pm2` directement). À l'inverse, si Node.js a été installé au niveau système via `apt`, `sudo npm install -g pm2` reste nécessaire.
+### 2. Télécharger, compiler et démarrer le jeu en local
 
-### Lancer le projet
+Ouvrez un terminal (PowerShell, Terminal macOS ou Linux) et tapez simplement :
 
 ```bash
-# 1. Installer les dépendances
+# 1. Télécharger le projet (ou décompressez le ZIP puis placez-vous dans le dossier)
+git clone https://github.com/brindiwankorpg/Brindiwanko.git
+cd Brindiwanko
+
+# 2. Installer les dépendances
 npm install
 
-# 2. Générer les ressources graphiques et compiler serveur + client
+# 3. Générer les ressources graphiques et compiler le jeu (à faire au moins une fois)
 npm run build
 
-# 3. Démarrer le serveur
+# 4. Lancer le serveur local
 npm start
 ```
 
 > [!NOTE]
 > Le fichier `.npmrc` bloque l'exécution de scripts d'installation tiers : `better-sqlite3` et `bcrypt` utilisent leurs binaires précompilés (Windows, Linux, macOS). Aucun compilateur C++ n'est nécessaire.
 
-Ouvrez ensuite **<http://localhost:3000>** : au premier démarrage, `data/game.db` est créé, migré au schéma le plus récent et peuplé avec le monde de démonstration.
+🌐 Ouvrez ensuite **<http://localhost:3000>** dans votre navigateur !  
+Au tout premier lancement, le terminal vous demande la langue du monde de démonstration (`EN` ou `FR`), crée la base `data/game.db` et génère le village de départ.
 
-- **Mode développement :** `npm run dev` relance le serveur et recompile le client automatiquement à chaque modification.
+- **Pour développer / modifier le code :** utilisez `npm run dev` à la place de `npm start` pour recompiler et relancer automatiquement à chaque modification.
+- **Pour arrêter le serveur local :** appuyez sur <kbd>Ctrl</kbd>+<kbd>C</kbd> dans le terminal *(pour le relancer plus tard, un simple `npm start` suffit sans refaire `npm install`)*.
 
 ### 👑 Premier compte administrateur
 
@@ -323,40 +320,26 @@ sudo ufw status
 
 ---
 
-### Étape 2 — Préparer et lancer Brindiwanko en tâche de fond (`pm2`)
+### Étape 2 — Télécharger, compiler et lancer Brindiwanko sur le VPS (`git clone` + `pm2`)
 
-Si tu lances le jeu avec un simple `npm start`, **il s'arrêtera dès que tu fermeras la fenêtre SSH**. On utilise donc **`pm2`** pour le garder allumé 24h/24 et le relancer automatiquement si le VPS redémarre.
+Si tu lances le jeu avec un simple `npm start`, **il s'arrêtera dès que tu fermeras la fenêtre SSH**. On clone donc le projet sur le VPS, on le compile, puis on utilise **`pm2`** pour le garder allumé 24h/24 et le relancer automatiquement si le VPS redémarre.
 
-> [!TIP]
-> **Node.js 24/26 et `npm` ne sont pas encore installés sur ton VPS ?** Suis d'abord [la procédure d'installation via `nvm`](#fr-nvm) *(recommandée sous Ubuntu/Debian, où `apt` installe souvent une version trop ancienne)*.
-
-Depuis le dossier du projet *(après avoir vérifié que `node -v` affiche `24` ou `26`)* :
-
-**1. Installer `pm2`** *(choisis la commande adaptée à ton installation de Node.js / `npm`)* :
-
-- **Installé via `nvm`** *(recommandé — **sans `sudo`**)* :
-  ```bash
-  npm install -g pm2
-  ```
-- **Installé via `apt`** *(installation système — **avec `sudo`**)* :
-  ```bash
-  sudo npm install -g pm2
-  ```
-
-> [!WARNING]
-> **`sudo npm install -g pm2` ne fonctionne pas avec `nvm` :** `sudo` réinitialise le `PATH` et ne voit pas `~/.nvm` (ce qui provoque `sudo: npm: command not found` ou installe `pm2` sur une autre version système de Node.js). N'utilise `sudo` que pour une installation système via `apt`.
-
-**2. Compiler et démarrer le jeu en arrière-plan** *(remplace `mondomaine.fr` par ton vrai domaine)* :
+*(Assure-toi d'abord que `node -v` affiche `v24` ou `v26` sur ton VPS — sinon installe Node.js via **[nodejs.org/fr/download](https://nodejs.org/fr/download)** avant de continuer).*
 
 ```bash
-# Compiler le jeu pour la production
+# 1. Installer git si besoin et télécharger le projet sur le VPS
+sudo apt update && sudo apt install -y git
+git clone https://github.com/brindiwankorpg/Brindiwanko.git
+cd Brindiwanko
+
+# 2. Installer pm2, installer les paquets et compiler le jeu pour la production
+sudo npm install -g pm2
 npm ci && npm run build
 
-# Démarrer le jeu en arrière-plan
+# 3. Démarrer le jeu en arrière-plan (remplace mondomaine.fr par ton vrai domaine)
 NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 CONTENT_LANGUAGE=fr PUBLIC_URL=https://mondomaine.fr PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
 
-# Enregistrer le démarrage automatique au reboot du VPS
-# (copie et exécute la commande sudo affichée par pm2 startup, puis lance pm2 save)
+# 4. Enregistrer le démarrage automatique au reboot du VPS
 pm2 startup
 pm2 save
 ```
@@ -453,7 +436,6 @@ pm2 logs Brindiwanko --lines 30
 
 | Ce que tu vois | Ce qui se passe | Comment régler ça |
 | :--- | :--- | :--- |
-| `sudo: npm: command not found` lors de l'installation de `pm2` | Node.js et `npm` ont été installés via `nvm` (dans `~/.nvm`, inaccessible à `sudo`). | Lance `npm install -g pm2` **sans `sudo`** *(réserve `sudo` aux installations système via `apt`)*. |
 | Page **`502 Bad Gateway`** | Nginx fonctionne, mais le jeu est arrêté ou plante au démarrage. | Lance `pm2 status` et `pm2 logs Brindiwanko` pour voir l'erreur, puis `pm2 restart Brindiwanko`. |
 | `dig +short mondomaine.fr` n'affiche pas l'IP du VPS | Le DNS n'est pas encore configuré ou pas encore propagé. | Vérifie ton enregistrement `A` chez ton registrar et patiente 5–15 min avant de lancer Certbot. |
 | `nginx -t` dit `No such file` | Un lien symbolique dans `/etc/nginx/sites-enabled/` pointe vers un fichier supprimé. | Supprime le lien cassé (`sudo rm /etc/nginx/sites-enabled/<nom>`) et refais `sudo ln -s ...`. |
@@ -643,57 +625,54 @@ Brindiwanko/
 
 <a id="en-quick-start"></a>
 
-## 🚀 Quick Start
+## 🚀 Local Setup & Quick Start (Windows / macOS / Linux)
 
-### Prerequisites
-- **Node.js 26 LTS** recommended *(minimum: **Node.js 24**)*
-- **npm** *(bundled with Node.js)*
+Want to test Brindiwanko or build your world right on your computer? Follow these two steps:
 
-<a id="en-nvm"></a>
+### 1. Install Node.js (and Git)
 
-#### 🐧 Install Node.js and npm via `nvm` (Linux / macOS / VPS — recommended)
+Brindiwanko requires **Node.js 26 LTS** *(recommended)* or **Node.js 24 minimum**.
 
-On Ubuntu or Debian, default `apt` packages often ship a Node.js version older than `24`. **`nvm`** (Node Version Manager) installs **Node.js 26 LTS** and **`npm`** directly inside your user home directory without `root` privileges:
+| OS | Where to download and install Node.js |
+| :--- | :--- |
+| 🪟 **Windows** | Download the **`.msi` (LTS)** installer from **[nodejs.org/en/download](https://nodejs.org/en/download)** *(or run `winget install OpenJS.NodeJS.LTS` in PowerShell)*, then open a new terminal. To clone via Git, also install **[git-scm.com](https://git-scm.com/downloads/win)** *(or download the repository ZIP from GitHub)*. |
+| 🍎 **macOS** | Download the **`.pkg` (LTS)** installer from **[nodejs.org/en/download](https://nodejs.org/en/download)** *(or via Homebrew: `brew install node git`)*. |
+| 🐧 **Linux (Ubuntu / Debian / etc.)** | Use the official Linux selector (`nvm` / tarball) at **[nodejs.org/en/download](https://nodejs.org/en/download)** *(avoid plain `sudo apt install nodejs`, which often installs an outdated version)* and install `git` (`sudo apt install -y git`). |
+
+Verify in your terminal that Node.js works *(should show `v24...` or `v26...`)*:
 
 ```bash
-# Download and install nvm:
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh | bash
-
-# in lieu of restarting the shell
-\. "$HOME/.nvm/nvm.sh"
-
-# Download and install Node.js:
-nvm install 26
-
-# Verify the Node.js version:
-node -v # Should print "v26.13.1".
-
-# Verify npm version:
-npm -v # Should print "11.20.0".
+node -v
+npm -v
 ```
 
-> [!IMPORTANT]
-> With `nvm`, Node.js, `npm`, and global packages live in `~/.nvm` (your home directory) rather than `/usr/bin`. Never use `sudo` when installing global packages like `pm2` (run `npm install -g pm2` directly). Conversely, if Node.js was installed system-wide via `apt`, `sudo npm install -g pm2` is still required.
+### 2. Clone, build, and run locally
 
-### Start the Project
+Open a terminal (PowerShell, macOS Terminal, or Linux shell) and run:
 
 ```bash
-# 1. Install dependencies
+# 1. Clone the repository (or unzip the GitHub archive and enter the folder)
+git clone https://github.com/brindiwankorpg/Brindiwanko.git
+cd Brindiwanko
+
+# 2. Install dependencies
 npm install
 
-# 2. Generate visual assets and compile server + client
+# 3. Build visual assets, server, and client (required on first run)
 npm run build
 
-# 3. Start the server
+# 4. Start the local game server
 npm start
 ```
 
 > [!NOTE]
 > The repository's `.npmrc` disables unnecessary third-party install scripts: `better-sqlite3` and `bcrypt` ship prebuilt binaries (Windows, Linux, macOS), so no C++ compiler toolchain is required.
 
-Open **<http://localhost:3000>** in your browser. First startup initializes `data/game.db`, applies schema migrations, and populates the starter demo world.
+🌐 Open **<http://localhost:3000>** in your browser!  
+On first startup, the terminal asks which language to seed the starter world in (`EN` or `FR`), creates `data/game.db`, and populates the demo village.
 
-- **Development mode:** run `npm run dev` for automatic server restarts and client rebundling on file changes.
+- **Development mode:** run `npm run dev` instead of `npm start` for automatic server restarts and client rebundling when editing files.
+- **Stopping the server:** press <kbd>Ctrl</kbd>+<kbd>C</kbd> in the terminal *(next time, just run `npm start` — no need to reinstall packages)*.
 
 ### 👑 First Administrator Account
 
@@ -873,40 +852,26 @@ sudo ufw status
 
 ---
 
-### Step 2 — Build and keep Brindiwanko running in the background (`pm2`)
+### Step 2 — Clone, build, and keep Brindiwanko running on the VPS (`git clone` + `pm2`)
 
-If you start the server with plain `npm start`, **the game will stop the moment you close your SSH window**. **`pm2`** keeps it running 24/7 in the background and starts it automatically if the VPS reboots.
+If you start the server with plain `npm start`, **the game will stop the moment you close your SSH window**. So we clone the repository onto the VPS, build it once, and use **`pm2`** to keep it running 24/7 (and auto-start on VPS reboot).
 
-> [!TIP]
-> **Don't have Node.js 24/26 or `npm` on your VPS yet?** Follow [the `nvm` installation guide](#en-nvm) first *(recommended on Ubuntu/Debian, where `apt` often ships an outdated version)*.
-
-Inside the project folder *(after making sure `node -v` shows `24` or `26`)*:
-
-**1. Install `pm2`** *(pick the command matching how Node.js and `npm` were installed)*:
-
-- **Installed via `nvm`** *(recommended — **without `sudo`**)*:
-  ```bash
-  npm install -g pm2
-  ```
-- **Installed via `apt`** *(system-wide install — **with `sudo`**)*:
-  ```bash
-  sudo npm install -g pm2
-  ```
-
-> [!WARNING]
-> **`sudo npm install -g pm2` does not work with `nvm`:** `sudo` resets `PATH` and cannot see `~/.nvm` (resulting in `sudo: npm: command not found` or installing `pm2` under a different system Node.js version). Only use `sudo` when Node.js and `npm` were installed system-wide via `apt`.
-
-**2. Build and start the game in the background** *(replace `mydomain.com` with your real domain)*:
+*(First make sure `node -v` prints `v24` or `v26` on your VPS — if not, install Node.js using **[nodejs.org/en/download](https://nodejs.org/en/download)** before continuing).*
 
 ```bash
-# Build the game for production
+# 1. Install git if needed and clone the repository onto your VPS
+sudo apt update && sudo apt install -y git
+git clone https://github.com/brindiwankorpg/Brindiwanko.git
+cd Brindiwanko
+
+# 2. Install pm2, install packages, and build for production
+sudo npm install -g pm2
 npm ci && npm run build
 
-# Start the game in the background
+# 3. Start the game in the background (replace mydomain.com with your real domain)
 NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 CONTENT_LANGUAGE=en PUBLIC_URL=https://mydomain.com PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
 
-# Make sure pm2 restarts automatically when the VPS reboots
-# (copy and run the sudo command printed by pm2 startup, then run pm2 save)
+# 4. Make sure pm2 restarts automatically when the VPS reboots
 pm2 startup
 pm2 save
 ```
@@ -1005,7 +970,6 @@ pm2 logs Brindiwanko --lines 30
 
 | What you see | Why it happens | How to fix it |
 | :--- | :--- | :--- |
-| `sudo: npm: command not found` when installing `pm2` | Node.js and `npm` were installed via `nvm` (inside `~/.nvm`, hidden from `sudo`). | Run `npm install -g pm2` **without `sudo`** *(only use `sudo` for system-wide `apt` installs)*. |
 | **`502 Bad Gateway`** page | Nginx is running, but Brindiwanko stopped or crashed on startup. | Run `pm2 status` and `pm2 logs Brindiwanko` to inspect the message, then `pm2 restart Brindiwanko`. |
 | `dig +short mydomain.com` doesn't show your VPS IP | DNS record isn't set or hasn't propagated yet. | Double-check your `A` record at your domain registrar and wait 5–15 minutes before running Certbot. |
 | `nginx -t` says `No such file` | A shortcut inside `/etc/nginx/sites-enabled/` points to a deleted file. | Remove the broken shortcut (`sudo rm /etc/nginx/sites-enabled/<name>`) and recreate `sudo ln -s ...`. |
