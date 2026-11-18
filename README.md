@@ -376,7 +376,7 @@ npm install -g pm2
 
 ```bash
 # Installer les paquets et compiler le jeu pour la production
-npm ci && npm run build
+npm install && npm run build
 
 # Démarrer le jeu en arrière-plan
 NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 CONTENT_LANGUAGE=fr PUBLIC_URL=https://mondomaine.fr PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
@@ -540,7 +540,7 @@ pm2 restart Brindiwanko
 # Mise à jour sécurisée
 npm run restore           # Vérifier la présence d'une sauvegarde récente
 git pull
-npm ci && npm run build
+npm install && npm run build
 pm2 restart Brindiwanko
 ```
 
@@ -952,7 +952,7 @@ npm install -g pm2
 
 ```bash
 # Install dependencies and build for production
-npm ci && npm run build
+npm install && npm run build
 
 # Start the game in the background
 NODE_ENV=production HOST=127.0.0.1 TRUST_PROXY=1 CONTENT_LANGUAGE=en PUBLIC_URL=https://mydomain.com PORT=3000 pm2 start dist/server/index.js --name Brindiwanko
@@ -1118,7 +1118,7 @@ pm2 restart Brindiwanko
 # Safe update workflow
 npm run restore           # Verify a recent backup exists
 git pull
-npm ci && npm run build
+npm install && npm run build
 pm2 restart Brindiwanko
 ```
 
