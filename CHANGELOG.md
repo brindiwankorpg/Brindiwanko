@@ -63,6 +63,7 @@ Toutes les évolutions notables de **Brindiwanko** sont consignées ici selon le
 - **Focus clavier & réactivité des interactions (`client/game.ts`, `client/engine/player-controller.ts`) :** cliquer sur la carte retire le focus du champ de chat ou du HUD pour rendre aussitôt la main au clavier ; buffer d'entrée de `150 ms` sur `action` (`Espace`, `Entrée`, `Z`, tactile `A`) pressée juste avant la fin d'un pas.
 - **Interface, dialogues & bascule tactile (`client/game.ts`, `client/styles/game.css`, `client/ui/mobile.ts`, `client/ui/windows.ts`) :** masquage des barres du bas, du chat et des contrôles tactiles sous `body.dialogue-active`, et suivi dynamique de `(hover: none)` + `resize` sans rechargement de page.
 - **Ergonomie de l'éditeur (`client/editor/palette.ts`, `client/editor/database-editor.ts`, `client/styles/editor.css`) :** mémoire de sélection et de défilement par onglet dans la palette (réinitialisée uniquement si les planches changent) et ancrage des boutons `+ Ajouter` avec focus automatique sur la ligne créée.
+- **Dépendances (`package.json`, `package-lock.json`) :** mise à jour de `nodemailer` (`10.5.0` → `10.6.0`) et resynchronisation du lockfile pour `npm ci`.
 
 </details>
 
@@ -173,6 +174,7 @@ All notable changes to **Brindiwanko** are documented in this file based on [Kee
 - **Canvas Focus & Interaction Buffering (`client/game.ts`, `client/engine/player-controller.ts`):** clicking the map canvas blurs active non-window inputs (such as chat) so keyboard movement resumes right away; a `150 ms` action buffer executes `Space`/`Enter`/`Z`/touch `A` presses made just before step arrival.
 - **HUD Dialogue Layering & Live Touch Switching (`client/game.ts`, `client/styles/game.css`, `client/ui/mobile.ts`, `client/ui/windows.ts`):** active dialogues toggle `body.dialogue-active` to hide bottom bars, chat, and touch controls cleanly; automatic `touch-mode` follows `(hover: none)` and `resize` events without reloading.
 - **Editor Ergonomics (`client/editor/palette.ts`, `client/editor/database-editor.ts`, `client/styles/editor.css`):** tile palettes retain selection and scroll position per tab (resetting only when tilesets change), and database `+ Add` buttons remain sticky with automatic scroll/focus on added rows.
+- **Dependencies (`package.json`, `package-lock.json`):** updated `nodemailer` (`10.5.0` → `10.6.0`) and resynchronized the lockfile for `npm ci`.
 
 </details>
 
