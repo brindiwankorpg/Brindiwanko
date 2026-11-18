@@ -18,7 +18,7 @@
 
   <br />
 
-  [🚧 Non publié (17/11/2026)](#-non-publié--17112026) •
+  [🚧 Non publié (18/11/2026)](#-non-publié--18112026) •
   [🧪 1.0.0-beta.1 (11/11/2026)](#-100-beta1--11112026) •
   [📖 README](README.md)
 
@@ -28,7 +28,7 @@
 
 Toutes les évolutions notables de **Brindiwanko** sont consignées ici selon le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le [versionnage sémantique](https://semver.org/lang/fr/).
 
-## 🚧 Non publié — 17/11/2026
+## 🚧 Non publié — 18/11/2026
 
 > [!TIP]
 > Lot de stabilisation issu de la contre-expertise AppSec/Architecture et des essais bêta : priorité `P1` traitées sur la restauration à chaud et la boucle 20 Hz, accompagnées de 22 améliorations `P2` de sécurité, concurrence, base de données, ergonomie et outillage.
@@ -57,7 +57,7 @@ Toutes les évolutions notables de **Brindiwanko** sont consignées ici selon le
 <summary>Concurrence serveur, gameplay, ergonomie client & éditeur</summary>
 
 - **Événements, WebSocket & reconnexions :** garde `p.busy` dans `runCommon()`, re-vérification `isLive && !dead` après les attentes de `inn()`, flush immédiat de la progression en `finally` de `run()`/`runCommon()`, contrôle du `characterId` via `handshake.auth` au reconnect, activation de `tryAllTransports: true` dans le client pour garantir le repli HTTP `polling`, tolérance `X-Forwarded-Host` vide / `:80`/`:443` dans `isSameOrigin()`, et logs de diagnostic sur `allowRequest` / `connection_error` (`server/game/events.ts`, `client/main.ts`, `server/net/socket.ts`).
-- **Documentation & déploiement VPS (`README.md`, `CHANGELOG.md`) :** refonte bilingue complète du guide de mise en ligne pas à pas sur VPS (zone DNS vers IP du VPS, `pm2`, Nginx, Certbot HTTPS et tableau de dépannage incluant `WebSocket 400`).
+- **Documentation & guides d'installation (`README.md`, `CHANGELOG.md`) :** refonte bilingue du démarrage local PC/Mac/Linux (liens de téléchargement Node.js 24/26, téléchargement direct en `.zip` sans prérequis Git + option `git clone` pour utilisateurs avancés) et du guide simplifié de mise en ligne sur VPS Linux (`Debian/Ubuntu`, `4 Go RAM`, `>= 2 vCore`, installation via `nvm` ou mention avancée `apt`, zone DNS vers IP du VPS, `pm2` sans `sudo` avec `nvm` vs `sudo` sous `apt`, Nginx, Certbot HTTPS et dépannage incluant `WebSocket 400`).
 - **Robustesse comptes & tableau de bord :** helper `safeJsonParse` sur les colonnes JSON SQLite, suppression des assertions `!` après `bcrypt` et dans `renderAccount`, transaction SQLite atomique dans `deleteAccount` (notifications de guilde émises après commit), échantillonnage CPU périodique dans `World.lagMonitor` et suffixe aléatoire sur les exports `/api/admin/backup` (`server/db/database.ts`, `server/auth/service.ts`, `server/auth/account-routes.ts`, `server/game/guild.ts`, `server/game/world.ts`, `server/admin/admin-routes.ts`).
 - **Combat & IA des régions (`server/game/combat.ts`) :** confinement des monstres à leur région en mode `idle` (et en fuite sur zones multi-cases), détection d'aggro à 1 case des bordures de région peinte et retour au point d'origine au-delà de 2 cases hors zone *(les marqueurs de boss à une case restent libres dans leur salle)*.
 - **Focus clavier & réactivité des interactions (`client/game.ts`, `client/engine/player-controller.ts`) :** cliquer sur la carte retire le focus du champ de chat ou du HUD pour rendre aussitôt la main au clavier ; buffer d'entrée de `150 ms` sur `action` (`Espace`, `Entrée`, `Z`, tactile `A`) pressée juste avant la fin d'un pas.
@@ -128,7 +128,7 @@ Toutes les évolutions notables de **Brindiwanko** sont consignées ici selon le
 
   <br />
 
-  [🚧 Unreleased (2026-11-17)](#-unreleased--2026-11-17) •
+  [🚧 Unreleased (2026-11-18)](#-unreleased--2026-11-18) •
   [🧪 1.0.0-beta.1 (2026-11-11)](#-100-beta1--11112026) •
   [📖 README](README.md#en-top)
 
@@ -138,7 +138,7 @@ Toutes les évolutions notables de **Brindiwanko** sont consignées ici selon le
 
 All notable changes to **Brindiwanko** are documented in this file based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
-## 🚧 Unreleased — 2026-11-17
+## 🚧 Unreleased — 2026-11-18
 
 > [!TIP]
 > Stabilization release addressing validated AppSec/Architecture counter-expertise findings and beta-test UX feedback: resolves both `P1` operational issues (restore request ordering & async restore prep) alongside 22 `P2` improvements across security, concurrency, database performance, client lifecycle, and tooling.
@@ -167,7 +167,7 @@ All notable changes to **Brindiwanko** are documented in this file based on [Kee
 <summary>Server concurrency, combat AI, player controls & editor UX</summary>
 
 - **Events, WebSocket fallback & reconnects:** added `p.busy` guard in `runCommon()`, re-checked `isLive && !dead` across `inn()` sleeps, flushed dirty character progression in `finally` of `run()`/`runCommon()`, validated `characterId` via Socket.io `handshake.auth` on reconnects, enabled `tryAllTransports: true` so `polling` acts as a real fallback on WebSocket handshake failures, handled empty / `:80`/`:443` `X-Forwarded-Host` in `isSameOrigin()`, and added diagnostic logging for `allowRequest` / `connection_error` rejections (`server/game/events.ts`, `client/main.ts`, `server/net/socket.ts`).
-- **Documentation & VPS guide (`README.md`, `CHANGELOG.md`):** refreshed layout and added a beginner step-by-step VPS + HTTPS deployment guide (DNS `A` setup to VPS IP, `pm2`, Nginx, Certbot SSL, and troubleshooting table covering `WebSocket 400`).
+- **Documentation & setup guides (`README.md`, `CHANGELOG.md`):** refreshed bilingual local desktop instructions (Node.js 24/26 download links for Windows/macOS/Linux, direct `.zip` workflow without requiring Git + optional `git clone` for advanced users) and beginner step-by-step Linux VPS deployment (`Debian/Ubuntu`, `4 GB RAM`, `>= 2 vCores`, streamlined `nvm` installation plus advanced `apt` notes, DNS `A` setup, `pm2` `sudo` vs non-`sudo` rules, Nginx, Certbot SSL, and troubleshooting covering `WebSocket 400`).
 - **Account safety, dashboard & JSON parsing:** introduced `safeJsonParse` for SQLite JSON columns, replaced `!` non-null assertions in `AuthService` and `renderAccount`, wrapped `deleteAccount` SQLite writes in `ctx.db.transaction(...)` with post-commit guild updates, sampled CPU periodically in `World.lagMonitor`, and randomized temp backup filenames (`server/db/database.ts`, `server/auth/service.ts`, `server/auth/account-routes.ts`, `server/game/guild.ts`, `server/game/world.ts`, `server/admin/admin-routes.ts`).
 - **Combat & Region AI (`server/game/combat.ts`):** confined region-spawned monsters while idle and fleeing on multi-cell zones; restricted aggro spotting to 1 cell from painted region borders and leashed chasing monsters home beyond 2 cells outside *(single-tile boss markers stay unrestricted within their room)*.
 - **Canvas Focus & Interaction Buffering (`client/game.ts`, `client/engine/player-controller.ts`):** clicking the map canvas blurs active non-window inputs (such as chat) so keyboard movement resumes right away; a `150 ms` action buffer executes `Space`/`Enter`/`Z`/touch `A` presses made just before step arrival.
