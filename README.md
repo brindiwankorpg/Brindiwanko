@@ -322,9 +322,6 @@ node -v # Ex. "v26.x.x" (ou >= v24)
 npm -v  # Ex. "11.x.x"
 ```
 
-> [!IMPORTANT]
-> Avec `nvm`, Node.js, `npm` et les paquets globaux sont installés dans `~/.nvm` (ton dossier personnel) et non dans `/usr/bin`. Pour installer un paquet global comme `pm2` à l'étape suivante, n'utilise **jamais** `sudo` (`npm install -g pm2` directement). À l'inverse, si Node.js a été installé au niveau système via `apt`, `sudo npm install -g pm2` reste nécessaire.
-
 ---
 
 ### Étape 1 — Faire pointer ton nom de domaine vers l'IP du VPS
@@ -895,9 +892,6 @@ nvm install 26
 node -v # e.g. "v26.x.x" (or >= v24)
 npm -v  # e.g. "11.x.x"
 ```
-
-> [!IMPORTANT]
-> With `nvm`, Node.js, `npm`, and global packages live in `~/.nvm` (your home directory) rather than `/usr/bin`. Never use `sudo` when installing global packages like `pm2` in Step 2 (run `npm install -g pm2` directly). Conversely, if Node.js was installed system-wide via `apt`, `sudo npm install -g pm2` is still required.
 
 ---
 
