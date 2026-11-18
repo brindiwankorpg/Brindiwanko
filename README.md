@@ -105,31 +105,7 @@ Brindiwanko nécessite **Node.js 26 LTS** *(recommandé)* ou **Node.js 24 minimu
 | :--- | :--- |
 | 🪟 **Windows** | Téléchargez l'installeur **`.msi` (LTS)** sur **[nodejs.org/fr/download](https://nodejs.org/fr/download)** *(ou via PowerShell : `winget install OpenJS.NodeJS.LTS`)*, puis ouvrez un nouveau terminal. Pour cloner avec Git, installez aussi **[git-scm.com](https://git-scm.com/downloads/win)** *(ou téléchargez simplement le ZIP depuis GitHub)*. |
 | 🍎 **macOS** | Téléchargez l'installeur **`.pkg` (LTS)** sur **[nodejs.org/fr/download](https://nodejs.org/fr/download)** *(ou via Homebrew : `brew install node git`)*. |
-| 🐧 **Linux (Ubuntu / Debian / etc.)** | Utilisez **`nvm`** *(voir la procédure ci-dessous)* ou le sélecteur officiel sur **[nodejs.org/fr/download](https://nodejs.org/fr/download)** *(évitez `sudo apt install nodejs` seul, qui installe souvent une version trop ancienne)* et vérifiez que `git` est installé (`sudo apt install -y git`). |
-
-<a id="fr-nvm"></a>
-
-#### 🐧 Installer Node.js et npm via `nvm` (Linux / macOS / VPS — recommandé)
-
-Sur Ubuntu ou Debian, les dépôts `apt` par défaut proposent souvent une version de Node.js inférieure à `24`. **`nvm`** (Node Version Manager) permet d'installer **Node.js 26 LTS** et **`npm`** directement dans ton dossier utilisateur, sans privilèges `root` :
-
-```bash
-# Télécharger et installer nvm :
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh | bash
-
-# Charger nvm sans redémarrer le terminal :
-\. "$HOME/.nvm/nvm.sh"
-
-# Télécharger et installer Node.js :
-nvm install 26
-
-# Vérifier les versions de Node.js et npm :
-node -v # Ex. "v26.x.x" (ou >= v24)
-npm -v  # Ex. "11.x.x"
-```
-
-> [!IMPORTANT]
-> Avec `nvm`, Node.js, `npm` et les paquets globaux sont installés dans `~/.nvm` (ton dossier personnel) et non dans `/usr/bin`. Pour installer un paquet global comme `pm2`, n'utilise **jamais** `sudo` (`npm install -g pm2` directement). À l'inverse, si Node.js a été installé au niveau système via `apt`, `sudo npm install -g pm2` reste nécessaire.
+| 🐧 **Linux (Ubuntu / Debian / etc.)** | Utilisez le sélecteur officiel sur **[nodejs.org/fr/download](https://nodejs.org/fr/download)** ou **`nvm`** *(voir [la procédure VPS Linux](#fr-nvm))* *(évitez `sudo apt install nodejs` seul, qui installe souvent une version trop ancienne)* et vérifiez que `git` est installé (`sudo apt install -y git`). |
 
 Vérifiez dans votre terminal que Node.js est bien reconnu *(doit afficher `v24...` ou `v26...`)* :
 
@@ -322,6 +298,32 @@ Pas besoin d'être administrateur système pour héberger Brindiwanko. Voici l'i
 
 ---
 
+<a id="fr-nvm"></a>
+
+### 🐧 Installer Node.js et `npm` via `nvm` (VPS Linux — recommandé)
+
+Sur Ubuntu ou Debian, les dépôts `apt` par défaut proposent souvent une version de Node.js inférieure à `24`. **`nvm`** (Node Version Manager) permet d'installer **Node.js 26 LTS** et **`npm`** directement dans ton dossier utilisateur, sans privilèges `root` :
+
+```bash
+# Télécharger et installer nvm :
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh | bash
+
+# Charger nvm sans redémarrer le terminal :
+\. "$HOME/.nvm/nvm.sh"
+
+# Télécharger et installer Node.js :
+nvm install 26
+
+# Vérifier les versions de Node.js et npm :
+node -v # Ex. "v26.x.x" (ou >= v24)
+npm -v  # Ex. "11.x.x"
+```
+
+> [!IMPORTANT]
+> Avec `nvm`, Node.js, `npm` et les paquets globaux sont installés dans `~/.nvm` (ton dossier personnel) et non dans `/usr/bin`. Pour installer un paquet global comme `pm2` à l'étape suivante, n'utilise **jamais** `sudo` (`npm install -g pm2` directement). À l'inverse, si Node.js a été installé au niveau système via `apt`, `sudo npm install -g pm2` reste nécessaire.
+
+---
+
 ### Étape 1 — Faire pointer ton nom de domaine vers l'IP du VPS
 
 Avant d'installer quoi que ce soit, il faut dire à Internet que `mondomaine.fr` correspond à ton serveur (VPS) :
@@ -349,7 +351,7 @@ sudo ufw status
 Si tu lances le jeu avec un simple `npm start`, **il s'arrêtera dès que tu fermeras la fenêtre SSH**. On clone donc le projet sur le VPS, on le compile, puis on utilise **`pm2`** pour le garder allumé 24h/24 et le relancer automatiquement si le VPS redémarre.
 
 > [!TIP]
-> **Node.js 24/26 et `npm` ne sont pas encore installés sur ton VPS ?** Suis d'abord [la procédure d'installation via `nvm`](#fr-nvm) *(recommandée sous Ubuntu/Debian, où `apt` installe souvent une version trop ancienne)*.
+> **Node.js 24/26 et `npm` ne sont pas encore installés sur ton VPS ?** Installe-les d'abord avec [la procédure `nvm` ci-dessus](#fr-nvm) *(recommandée sous Ubuntu/Debian, où `apt` installe souvent une version trop ancienne)*.
 
 **1. Télécharger le projet sur le VPS (`git clone`) :**
 
@@ -682,31 +684,7 @@ Brindiwanko requires **Node.js 26 LTS** *(recommended)* or **Node.js 24 minimum*
 | :--- | :--- |
 | 🪟 **Windows** | Download the **`.msi` (LTS)** installer from **[nodejs.org/en/download](https://nodejs.org/en/download)** *(or run `winget install OpenJS.NodeJS.LTS` in PowerShell)*, then open a new terminal. To clone via Git, also install **[git-scm.com](https://git-scm.com/downloads/win)** *(or download the repository ZIP from GitHub)*. |
 | 🍎 **macOS** | Download the **`.pkg` (LTS)** installer from **[nodejs.org/en/download](https://nodejs.org/en/download)** *(or via Homebrew: `brew install node git`)*. |
-| 🐧 **Linux (Ubuntu / Debian / etc.)** | Use **`nvm`** *(see below)* or the official Linux selector at **[nodejs.org/en/download](https://nodejs.org/en/download)** *(avoid plain `sudo apt install nodejs`, which often installs an outdated version)* and install `git` (`sudo apt install -y git`). |
-
-<a id="en-nvm"></a>
-
-#### 🐧 Install Node.js and npm via `nvm` (Linux / macOS / VPS — recommended)
-
-On Ubuntu or Debian, default `apt` packages often ship a Node.js version older than `24`. **`nvm`** (Node Version Manager) installs **Node.js 26 LTS** and **`npm`** directly inside your user home directory without `root` privileges:
-
-```bash
-# Download and install nvm:
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh | bash
-
-# Load nvm without restarting your shell:
-\. "$HOME/.nvm/nvm.sh"
-
-# Download and install Node.js:
-nvm install 26
-
-# Verify Node.js and npm versions:
-node -v # e.g. "v26.x.x" (or >= v24)
-npm -v  # e.g. "11.x.x"
-```
-
-> [!IMPORTANT]
-> With `nvm`, Node.js, `npm`, and global packages live in `~/.nvm` (your home directory) rather than `/usr/bin`. Never use `sudo` when installing global packages like `pm2` (run `npm install -g pm2` directly). Conversely, if Node.js was installed system-wide via `apt`, `sudo npm install -g pm2` is still required.
+| 🐧 **Linux (Ubuntu / Debian / etc.)** | Use the official Linux selector at **[nodejs.org/en/download](https://nodejs.org/en/download)** or **`nvm`** *(see [the Linux VPS guide](#en-nvm))* *(avoid plain `sudo apt install nodejs`, which often installs an outdated version)* and install `git` (`sudo apt install -y git`). |
 
 Verify in your terminal that Node.js works *(should show `v24...` or `v26...`)*:
 
@@ -899,6 +877,32 @@ You don't need to be a Linux sysadmin to host Brindiwanko. Here is how it works 
 
 ---
 
+<a id="en-nvm"></a>
+
+### 🐧 Install Node.js and `npm` via `nvm` (Linux VPS — recommended)
+
+On Ubuntu or Debian, default `apt` packages often ship a Node.js version older than `24`. **`nvm`** (Node Version Manager) installs **Node.js 26 LTS** and **`npm`** directly inside your user home directory without `root` privileges:
+
+```bash
+# Download and install nvm:
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh | bash
+
+# Load nvm without restarting your shell:
+\. "$HOME/.nvm/nvm.sh"
+
+# Download and install Node.js:
+nvm install 26
+
+# Verify Node.js and npm versions:
+node -v # e.g. "v26.x.x" (or >= v24)
+npm -v  # e.g. "11.x.x"
+```
+
+> [!IMPORTANT]
+> With `nvm`, Node.js, `npm`, and global packages live in `~/.nvm` (your home directory) rather than `/usr/bin`. Never use `sudo` when installing global packages like `pm2` in Step 2 (run `npm install -g pm2` directly). Conversely, if Node.js was installed system-wide via `apt`, `sudo npm install -g pm2` is still required.
+
+---
+
 ### Step 1 — Point your domain to your VPS IP address
 
 Before installing anything on the server, tell the internet that `mydomain.com` belongs to your VPS:
@@ -926,7 +930,7 @@ sudo ufw status
 If you start the server with plain `npm start`, **the game will stop the moment you close your SSH window**. So we clone the repository onto the VPS, build it once, and use **`pm2`** to keep it running 24/7 (and auto-start on VPS reboot).
 
 > [!TIP]
-> **Don't have Node.js 24/26 or `npm` on your VPS yet?** Follow [the `nvm` installation guide](#en-nvm) first *(recommended on Ubuntu/Debian, where `apt` often ships an outdated version)*.
+> **Don't have Node.js 24/26 or `npm` on your VPS yet?** Install them first using [the `nvm` guide above](#en-nvm) *(recommended on Ubuntu/Debian, where `apt` often ships an outdated version)*.
 
 **1. Clone the repository onto your VPS:**
 
