@@ -322,6 +322,9 @@ node -v # Ex. "v26.x.x" (ou >= v24)
 npm -v  # Ex. "11.x.x"
 ```
 
+> [!NOTE]
+> **Utilisateurs avancés :** si tu maîtrises Linux et préfères une installation système de Node.js (`>= 24`) via `apt` *(par exemple avec les dépôts NodeSource)*, c'est tout à fait possible. Ce guide reste toutefois volontairement axé sur **`nvm`**, car c'est la méthode la plus simple pour obtenir immédiatement la bonne version sur un VPS sans modifier les paquets système.
+
 ---
 
 ### Étape 1 — Faire pointer ton nom de domaine vers l'IP du VPS
@@ -365,7 +368,9 @@ npm install -g pm2
 ```
 
 > [!NOTE]
-> Avec `nvm` *(procédure ci-dessus)*, **n'utilise jamais `sudo`** : `sudo` réinitialise le `PATH` et ne voit pas `~/.nvm` *(ce qui provoque `sudo: npm: command not found`)*. Utilise `sudo npm install -g pm2` **uniquement** si tu as installé Node.js `>= 24` au niveau système via `apt`.
+> **Pourquoi sans `sudo` ?** Avec **`nvm`** *(la méthode suivie dans ce guide)*, Node.js et `npm` sont installés dans ton dossier utilisateur (`~/.nvm`) : **n'utilise surtout pas `sudo`**, sinon Linux renverra `sudo: npm: command not found`.
+>
+> En revanche, si tu as installé Node.js `>= 24` au niveau système via **`apt`**, lance `sudo npm install -g pm2`.
 
 **3. Compiler et démarrer le jeu en arrière-plan** *(remplace `mondomaine.fr` par ton vrai domaine)* :
 
@@ -893,6 +898,9 @@ node -v # e.g. "v26.x.x" (or >= v24)
 npm -v  # e.g. "11.x.x"
 ```
 
+> [!NOTE]
+> **Advanced users:** if you are comfortable with Linux and prefer a system-wide Node.js (`>= 24`) installation via `apt` *(for example using NodeSource repositories)*, that works too. However, this guide intentionally focuses on **`nvm`** as the simplest way to get the right Node.js version running on a VPS without touching system packages.
+
 ---
 
 ### Step 1 — Point your domain to your VPS IP address
@@ -936,7 +944,9 @@ npm install -g pm2
 ```
 
 > [!NOTE]
-> With `nvm` *(used above)*, **never use `sudo`**: `sudo` resets `PATH` and cannot see `~/.nvm` *(causing `sudo: npm: command not found`)*. Only use `sudo npm install -g pm2` if you installed Node.js `>= 24` system-wide via `apt`.
+> **Why without `sudo`?** With **`nvm`** *(the method used in this guide)*, Node.js and `npm` live inside your user folder (`~/.nvm`): **never use `sudo`**, or Linux will return `sudo: npm: command not found`.
+>
+> On the other hand, if you installed Node.js `>= 24` system-wide via **`apt`**, run `sudo npm install -g pm2`.
 
 **3. Build and start the game in the background** *(replace `mydomain.com` with your real domain)*:
 
