@@ -45,6 +45,12 @@ async function boot(): Promise<void> {
   // it simply sends `enterWorld` again and the game resynchronises. On reconnect,
   // send the expected character id so switching character in another tab stops cleanly.
   let expectedCharacterId: number | null = null;
+  let bootToken = 0;
+  const teardown = () => {
+    bootToken++;
+    game?.destroy();
+    game = null;
+  };
   const socket: GameSocket = io({
     transports: ['websocket', 'polling'],
     tryAllTransports: true,
@@ -56,6 +62,7 @@ async function boot(): Promise<void> {
   socket.on('connect_error', (err) => {
     // Authentication problems are final; network errors are retried by socket.io.
     if (err.message.startsWith('error.')) {
+      teardown();
       socket.disconnect();
       showMessage(tDynamic(err.message, (err as { data?: Record<string, string> }).data), true);
     }
@@ -70,7 +77,7 @@ async function boot(): Promise<void> {
   socket.on('disconnect', (reason) => {
     // The server closed the connection on purpose (replaced session, kick): no retry.
     if (reason !== 'io server disconnect') return;
-    game?.destroy();
+    teardown();
     const notice = lastNotice && Date.now() - lastNotice.at < 5000 ? lastNotice : null;
     showMessage(notice ? tDynamic(notice.key, notice.params) : t('game.disconnected'), true);
   });
@@ -79,7 +86,10 @@ async function boot(): Promise<void> {
   socket.on('welcome', (w) => {
     if (w.protocol !== PROTOCOL_VERSION) location.reload();
   });
-  socket.io.on('reconnect_failed', () => showMessage(t('game.disconnected'), true));
+  socket.io.on('reconnect_failed', () => {
+    teardown();
+    showMessage(t('game.disconnected'), true);
+  });
   // Events sent right after `enterWorld` (inventory, journal, skills, first
   // effects) arrive while the map is still loading, before the game listens:
   // keep them and hand them to the game once it is ready.
@@ -94,8 +104,14 @@ async function boot(): Promise<void> {
       void game.reenter(payload);
       return;
     }
+    const token = ++bootToken;
+    early.length = 0;
     Game.start(root, socket, assets, payload)
       .then((g) => {
+        if (token !== bootToken) {
+          g.destroy();
+          return;
+        }
         game = g;
         socket.offAny(keepEarly);
         for (const [event, args] of early.splice(0)) {
@@ -103,6 +119,7 @@ async function boot(): Promise<void> {
         }
       })
       .catch((err: unknown) => {
+        if (token !== bootToken) return;
         console.error(err);
         showMessage(t('game.load_error'), true);
       });

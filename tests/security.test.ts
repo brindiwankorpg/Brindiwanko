@@ -89,7 +89,7 @@ test('security headers, cookie flags and CSRF on API writes', async () => {
   try {
     const page = new TestClient(secure.url);
     const login = await page.request('/login');
-    assert.match(login.headers.getSetCookie().find((c) => c.startsWith('brindiwanko.csrf=')) ?? '', /;\s*Secure/i);
+    assert.match(login.headers.getSetCookie().find((c) => c.startsWith('__Host-brindiwanko.csrf=')) ?? '', /;\s*Secure/i);
     const lang = await page.request('/lang/en?next=/login');
     assert.match(lang.headers.getSetCookie().find((c) => c.includes('lang')) ?? 'none', /;\s*Secure/i);
   } finally {

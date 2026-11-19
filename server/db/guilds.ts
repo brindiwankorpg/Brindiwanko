@@ -111,11 +111,10 @@ export class GuildRepository {
     const tagK = nameKey(tag);
     return this.db.transaction((): CreateResult => {
       if (this.membership(founderId)) return { ok: false, error: 'error.guild.already' };
-      const taken = prepareCached<[string, string, string, string], number>(this.db, 'SELECT COUNT(*) FROM guilds WHERE name_key = ? OR tag_key = ? OR name = ? COLLATE NOCASE OR tag = ? COLLATE NOCASE')
-        .pluck()
+      const taken = prepareCached<[string, string, string, string], number>(this.db, 'SELECT COUNT(*) FROM guilds WHERE name_key = ? OR tag_key = ? OR name = ? COLLATE NOCASE OR tag = ? COLLATE NOCASE', { pluck: true })
         .get(nameK, tagK, name, tag) ?? 0;
       if (taken > 0) return { ok: false, error: 'error.guild.name_taken' };
-      const gold = prepareCached<[number], number>(this.db, 'SELECT gold FROM characters WHERE id = ?').pluck().get(founderId) ?? 0;
+      const gold = prepareCached<[number], number>(this.db, 'SELECT gold FROM characters WHERE id = ?', { pluck: true }).get(founderId) ?? 0;
       if (gold < cost) return { ok: false, error: 'error.guild.not_enough_gold' };
       prepareCached(this.db, 'UPDATE characters SET gold = ? WHERE id = ?').run(gold - cost, founderId);
       const id = Number(prepareCached(this.db, 'INSERT INTO guilds (name, tag, emblem, name_key, tag_key) VALUES (?, ?, ?, ?, ?)').run(name, tag, JSON.stringify(emblem), nameK, tagK).lastInsertRowid);
@@ -177,13 +176,13 @@ export class GuildRepository {
    */
   moveItems(guildId: number, characterId: number, kind: ItemKind, id: number, amount: number, deposit: boolean, slots: number, bagMax: number, bagRoom: boolean): number {
     return this.db.transaction(() => {
-      const bagQ = prepareCached<[number, string, number], number>(this.db, 'SELECT quantity FROM character_items WHERE character_id = ? AND item_kind = ? AND item_id = ?').pluck();
-      const bankQ = prepareCached<[number, string, number], number>(this.db, 'SELECT quantity FROM guild_bank_items WHERE guild_id = ? AND item_kind = ? AND item_id = ?').pluck();
+      const bagQ = prepareCached<[number, string, number], number>(this.db, 'SELECT quantity FROM character_items WHERE character_id = ? AND item_kind = ? AND item_id = ?', { pluck: true });
+      const bankQ = prepareCached<[number, string, number], number>(this.db, 'SELECT quantity FROM guild_bank_items WHERE guild_id = ? AND item_kind = ? AND item_id = ?', { pluck: true });
       const inBag = bagQ.get(characterId, kind, id) ?? 0;
       const inBank = bankQ.get(guildId, kind, id) ?? 0;
       let moved: number;
       if (deposit) {
-        const entries = prepareCached<[number], number>(this.db, 'SELECT COUNT(*) FROM guild_bank_items WHERE guild_id = ?').pluck().get(guildId) ?? 0;
+        const entries = prepareCached<[number], number>(this.db, 'SELECT COUNT(*) FROM guild_bank_items WHERE guild_id = ?', { pluck: true }).get(guildId) ?? 0;
         if (inBank === 0 && entries >= slots) return 0;
         moved = Math.min(amount, inBag, 9999 - inBank);
       } else {
@@ -205,8 +204,8 @@ export class GuildRepository {
   /** Moves gold between a member and the guild bank (positive = deposit). */
   moveGold(guildId: number, characterId: number, amount: number): boolean {
     return this.db.transaction(() => {
-      const purse = prepareCached<[number], number>(this.db, 'SELECT gold FROM characters WHERE id = ?').pluck().get(characterId) ?? 0;
-      const bank = prepareCached<[number], number>(this.db, 'SELECT gold FROM guilds WHERE id = ?').pluck().get(guildId) ?? 0;
+      const purse = prepareCached<[number], number>(this.db, 'SELECT gold FROM characters WHERE id = ?', { pluck: true }).get(characterId) ?? 0;
+      const bank = prepareCached<[number], number>(this.db, 'SELECT gold FROM guilds WHERE id = ?', { pluck: true }).get(guildId) ?? 0;
       if (amount === 0 || (amount > 0 && purse < amount) || (amount < 0 && bank < -amount) || purse - amount > MAX_GOLD || bank + amount > MAX_GOLD) return false;
       prepareCached(this.db, 'UPDATE characters SET gold = ? WHERE id = ?').run(purse - amount, characterId);
       prepareCached(this.db, 'UPDATE guilds SET gold = ? WHERE id = ?').run(bank + amount, guildId);

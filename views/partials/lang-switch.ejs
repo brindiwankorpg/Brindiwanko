@@ -1,19 +1,39 @@
 <%#
-  Language selector, visible on every page. Plain links (no JavaScript needed):
-  /lang/<code> stores the choice and redirects back to the current page.
+  Language selector, visible on every page (works without JavaScript):
+  logged-in users submit a CSRF-protected POST to persist the choice on their
+  account; visitors use a plain GET link that updates the browser cookie only.
 %><nav class="lang-switch" aria-label="<%= t('common.language') %>">
+  <% const loggedIn = typeof account !== 'undefined' && account; %>
   <% for (const code of locales) { %>
-    <a href="/lang/<%= code %>?next=<%= encodeURIComponent(currentPath) %>"
-       class="lang-option<%= code === locale ? ' active' : '' %>"
-       hreflang="<%= code %>" lang="<%= code %>"
-       <% if (code === locale) { %>aria-current="true"<% } %>
-       title="<%= t('common.locale_name.' + code) %>">
-      <% if (code === 'fr') { %>
-        <svg class="flag" viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" fill="#0055a4"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#ef4135"/></svg>
-      <% } else { %>
-        <svg class="flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#fff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#c8102e" stroke-width="3"/><path d="M30 0V40M0 20H60" stroke="#fff" stroke-width="12"/><path d="M30 0V40M0 20H60" stroke="#c8102e" stroke-width="7"/></svg>
-      <% } %>
-      <span><%= code.toUpperCase() %></span>
-    </a>
+    <% if (loggedIn) { %>
+      <form class="lang-form" method="post" action="/lang/<%= code %>?next=<%= encodeURIComponent(currentPath) %>">
+        <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+        <button type="submit"
+                class="lang-option<%= code === locale ? ' active' : '' %>"
+                lang="<%= code %>"
+                <% if (code === locale) { %>aria-current="true"<% } %>
+                title="<%= t('common.locale_name.' + code) %>">
+          <% if (code === 'fr') { %>
+            <svg class="flag" viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" fill="#0055a4"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#ef4135"/></svg>
+          <% } else { %>
+            <svg class="flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#fff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#c8102e" stroke-width="3"/><path d="M30 0V40M0 20H60" stroke="#fff" stroke-width="12"/><path d="M30 0V40M0 20H60" stroke="#c8102e" stroke-width="7"/></svg>
+          <% } %>
+          <span><%= code.toUpperCase() %></span>
+        </button>
+      </form>
+    <% } else { %>
+      <a href="/lang/<%= code %>?next=<%= encodeURIComponent(currentPath) %>"
+         class="lang-option<%= code === locale ? ' active' : '' %>"
+         hreflang="<%= code %>" lang="<%= code %>"
+         <% if (code === locale) { %>aria-current="true"<% } %>
+         title="<%= t('common.locale_name.' + code) %>">
+        <% if (code === 'fr') { %>
+          <svg class="flag" viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" fill="#0055a4"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#ef4135"/></svg>
+        <% } else { %>
+          <svg class="flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#fff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#c8102e" stroke-width="3"/><path d="M30 0V40M0 20H60" stroke="#fff" stroke-width="12"/><path d="M30 0V40M0 20H60" stroke="#c8102e" stroke-width="7"/></svg>
+        <% } %>
+        <span><%= code.toUpperCase() %></span>
+      </a>
+    <% } %>
   <% } %>
 </nav>

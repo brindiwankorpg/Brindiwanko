@@ -295,7 +295,7 @@ export class ProgressionRepository {
   ): 'error.item.not_owned' | 'error.bag.full' | null {
     return this.db.transaction(() => {
       const bagQuantity = (kind: string, id: number) =>
-        prepareCached<[number, string, number], number>(this.db, 'SELECT quantity FROM character_items WHERE character_id = ? AND item_kind = ? AND item_id = ?').pluck().get(characterId, kind, id) ?? 0;
+        prepareCached<[number, string, number], number>(this.db, 'SELECT quantity FROM character_items WHERE character_id = ? AND item_kind = ? AND item_id = ?', { pluck: true }).get(characterId, kind, id) ?? 0;
       if (item && bagQuantity(item.kind, item.id) < 1) return 'error.item.not_owned';
       const previous = this.equipment(characterId).get(slot);
       // Equipping again the item already worn changes nothing.
@@ -305,7 +305,7 @@ export class ProgressionRepository {
         if (held >= room.maxOf(previous.kind, previous.id)) return 'error.bag.full';
         if (held === 0) {
           // A new entry is needed, unless the item put on was the last of its own entry.
-          const entries = prepareCached<[number], number>(this.db, 'SELECT COUNT(*) FROM character_items WHERE character_id = ?').pluck().get(characterId) ?? 0;
+          const entries = prepareCached<[number], number>(this.db, 'SELECT COUNT(*) FROM character_items WHERE character_id = ?', { pluck: true }).get(characterId) ?? 0;
           const freed = item !== null && bagQuantity(item.kind, item.id) === 1 ? 1 : 0;
           if (entries - freed >= room.bagSize) return 'error.bag.full';
         }
@@ -354,7 +354,7 @@ export class ProgressionRepository {
   /** Parameter points distributed by a character. */
   allocated(characterId: number): Partial<Record<ParamName, number>> {
     try {
-      const raw = JSON.parse(prepareCached<[number], string>(this.db, 'SELECT allocated FROM characters WHERE id = ?').pluck().get(characterId) ?? '{}') as Record<string, unknown>;
+      const raw = JSON.parse(prepareCached<[number], string>(this.db, 'SELECT allocated FROM characters WHERE id = ?', { pluck: true }).get(characterId) ?? '{}') as Record<string, unknown>;
       return Object.fromEntries(PARAMS.flatMap((p) => (Number.isInteger(raw[p]) && Number(raw[p]) > 0 ? [[p, Number(raw[p])]] : [])));
     } catch {
       return {};

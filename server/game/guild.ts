@@ -93,10 +93,9 @@ export class GuildService {
     p.guild = m ? { id: m.guildId, rank: m.rank } : null;
   }
 
-  /** The guild window of a player. */
-  view(p: PlayerSession): GuildView | null {
-    if (!p.guild) return null;
-    const guild = this.repo.get(p.guild.id);
+  /** Reads the guild data once from SQLite so `pushAll` can serve every online member without N+1 queries. */
+  private loadSharedView(guildId: number) {
+    const guild = this.repo.get(guildId);
     if (!guild) return null;
     const data = this.world.ctx.gameData;
     const items = this.repo.bankItems(guild.id).flatMap((r) => {
@@ -110,26 +109,52 @@ export class GuildService {
       }
       return d;
     };
+    const ranks = this.repo.ranks(guild.id);
+    const rawMembers = this.repo.members(guild.id).map((m) => {
+      const online = this.world.player(m.characterId);
+      const live = !!online && this.world.isLive(online);
+      return { id: m.characterId, name: m.name, rank: m.rank, level: online?.level ?? m.level, live, invisible: !!online?.invisible, lastSeen: m.lastPlayed };
+    });
+    const log = this.repo.logLines(guild.id).map((l) => ({ ...l, details: logNames(l.details) }));
     return {
-      id: guild.id,
-      name: guild.name,
-      tag: guild.tag,
-      emblem: guild.emblem,
-      motd: guild.motd,
-      level: guild.level,
-      xp: guild.xp,
-      xpNext: guildLevelXp(guild.level),
-      ranks: this.repo.ranks(guild.id),
-      members: this.repo.members(guild.id).map((m) => {
-        const online = this.world.player(m.characterId);
-        // An invisible member appears offline, except to itself.
-        const shown = !!online && this.world.isLive(online) && (!online.invisible || online === p);
-        return { id: m.characterId, name: m.name, rank: m.rank, level: online?.level ?? m.level, online: shown, lastSeen: m.lastPlayed };
-      }),
-      myRank: p.guild.rank,
-      bank: { gold: guild.gold, slots: guildBankSlots(guild.level), items },
-      log: this.repo.logLines(guild.id).map((l) => ({ ...l, details: logNames(l.details) })),
+      shared: {
+        id: guild.id,
+        name: guild.name,
+        tag: guild.tag,
+        emblem: guild.emblem,
+        motd: guild.motd,
+        level: guild.level,
+        xp: guild.xp,
+        xpNext: guildLevelXp(guild.level),
+        ranks,
+        bank: { gold: guild.gold, slots: guildBankSlots(guild.level), items },
+        log,
+      },
+      rawMembers,
     };
+  }
+
+  private viewFor(loaded: NonNullable<ReturnType<GuildService['loadSharedView']>>, p: PlayerSession): GuildView {
+    return {
+      ...loaded.shared,
+      // An invisible member appears offline, except to itself.
+      members: loaded.rawMembers.map((m) => ({
+        id: m.id,
+        name: m.name,
+        rank: m.rank,
+        level: m.level,
+        online: m.live && (!m.invisible || m.id === p.characterId),
+        lastSeen: m.lastSeen,
+      })),
+      myRank: p.guild?.rank ?? GUILD_RANKS - 1,
+    };
+  }
+
+  /** The guild window of a player. */
+  view(p: PlayerSession): GuildView | null {
+    if (!p.guild) return null;
+    const loaded = this.loadSharedView(p.guild.id);
+    return loaded ? this.viewFor(loaded, p) : null;
   }
 
   /** Sends the guild window to a player. */
@@ -137,9 +162,12 @@ export class GuildService {
     if (this.world.isLive(p)) p.socket.emit('guild', this.view(p));
   }
 
-  /** Sends the guild window to every online member. */
+  /** Sends the guild window to every online member (computing SQLite rows once). */
   private pushAll(guildId: number): void {
-    for (const m of this.onlineMembers(guildId)) this.push(m);
+    const online = this.onlineMembers(guildId).filter((m) => this.world.isLive(m));
+    if (online.length === 0) return;
+    const loaded = this.loadSharedView(guildId);
+    for (const m of online) m.socket.emit('guild', loaded ? this.viewFor(loaded, m) : null);
   }
 
   /** Tells the players of a map about a changed tag. */
@@ -174,7 +202,8 @@ export class GuildService {
     if (target.guild) return this.notify(p, 'error.guild.target_in_guild', { name: target.name });
     const wait = this.throttle.take(p.characterId, target.characterId);
     if (wait > 0) return this.notify(p, 'error.social.too_soon', { name: target.name, seconds: Math.ceil(wait / 1000) });
-    const guild = this.repo.get(p.guild.id)!;
+    const guild = this.repo.get(p.guild.id);
+    if (!guild) return;
     this.invites.set(target.characterId, { guildId: guild.id, from: p.characterId, at: Date.now() });
     target.socket.emit('guildInvite', { id: p.characterId, name: p.name, guild: guild.name });
     this.notify(p, 'notify.guild_invited', { name: target.name });
@@ -285,17 +314,20 @@ export class GuildService {
   /** Moves a member of a lower rank to another rank below the player's own. */
   setMemberRank(p: PlayerSession, targetId: number, rank: number): void {
     if (!p.guild || !Number.isInteger(rank) || rank < 0 || rank >= GUILD_RANKS) return;
-    // The leader hands over the lead: it becomes second.
+    // The leader hands over the lead: it becomes second (atomic transaction so the guild never has 0 or 2 leaders).
     if (rank === 0 && p.guild.rank === 0) {
-      const target = this.repo.members(p.guild.id).find((m) => m.characterId === targetId);
+      const guildId = p.guild.id;
+      const target = this.repo.members(guildId).find((m) => m.characterId === targetId);
       if (!target || targetId === p.characterId) return;
-      this.repo.setRank(targetId, 0);
-      this.repo.setRank(p.characterId, 1);
+      this.world.ctx.db.transaction(() => {
+        this.repo.setRank(targetId, 0);
+        this.repo.setRank(p.characterId, 1);
+        this.repo.log(guildId, p.characterId, 'leader', { name: target.name });
+      })();
       p.guild.rank = 1;
       const online = this.world.player(targetId);
       if (online?.guild) online.guild.rank = 0;
-      this.repo.log(p.guild.id, p.characterId, 'leader', { name: target.name });
-      this.pushAll(p.guild.id);
+      this.pushAll(guildId);
       return;
     }
     const target = this.memberBelow(p, targetId, GuildPermission.Ranks);
@@ -331,8 +363,9 @@ export class GuildService {
   /** Deposits or withdraws items. */
   bankItems(p: PlayerSession, kind: ItemKind, id: number, quantity: number, deposit: boolean): void {
     if (!p.guild || !this.can(p, deposit ? GuildPermission.Deposit : GuildPermission.Withdraw)) return this.notify(p, 'error.guild.permission');
-    if (kind === 'item' && this.world.ctx.gameData.get('item', id)?.kind !== 'regular') return this.notify(p, 'error.item.cannot_discard');
-    const guild = this.repo.get(p.guild.id)!;
+    if (deposit && kind === 'item' && this.world.ctx.gameData.get('item', id)?.kind !== 'regular') return this.notify(p, 'error.item.cannot_bank');
+    const guild = this.repo.get(p.guild.id);
+    if (!guild) return;
     const inv = this.world.ctx.inventoryService;
     const moved = this.repo.moveItems(guild.id, p.characterId, kind, id, Math.max(1, Math.min(9999, quantity)), deposit, guildBankSlots(guild.level), inv.maxOf(kind, id), inv.hasRoomFor(p.characterId, kind, id));
     if (moved === 0) return this.notify(p, deposit ? 'error.guild.bank_full' : 'error.bag.full');

@@ -387,6 +387,7 @@ test('an item created in the editor is immediately usable in game (chest → bag
   assert.equal(inventories.at(-1)!.entries.find((e) => e.id === id)?.quantity, 1);
 
   // A key item cannot be used; a full-health character does not waste potions.
+  p.combat.globalReadyAt = 0;
   server.ctx.world.changeItems(p, 'item', 6, 1);
   socket.emit('useItem', 6);
   p.hp = 9999;
@@ -408,6 +409,7 @@ test('a skill book teaches its skill for good, and is kept once the skill is kno
   const notes: string[] = [];
   socket.on('notify', (n) => notes.push(n.key));
   const skills = new Promise<number[]>((resolve) => socket.on('skills', (s) => resolve(s.skills.map((k) => k.id))));
+  p.combat.globalReadyAt = 0;
   socket.emit('useItem', 7);
   assert.ok((await skills).includes(6));
   await wait(100);
@@ -415,6 +417,7 @@ test('a skill book teaches its skill for good, and is kept once the skill is kno
   assert.deepEqual(server.ctx.progression.learnedSkills(p.characterId), [6], 'stored with the character');
   assert.equal(server.ctx.inventory.quantity(p.characterId, 'item', 7), 1, 'one book used');
   // Known now: the second book would teach nothing, so it is not used.
+  p.combat.globalReadyAt = 0;
   socket.emit('useItem', 7);
   await wait(150);
   assert.ok(notes.includes('error.item.no_effect'));
@@ -497,6 +500,7 @@ test('traits: a skill given while worn, regeneration, experience rate and attack
   const combat = server.ctx.world.combat;
   server.ctx.world.changeItems(p, 'item', flask.id, 1);
   const skills = new Promise<number[]>((resolve) => socket.on('skills', (s) => s.skills.some((k) => k.id === 3) && resolve(s.skills.map((k) => k.id))));
+  p.combat.globalReadyAt = 0;
   socket.emit('useItem', flask.id);
   assert.ok((await skills).includes(3), 'the state gives "Boule de feu"');
 

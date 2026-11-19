@@ -36,5 +36,5 @@ const TAKE_SQL = Object.fromEntries(
  * @returns A number no row of the table ever had.
  */
 export function takeId(db: Db, table: SequencedTable): number {
-  return prepareCached<[], number>(db, TAKE_SQL[table]).pluck().get()!;
+  return prepareCached<[], number>(db, TAKE_SQL[table], { pluck: true }).get()!;
 }

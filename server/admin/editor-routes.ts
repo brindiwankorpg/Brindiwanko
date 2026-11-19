@@ -63,6 +63,10 @@ export function editorRouter(ctx: ServerContext): Router {
   router.use(requireRoleApi('admin'));
   // Maps can be large: this router has its own body limit.
   router.use(express.json({ limit: '20mb' }));
+  router.use((req, _res, next) => {
+    if (req.body === undefined && req.path !== '/import') req.body = {};
+    next();
+  });
   router.use(verifyCsrfHeader);
   router.use(databaseRouter(ctx));
 
@@ -193,14 +197,17 @@ export function editorRouter(ctx: ServerContext): Router {
         fail(res, 400, 'error.editor.map_not_found');
         return;
       }
-      // Refuse moves that would put a map inside its own subtree.
+      // Refuse moves that would put a map inside its own subtree (or into a pre-existing cycle).
+      const byId = new Map(infos.map((i) => [i.id, i]));
+      const visited = new Set<number>([id]);
       let cursor = body.parentId;
       while (cursor !== 0) {
-        if (cursor === id) {
+        if (visited.has(cursor)) {
           fail(res, 400, 'error.editor.invalid_parent');
           return;
         }
-        cursor = infos.find((i) => i.id === cursor)?.parentId ?? 0;
+        visited.add(cursor);
+        cursor = byId.get(cursor)?.parentId ?? 0;
       }
       next.parentId = body.parentId;
     }
@@ -329,23 +336,22 @@ export function editorRouter(ctx: ServerContext): Router {
   let importing = false;
   // At most `importsPer15Min` imports per account every 15 minutes (3 in production), checked before the body (up to 200 MB) is read.
   const importLimiter = new SlidingWindowLimiter(ctx.config.importsPer15Min, 15 * 60_000);
-  const limitImports: express.RequestHandler = (_req, res, next) => {
+  const parseImportBody = express.raw({ type: '*/*', limit: '200mb' });
+  router.post('/import', async (req, res) => {
+    if (importing) {
+      fail(res, 409, 'error.import.busy');
+      return;
+    }
     const key = String(account(res).id);
     if (importLimiter.retryAfter(key) > 0) {
       fail(res, 429, 'error.import.too_many');
       return;
     }
     importLimiter.record(key);
-    next();
-  };
-  router.post('/import', limitImports, express.raw({ type: '*/*', limit: '200mb' }), async (req, res) => {
-    if (importing) {
-      fail(res, 409, 'error.import.busy');
-      return;
-    }
-    const data = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
     importing = true;
     try {
+      await new Promise<void>((ok, ko) => parseImportBody(req, res, (err?: unknown) => (err ? ko(err) : ok())));
+      const data = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
       const report = await importProject(ctx, await readZip(data), account(res).id, { replaceResources: req.query.replaceResources === '1' });
       res.json({ report });
     } catch (err) {
@@ -389,7 +395,9 @@ export function editorRouter(ctx: ServerContext): Router {
     let approved = 0;
     let skipped = 0;
     const maps = new Map<number, MapData>();
+    const dirtyMaps = new Set<number>();
     const records = new Map<number, CommonEventData>();
+    const dirtyRecords = new Set<number>();
     for (const item of raw as Partial<QuarantineItem & { mapId: number; eventId: number; page: number; id: number }>[]) {
       if (!item || typeof item !== 'object' || !isInt(item.index, 0, 100_000) || typeof item.code !== 'string') {
         skipped++;
@@ -416,16 +424,23 @@ export function editorRouter(ctx: ServerContext): Router {
         }
         list = record?.list;
       }
-      if (list && approveScript(list, item.index, item.code)) approved++;
-      else skipped++;
+      if (list && approveScript(list, item.index, item.code)) {
+        approved++;
+        if (item.kind === 'map' && typeof item.mapId === 'number') dirtyMaps.add(item.mapId);
+        else if (item.kind === 'commonEvent' && typeof item.id === 'number') dirtyRecords.add(item.id);
+      } else skipped++;
     }
-    for (const [mapId, map] of maps) {
+    for (const mapId of dirtyMaps) {
+      const map = maps.get(mapId);
       const info = ctx.maps.info(mapId);
-      if (!info) continue;
+      if (!info || !map) continue;
       ctx.maps.saveWithVersion(info, map, me.id);
       ctx.world.reloadMap(mapId);
     }
-    for (const record of records.values()) ctx.gameData.save('commonEvent', record);
+    for (const id of dirtyRecords) {
+      const record = records.get(id);
+      if (record) ctx.gameData.save('commonEvent', record);
+    }
     ctx.admin.logAdmin(me.id, 'approve_scripts', 'editor', { approved, skipped });
     res.json({ approved, skipped });
   });

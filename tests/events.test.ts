@@ -604,7 +604,8 @@ test('a character told to walk "toward the player" stops once next to it instead
   await until(() => !p.busy, 1000);
   const npc = p.events.get(1)!;
   assert.equal(Math.abs(npc.x - p.x) + Math.abs(npc.y - p.y), 1, 'it stands next to the player');
-  assert.equal(npc.direction, 4, 'facing the player');
+  const expectedDir = npc.x > p.x ? 4 : npc.x < p.x ? 6 : npc.y > p.y ? 8 : 2;
+  assert.equal(npc.direction, expectedDir, 'facing the player');
   gina.socket.close();
 });
 

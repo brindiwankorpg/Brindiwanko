@@ -62,19 +62,24 @@ export function isSafeSvg(svg: string): boolean {
   const lower = decodeReferences(svg).toLowerCase();
   // Without spaces and control characters: `java\tscript:` is still `javascript:` for a browser.
   const compact = lower.replace(/[\s\u0000-\u001f]+/g, '');
+  // Reject XML namespace-prefixed tags (e.g. <svg:script>, <s:use>) and dangerous elements.
+  if (/<[a-z][a-z0-9._-]*:/.test(lower)) return false;
   if (/<script|<foreignobject|<iframe|<object|<embed|<!entity|<!doctype|<handler|<listener/.test(lower)) return false;
   if (/[\s/"']on[a-z]+\s*=/.test(lower)) return false;
   if (/javascript:|data:text\/html|vbscript:|data:image\/svg/.test(compact)) return false;
-  // Animations may not rewrite links or event attributes.
-  if (/attributename\s*=\s*["']?\s*(?:xlink:)?(?:href|on)/.test(lower)) return false;
+  // Animations may not rewrite links or event attributes (prefixed or not).
+  if (/attributename\s*=\s*["']?\s*(?:[a-z0-9._-]+:)?(?:href|on)/.test(lower)) return false;
   // Links may only point inside the document (#id).
-  for (const m of lower.matchAll(/(?:xlink:)?href\s*=\s*["']([^"']*)["']/g)) if (!m[1]!.trim().startsWith('#')) return false;
-  if (/(?:xlink:)?href\s*=\s*[^"'\s]/.test(lower)) return false;
+  for (const m of lower.matchAll(/(?:[a-z0-9._-]+:)?href\s*=\s*["']([^"']*)["']/g)) if (!m[1]!.trim().startsWith('#')) return false;
+  if (/(?:[a-z0-9._-]+:)?href\s*=\s*[^"'\s]/.test(lower)) return false;
   if (/url\(\s*["']?(?!#)/.test(lower) || /@import/.test(lower)) return false;
-  const cssDecoded = lower.replace(/\\([0-9a-f]{1,6})\s?/gi, (_, h: string) => {
-    const code = Number.parseInt(h, 16);
-    return code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : '';
-  });
+  // Decode both hexadecimal CSS escapes (\75 -> u) and single-character escapes (\u -> u).
+  const cssDecoded = lower
+    .replace(/\\([0-9a-f]{1,6})\s?/gi, (_, h: string) => {
+      const code = Number.parseInt(h, 16);
+      return code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : '';
+    })
+    .replace(/\\([^\r\n\f])/g, '$1');
   if (/url\(\s*["']?(?!#)/.test(cssDecoded) || /@import/.test(cssDecoded)) return false;
   if ((lower.match(/<use\b/g)?.length ?? 0) > 32) return false;
   return true;
@@ -151,13 +156,21 @@ function webpSize(data: Buffer): PixelSize | null {
   return null;
 }
 
-/** Size given by the `width` and `height` attributes of an SVG root element, when they are plain numbers. */
+/** Size given by the `width` and `height` attributes of an SVG root element, when they are plain positive numbers. */
 function svgSize(data: Buffer): PixelSize | null {
   const root = /<svg\b[^>]*>/i.exec(data.subarray(0, 4096).toString('utf8'))?.[0] ?? '';
   const read = (name: string) => Number(new RegExp(`\\s${name}\\s*=\\s*["']\\s*(\\d+(?:\\.\\d+)?)\\s*(?:px)?\\s*["']`, 'i').exec(root)?.[1] ?? Number.NaN);
   const width = read('width');
   const height = read('height');
-  return Number.isFinite(width) && Number.isFinite(height) ? { width, height } : null;
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width < 1 || height < 1) return null;
+  const vbMatch = /\sviewbox\s*=\s*["']([^"']+)["']/i.exec(root);
+  if (vbMatch) {
+    const nums = vbMatch[1]!.trim().split(/[\s,]+/).map(Number);
+    if (nums.length !== 4 || nums.some((n) => !Number.isFinite(n)) || nums[2]! < 1 || nums[3]! < 1 || nums[2]! > MAX_IMAGE_SIDE || nums[3]! > MAX_IMAGE_SIDE || nums[2]! * nums[3]! > MAX_IMAGE_PIXELS) {
+      return null;
+    }
+  }
+  return { width, height };
 }
 
 /**

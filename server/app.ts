@@ -18,7 +18,7 @@ import { authRouter } from './auth/routes.js';
 import type { ServerContext } from './context.js';
 import { characterRouter } from './game/character-routes.js';
 import { SECURE_COOKIES, safeRedirectPath } from './http/cookies.js';
-import { exposeCsrf } from './http/csrf.js';
+import { CSRF_SECRET, exposeCsrf, verifyCsrfAny } from './http/csrf.js';
 import { dictionaryVersion, getDictionary, localeMiddleware, setLocaleCookie } from './i18n.js';
 import { PATHS } from './paths.js';
 
@@ -42,6 +42,7 @@ export function createApp(ctx: ServerContext): Express {
   app.disable('x-powered-by');
   // Cookies set outside the session (CSRF, language) follow this server's configuration, not the process's.
   app.set(SECURE_COOKIES, ctx.config.production);
+  app.set(CSRF_SECRET, ctx.settings.secret('csrf'));
   if (ctx.config.trustProxy) app.set('trust proxy', 1);
   else {
     // Behind a proxy without TRUST_PROXY=1, every player seems to come from the proxy's
@@ -172,17 +173,21 @@ export function createApp(ctx: ServerContext): Express {
     next();
   });
 
-  // Language selector target: remembers the choice (cookie + account) and returns
-  // to the previous page. Works without JavaScript; the client can also call it with fetch.
-  // A link followed from another site changes the page's language only, not the account.
+  // Language selector target: GET updates the browser cookie only (never mutates database state);
+  // POST (CSRF-protected) also saves the choice to the logged-in account.
   app.get('/lang/:locale', (req, res) => {
     const { locale } = req.params;
     const next = safeRedirectPath(req.query.next);
+    if (isLocale(locale)) setLocaleCookie(res, locale);
+    res.redirect(303, next);
+  });
+  app.post('/lang/:locale', verifyCsrfAny, (req, res) => {
+    const { locale } = req.params;
+    const next = safeRedirectPath(req.query.next);
     const account = currentAccount(res);
-    const crossSite = req.get('sec-fetch-site') === 'cross-site';
     if (isLocale(locale)) {
       setLocaleCookie(res, locale);
-      if (account && !crossSite) {
+      if (account) {
         ctx.accounts.setLocale(account.id, locale);
         req.session.locale = locale;
       }

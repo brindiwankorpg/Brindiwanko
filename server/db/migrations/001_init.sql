@@ -117,6 +117,8 @@ CREATE TABLE characters (
 CREATE INDEX idx_characters_account ON characters(account_id);
 CREATE INDEX idx_characters_map ON characters(map_id);
 CREATE INDEX idx_characters_name_key ON characters(name_key);
+CREATE INDEX idx_characters_class ON characters(class_id);
+CREATE INDEX idx_characters_respawn_map ON characters(respawn_map);
 
 -- --- Maps ---------------------------------------------------------------------------------------------
 
@@ -174,6 +176,7 @@ CREATE TABLE character_items (
   quantity     INTEGER NOT NULL CHECK (quantity > 0),
   PRIMARY KEY (character_id, item_kind, item_id)
 );
+CREATE INDEX idx_character_items_item ON character_items(item_kind, item_id);
 
 -- Equipped weapon / armors (one row per occupied slot); an equipped item leaves the bag.
 CREATE TABLE character_equipment (
@@ -183,6 +186,7 @@ CREATE TABLE character_equipment (
   item_id      INTEGER NOT NULL,
   PRIMARY KEY (character_id, slot)
 );
+CREATE INDEX idx_character_equipment_item ON character_equipment(item_kind, item_id);
 
 -- The personal bank: its items (its gold is `characters.bank_gold`).
 CREATE TABLE character_bank (
@@ -192,6 +196,7 @@ CREATE TABLE character_bank (
   quantity     INTEGER NOT NULL CHECK (quantity > 0),
   PRIMARY KEY (character_id, item_kind, item_id)
 );
+CREATE INDEX idx_character_bank_item ON character_bank(item_kind, item_id);
 
 -- --- Story progress -----------------------------------------------------------------------------------
 
@@ -221,6 +226,7 @@ CREATE TABLE character_self_switches (
   letter       TEXT NOT NULL CHECK (letter IN ('A', 'B', 'C', 'D')),
   PRIMARY KEY (character_id, map_id, event_id, letter)
 );
+CREATE INDEX idx_char_self_switches_map ON character_self_switches(map_id);
 
 CREATE TABLE character_quests (
   character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
@@ -233,6 +239,7 @@ CREATE TABLE character_quests (
   counters     TEXT NOT NULL DEFAULT '[]',
   PRIMARY KEY (character_id, quest_id)
 );
+CREATE INDEX idx_character_quests_quest ON character_quests(quest_id);
 
 CREATE TABLE global_switches (
   switch_id INTEGER PRIMARY KEY
@@ -253,6 +260,7 @@ CREATE TABLE character_skills (
   learned_at TEXT NOT NULL DEFAULT (datetime('now')),
   PRIMARY KEY (character_id, skill_id)
 );
+CREATE INDEX idx_character_skills_skill ON character_skills(skill_id);
 
 -- Raid lockouts: a character receives the rewards of a raid once per period.
 CREATE TABLE character_raid_lockouts (
@@ -261,6 +269,7 @@ CREATE TABLE character_raid_lockouts (
   until        INTEGER NOT NULL, -- epoch milliseconds
   PRIMARY KEY (character_id, raid_id)
 );
+CREATE INDEX idx_raid_lockouts_raid ON character_raid_lockouts(raid_id);
 
 -- --- Social: friends, ignores and trades --------------------------------------------------------------
 
@@ -343,6 +352,7 @@ CREATE TABLE guild_bank_items (
   quantity  INTEGER NOT NULL CHECK (quantity > 0),
   PRIMARY KEY (guild_id, item_kind, item_id)
 );
+CREATE INDEX idx_guild_bank_items_item ON guild_bank_items(item_kind, item_id);
 
 CREATE TABLE guild_log (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -382,6 +392,7 @@ CREATE TABLE admin_log (
 );
 CREATE INDEX admin_log_admin ON admin_log (admin_id, id);
 CREATE INDEX admin_log_created ON admin_log (created_at);
+CREATE INDEX idx_admin_log_target ON admin_log(target);
 
 CREATE TABLE sale_log (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,

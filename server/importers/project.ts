@@ -159,7 +159,7 @@ export function convertMap(
         }
         // Transfers to a map of the project point to its new id; to a map that is not in the archive,
         // they are disabled (map 0): the old id would lead to whatever map of the game has it.
-        if (cmd.code === Cmd.TransferPlayer && cmd.parameters[0] === 0) {
+        if (cmd.code === Cmd.TransferPlayer && Number(cmd.parameters[0]) !== 1) {
           const target = remapMap(Number(cmd.parameters[1]));
           cmd.parameters[1] = target ?? 0;
           if (target === undefined) transfersOut = true;
@@ -402,11 +402,20 @@ function addContent(ctx: ServerContext, byPath: Map<string, Buffer>, file: (path
     };
     imported.push({ entry, map });
   }
-  // A map whose parent was not imported (missing or invalid file) goes to the root:
-  // under a parent that does not exist, it would not appear in the editor's tree.
-  const importedIds = new Set(imported.map(({ entry }) => entry.id));
+  // A map whose parent was not imported (missing, invalid file, or cyclic) goes to the root:
+  // under a missing or cyclic parent, it would not appear in the editor's tree.
+  const byEntryId = new Map(imported.map(({ entry }) => [entry.id, entry]));
   for (const { entry, map } of imported) {
-    if (!importedIds.has(entry.parentId)) entry.parentId = 0;
+    const seen = new Set<number>([entry.id]);
+    let cur = entry.parentId;
+    while (cur !== 0) {
+      if (!byEntryId.has(cur) || seen.has(cur)) {
+        entry.parentId = 0;
+        break;
+      }
+      seen.add(cur);
+      cur = byEntryId.get(cur)!.parentId;
+    }
     ctx.maps.saveWithVersion(entry, map, accountId);
     report.maps++;
   }

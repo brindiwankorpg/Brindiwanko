@@ -87,7 +87,7 @@ export class InventoryRepository {
 
   /** Number of different entries a character holds (bag slots used). */
   entryCount(characterId: number): number {
-    return prepareCached<[number], number>(this.db, 'SELECT COUNT(*) FROM character_items WHERE character_id = ?').pluck().get(characterId) ?? 0;
+    return prepareCached<[number], number>(this.db, 'SELECT COUNT(*) FROM character_items WHERE character_id = ?', { pluck: true }).get(characterId) ?? 0;
   }
 
   /** Items kept in the personal bank. */
@@ -104,7 +104,7 @@ export class InventoryRepository {
    */
   addToBank(characterId: number, kind: ItemKind, id: number, amount: number, max = 9999): number {
     return this.db.transaction(() => {
-      const current = prepareCached<[number, string, number], number>(this.db, 'SELECT quantity FROM character_bank WHERE character_id = ? AND item_kind = ? AND item_id = ?').pluck().get(characterId, kind, id) ?? 0;
+      const current = prepareCached<[number, string, number], number>(this.db, 'SELECT quantity FROM character_bank WHERE character_id = ? AND item_kind = ? AND item_id = ?', { pluck: true }).get(characterId, kind, id) ?? 0;
       const next = Math.min(max, current + Math.max(0, amount));
       if (next > current) {
         prepareCached(this.db, `INSERT INTO character_bank (character_id, item_kind, item_id, quantity) VALUES (?, ?, ?, ?)
@@ -116,7 +116,7 @@ export class InventoryRepository {
 
   /** Gold kept in the personal bank. */
   bankGold(characterId: number): number {
-    return prepareCached<[number], number>(this.db, 'SELECT bank_gold FROM characters WHERE id = ?').pluck().get(characterId) ?? 0;
+    return prepareCached<[number], number>(this.db, 'SELECT bank_gold FROM characters WHERE id = ?', { pluck: true }).get(characterId) ?? 0;
   }
 
   /**
@@ -128,7 +128,7 @@ export class InventoryRepository {
   moveToBank(characterId: number, kind: ItemKind, id: number, amount: number, toBank: boolean, max: number): number {
     return this.db.transaction(() => {
       const bagQty = this.quantity(characterId, kind, id);
-      const bankRow = prepareCached<[number, string, number], number>(this.db, 'SELECT quantity FROM character_bank WHERE character_id = ? AND item_kind = ? AND item_id = ?').pluck();
+      const bankRow = prepareCached<[number, string, number], number>(this.db, 'SELECT quantity FROM character_bank WHERE character_id = ? AND item_kind = ? AND item_id = ?', { pluck: true });
       const bankQty = bankRow.get(characterId, kind, id) ?? 0;
       const from = toBank ? bagQty : bankQty;
       const to = toBank ? bankQty : bagQty;

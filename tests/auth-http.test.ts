@@ -47,8 +47,11 @@ test('logout then login with the saved account locale', async () => {
   const client = new TestClient(server.url);
   await client.post('/register', { _csrf: await client.csrf('/register'), ...registration('Player1') });
   assert.equal(server.ctx.accounts.findByUsername('Player1')?.role, 'player');
-  // Choose French while logged in: saved into the account.
+  // A plain GET link updates the browser cookie only (never writes to the account in the database).
   await client.request('/lang/fr?next=/');
+  assert.notEqual(server.ctx.accounts.findByUsername('Player1')?.locale, 'fr');
+  // Choose French via CSRF-protected POST while logged in: saved into the account.
+  await client.post('/lang/fr?next=/', { _csrf: await client.csrf('/characters') });
   assert.equal(server.ctx.accounts.findByUsername('Player1')?.locale, 'fr');
   const logout = await client.post('/logout', { _csrf: await client.csrf('/characters') });
   assert.equal(logout.status, 303);

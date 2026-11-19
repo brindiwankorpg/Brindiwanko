@@ -139,7 +139,7 @@ export function findUsages(ctx: ServerContext, type: DatabaseType, id: number): 
 
 /** Tells whether a command list transfers the player to a map. */
 function transfersTo(list: unknown, mapId: number): boolean {
-  return Array.isArray(list) && (list as EventCommand[]).some((c) => c?.code === Cmd.TransferPlayer && Array.isArray(c.parameters) && c.parameters[0] === 0 && Number(c.parameters[1]) === mapId);
+  return Array.isArray(list) && (list as EventCommand[]).some((c) => c?.code === Cmd.TransferPlayer && Array.isArray(c.parameters) && Number(c.parameters[0]) !== 1 && Number(c.parameters[1]) === mapId);
 }
 
 /**
@@ -208,9 +208,9 @@ export function removeReferences(ctx: ServerContext, type: DatabaseType, id: num
     for (const record of ctx.gameData.list(t)) {
       if (t === type && record.id === id) continue;
       // Records read from the repository are shared with the game: the cleaning works on a copy.
-      const copy = structuredClone(record) as unknown as Record<string, unknown>;
-      if (!clean(SCHEMAS[t], copy)) continue;
-      ctx.gameData.save(t, copy as never);
+      const copy = structuredClone(record);
+      if (!clean(SCHEMAS[t], copy as unknown as Record<string, unknown>)) continue;
+      ctx.gameData.saveRecord(t, copy);
       count++;
     }
   }

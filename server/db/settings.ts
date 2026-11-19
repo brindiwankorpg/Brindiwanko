@@ -37,14 +37,15 @@ export class SettingsRepository {
   }
 
   /**
-   * Reads a setting.
+   * Reads a setting. Objects and arrays are cloned on read so callers cannot mutate the shared cache.
    * @param key - Setting key.
    * @param fallback - Value returned when the key is absent.
    */
   get<T>(key: string, fallback: T): T {
+    const clone = <V>(v: V): V => (v !== null && typeof v === 'object' ? structuredClone(v) : v);
     if (!this.db.inTransaction && this.cache.has(key)) {
       const hit = this.cache.get(key);
-      return hit === CACHE_MISS ? fallback : (hit as T);
+      return hit === CACHE_MISS ? fallback : clone(hit as T);
     }
     const raw = this.getStmt.get(key);
     if (raw === undefined) {
@@ -54,7 +55,7 @@ export class SettingsRepository {
     const parsed = safeJsonParse<T | typeof CACHE_MISS>(raw, CACHE_MISS);
     if (parsed === CACHE_MISS) return fallback;
     if (!this.db.inTransaction) this.cache.set(key, parsed);
-    return parsed;
+    return clone(parsed);
   }
 
   /**

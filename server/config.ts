@@ -35,11 +35,14 @@
 import { join } from 'node:path';
 import { PATHS, fromRoot } from './paths.js';
 
-function intFromEnv(name: string, fallback: number): number {
-  const raw = process.env[name];
-  if (raw === undefined || raw === '') return fallback;
-  const value = Number.parseInt(raw, 10);
-  if (!Number.isFinite(value)) throw new Error(`Environment variable ${name} must be an integer (got "${raw}")`);
+export function intFromEnv(name: string, fallback: number, min: number, max: number, env: NodeJS.ProcessEnv = process.env): number {
+  const raw = env[name]?.trim();
+  if (!raw) return fallback;
+  if (!/^\d+$/.test(raw)) throw new Error(`Environment variable ${name} must be an integer (got "${env[name]}")`);
+  const value = Number(raw);
+  if (!Number.isSafeInteger(value) || value < min || value > max) {
+    throw new Error(`Environment variable ${name} must be between ${min} and ${max} (got ${value})`);
+  }
   return value;
 }
 
@@ -51,21 +54,26 @@ export function boolFromEnv(name: string, env: NodeJS.ProcessEnv = process.env):
 }
 
 /** Origin (`scheme://host[:port]`) of a public URL given in the environment. */
-function originFromEnv(name: string): string | undefined {
-  const raw = process.env[name];
+export function originFromEnv(name: string, env: NodeJS.ProcessEnv = process.env): string | undefined {
+  const raw = env[name]?.trim();
   if (!raw) return undefined;
+  let url: URL;
   try {
-    return new URL(raw).origin;
+    url = new URL(raw);
   } catch {
     throw new Error(`Environment variable ${name} must be a URL such as https://jeu.example.org (got "${raw}")`);
   }
+  if ((url.protocol !== 'http:' && url.protocol !== 'https:') || url.origin === 'null') {
+    throw new Error(`Environment variable ${name} must use http:// or https:// (got "${raw}")`);
+  }
+  return url.origin;
 }
 
 const production = process.env.NODE_ENV === 'production';
 
 /** Immutable server configuration. */
 export const config = Object.freeze({
-  port: intFromEnv('PORT', 3000),
+  port: intFromEnv('PORT', 3000, 0, 65535),
   host: process.env.HOST ?? '0.0.0.0',
   production,
   /** Set by `npm run dev`: enables hot-reload helpers (translation files...). */
@@ -78,10 +86,10 @@ export const config = Object.freeze({
   /** Origin of the public address, when set (game socket origin check). */
   publicUrl: originFromEnv('PUBLIC_URL'),
   /** Accounts one client address may create per hour (0 = unlimited). */
-  registrationsPerHour: intFromEnv('REGISTRATIONS_PER_HOUR', production ? 10 : 0),
+  registrationsPerHour: intFromEnv('REGISTRATIONS_PER_HOUR', production ? 10 : 0, 0, 1_000_000),
   /** Project imports (up to 200 MB each) one account may start per 15 minutes (0 = unlimited). */
-  importsPer15Min: intFromEnv('IMPORTS_PER_15_MIN', production ? 3 : 0),
-  maxCharactersPerAccount: intFromEnv('MAX_CHARACTERS', 4),
+  importsPer15Min: intFromEnv('IMPORTS_PER_15_MIN', production ? 3 : 0, 0, 1_000_000),
+  maxCharactersPerAccount: intFromEnv('MAX_CHARACTERS', 4, 1, 100),
   /** Mail server sending the "forgotten password" e-mails (`undefined`: no e-mail is sent). */
   smtpUrl: process.env.SMTP_URL || undefined,
   /** Sender of the e-mails. */

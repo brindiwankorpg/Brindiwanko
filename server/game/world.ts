@@ -1112,6 +1112,7 @@ export class World {
     const runtime = this.mapRuntime(mapId);
     if (!runtime) return;
     for (const p of this.playersOn(mapId)) {
+      this.sheet.closeWindows(p);
       p.x = Math.min(p.x, runtime.map.width - 1);
       p.y = Math.min(p.y, runtime.map.height - 1);
       p.epoch++;
@@ -1149,7 +1150,7 @@ export class World {
    * @returns Whether the changes were kept.
    */
   storeTogether(p: PlayerSession, change: () => void): boolean {
-    const quests = new Map(p.progress.quests);
+    const quests = new Map([...p.progress.quests].map(([id, q]) => [id, structuredClone(q)]));
     const { xp, level } = p;
     const hotbar = [...p.combat.hotbar];
     try {
@@ -1159,8 +1160,16 @@ export class World {
       console.error(`[brindiwanko] changes of character #${p.characterId} could not be stored: none was kept`, err);
       p.progress.quests = quests;
       p.combat.hotbar = hotbar;
-      if (p.xp !== xp || p.level !== level) this.runner.setExp(p, xp, false, level);
+      const leveled = p.xp !== xp || p.level !== level;
+      if (leveled) {
+        p.xp = xp;
+        p.level = level;
+      }
       this.combat.invalidate(p);
+      if (leveled) {
+        const { maxHp, maxMp } = this.maxVitals(p);
+        p.socket.emit('playerUpdate', { xp: p.xp, level: p.level, maxHp, maxMp });
+      }
       this.combat.pushSkills(p);
       this.pushInventory(p);
       p.socket.emit('playerUpdate', { gold: this.ctx.inventory.gold(p.characterId) });
@@ -1222,13 +1231,14 @@ export class World {
 
   /** Uses an item from the player's bag (effects are computed by the server). */
   useItem(p: PlayerSession, itemId: number): void {
-    // A knocked-out player cannot drink anything (the potion would be lost: the vitals are reset on respawn).
-    if (p.busy || p.combat.dead) return;
+    // A knocked-out, busy, stunned, or on-GCD player cannot drink anything (the potion would be lost or spammed).
+    if (!this.combat.canUseItem(p)) return;
     const result = this.ctx.inventoryService.use(p.characterId, itemId, { hp: p.hp, mp: p.mp, ...this.maxVitals(p) }, (e) => this.combat.effectUseful(p, e));
     if (!result.ok) {
       p.socket.emit('notify', { key: result.errorKey });
       return;
     }
+    this.combat.triggerGlobalCooldown(p);
     p.hp = result.hp;
     p.mp = result.mp;
     p.socket.emit('playerUpdate', { hp: p.hp, mp: p.mp });

@@ -28,6 +28,8 @@ export class CharacterSheet {
   private readonly shopPrices: ShopPrices;
   /** Ends the waits of the shop and bank windows open for each player. */
   private readonly openWindows = new Map<PlayerSession, Set<() => void>>();
+  /** Players whose `busy` flag was acquired by an open shop/bank window (e.g. from a parallel event). */
+  private readonly uiHeldBusy = new WeakSet<PlayerSession>();
 
   constructor(private readonly world: World) {
     this.shopPrices = new ShopPrices(world.ctx.maps, world.ctx.gameData);
@@ -211,6 +213,9 @@ export class CharacterSheet {
     const good = p.ui.goods[index];
     const qty = Math.max(1, Math.min(MAX_BATCH, Math.trunc(quantity)));
     if (!good) return;
+    const def = good.kind === 'item' ? this.ctx.gameData.get('item', good.id)
+      : good.kind === 'weapon' ? this.ctx.gameData.get('weapon', good.id) : this.ctx.gameData.get('armor', good.id);
+    if (!def) return;
     const inv = this.ctx.inventoryService;
     if (!this.ctx.inventory.buy(p.characterId, good.kind, good.id, qty, good.price, inv.maxOf(good.kind, good.id), this.setting('bagSize'))) {
       const key = this.ctx.inventory.gold(p.characterId) < good.price * qty ? 'error.shop.not_enough_gold' : 'error.bag.full';
@@ -320,11 +325,14 @@ export class CharacterSheet {
   /** Keeps a window open until the client acknowledges its closing, disconnects or the server closes it. */
   private async openWindow(p: PlayerSession, ui: NonNullable<PlayerSession['ui']>, show: (closed: () => void) => void): Promise<void> {
     if (!this.world.isLive(p)) return;
+    if (p.ui) this.closeWindows(p);
     p.ui = ui;
     // A window opened by a parallel event holds the player too, as one opened by a dialogue does:
     // otherwise it could walk away with the shop or the bank still open.
-    const held = !p.busy;
-    if (held) p.busy = true;
+    if (!p.busy) {
+      this.uiHeldBusy.add(p);
+      this.world.setBusy(p, true);
+    }
     let done = () => undefined as void;
     const closed = new Promise<void>((resolve) => (done = resolve));
     const waits = this.openWindows.get(p) ?? new Set();
@@ -340,8 +348,8 @@ export class CharacterSheet {
       waits.delete(done);
       if (waits.size === 0 && this.openWindows.get(p) === waits) this.openWindows.delete(p);
       if (p.ui === ui) p.ui = null;
-      if (held) {
-        p.busy = false;
+      if (!this.openWindows.has(p) && this.uiHeldBusy.delete(p)) {
+        this.world.setBusy(p, false);
         this.world.runner.startTriggers(p);
       }
     }

@@ -359,18 +359,20 @@ export class QuestService {
 
   // --- Journal ----------------------------------------------------------------
 
-  /** Name of the target of an objective, for generated texts. */
+  /** Name of the target of an objective, for generated texts (peeks maps without loading them into World.maps). */
   private targetName(o: QuestObjective): string {
     const data = this.ctx.gameData;
     switch (o.kind) {
-      case 'talk':
-        return this.world.mapRuntime(o.mapId)?.definitions().find((e) => e.id === o.eventId)?.name ?? '?';
+      case 'talk': {
+        const map = this.ctx.maps.peek(o.mapId);
+        return (map?.events[o.eventId]?.id === o.eventId ? map.events[o.eventId] : map?.events.find((e) => e?.id === o.eventId))?.name ?? '?';
+      }
       case 'kill':
         return data.get('enemy', o.enemyId)?.name ?? '?';
       case 'collect':
         return data.get('item', o.itemId)?.name ?? '?';
       case 'reach': {
-        const map = this.world.mapRuntime(o.mapId)?.map;
+        const map = this.ctx.maps.peek(o.mapId);
         return map?.displayName || '?';
       }
       default:

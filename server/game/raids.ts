@@ -70,7 +70,7 @@ export class RaidService {
 
   /** End of a character's lockout for a raid (0 = free). */
   lockedUntil(characterId: number, raidId: number, now = Date.now()): number {
-    const until = prepareCached<[number, number], number>(this.db, 'SELECT until FROM character_raid_lockouts WHERE character_id = ? AND raid_id = ?').pluck().get(characterId, raidId) ?? 0;
+    const until = prepareCached<[number, number], number>(this.db, 'SELECT until FROM character_raid_lockouts WHERE character_id = ? AND raid_id = ?', { pluck: true }).get(characterId, raidId) ?? 0;
     return until > now ? until : 0;
   }
 
@@ -85,6 +85,7 @@ export class RaidService {
     instance.bossDefeated = true;
     const players = this.world.playersOn(instance.mapId, instance.id).filter((p) => this.world.isLive(p));
     const eligible = players.filter((p) => !this.lockedUntil(p.characterId, raid.id));
+    const rewarded: PlayerSession[] = [];
     for (const p of players) {
       if (!eligible.includes(p)) {
         p.socket.emit('notify', { key: 'notify.raid_locked', params: { name: raid.name } });
@@ -100,17 +101,18 @@ export class RaidService {
         const until = lockoutEnd(raid.lockout);
         if (until) this.lock(p.characterId, raid.id, until);
       });
+      if (stored) rewarded.push(p);
       p.socket.emit('notify', { key: stored ? 'notify.raid_cleared' : 'error.raid.not_rewarded', params: { name: raid.name } });
     }
-    if (eligible.length === 0) return;
+    if (rewarded.length === 0) return;
     for (const r of raid.rewardItems) {
       const itemId = r.kind === 'item' ? r.item : r.kind === 'weapon' ? r.weapon : r.armor;
       if (itemId <= 0) continue;
-      if (raid.lootMode === 'need_greed' && eligible.length > 1) this.startRoll(r.kind, itemId, r.count, eligible);
+      if (raid.lootMode === 'need_greed' && rewarded.length > 1) this.startRoll(r.kind, itemId, r.count, rewarded);
       else {
-        const turn = ((this.turns.get(instance.id) ?? -1) + 1) % eligible.length;
+        const turn = ((this.turns.get(instance.id) ?? -1) + 1) % rewarded.length;
         this.turns.set(instance.id, turn);
-        this.give(eligible[turn]!, r.kind, itemId, r.count, eligible, null);
+        this.give(rewarded[turn]!, r.kind, itemId, r.count, rewarded, null);
       }
     }
   }

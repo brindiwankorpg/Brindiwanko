@@ -12,7 +12,7 @@
  * Writes need the `X-CSRF-Token` header.
  */
 import { randomBytes } from 'node:crypto';
-import { existsSync, mkdirSync, renameSync, rmSync, statSync, unlinkSync } from 'node:fs';
+import { mkdirSync, renameSync, rmSync, statSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import os from 'node:os';
@@ -59,6 +59,10 @@ export function adminRouter(ctx: ServerContext): Router {
   const router = Router();
   router.use(requireRoleApi('moderator'));
   router.use(express.json({ limit: '1mb' }));
+  router.use((req, _res, next) => {
+    if (req.body === undefined && req.path !== '/restore') req.body = {};
+    next();
+  });
   router.use(verifyCsrfHeader);
   const me = (res: Response) => currentAccount(res)!;
   const isAdmin = (res: Response) => hasRole(me(res).role, 'admin');
@@ -111,11 +115,45 @@ export function adminRouter(ctx: ServerContext): Router {
   /** Name of a declared switch or variable (numbered from 1 in the order of the System tab). */
   const declaredName = (key: 'switches' | 'variables', id: unknown): string | undefined =>
     typeof id === 'number' ? ctx.settings.get(key, DEFAULT_SETTINGS[key])[id - 1]?.name || undefined : undefined;
+  interface LogLookups {
+    mapsById: Map<number, string>;
+    accountsById: Map<number, { id: number; username: string }>;
+    charactersById: Map<number, { id: number; name: string; accountId: number }>;
+  }
+  const buildLogLookups = (lines: LogLine[]): LogLookups => {
+    const mapsById = new Map(ctx.maps.infos().map((m) => [m.id, m.name]));
+    const accountIds = new Set<number>();
+    const characterIds = new Set<number>();
+    for (const line of lines) {
+      const target = typeof line.target === 'string' && line.admin !== undefined ? /^(account|character):(\d+)$/.exec(line.target) : null;
+      if (!target) continue;
+      const id = Number(target[2]);
+      if (target[1] === 'account') accountIds.add(id);
+      else characterIds.add(id);
+    }
+    const accountsById = new Map<number, { id: number; username: string }>();
+    if (accountIds.size > 0) {
+      const ids = [...accountIds];
+      const placeholders = ids.map(() => '?').join(',');
+      for (const row of ctx.db.prepare<number[], { id: number; username: string }>(`SELECT id, username FROM accounts WHERE id IN (${placeholders})`).all(...ids)) {
+        accountsById.set(row.id, row);
+      }
+    }
+    const charactersById = new Map<number, { id: number; name: string; accountId: number }>();
+    if (characterIds.size > 0) {
+      const ids = [...characterIds];
+      const placeholders = ids.map(() => '?').join(',');
+      for (const row of ctx.db.prepare<number[], { id: number; name: string; account_id: number }>(`SELECT id, name, account_id FROM characters WHERE id IN (${placeholders})`).all(...ids)) {
+        charactersById.set(row.id, { id: row.id, name: row.name, accountId: row.account_id });
+      }
+    }
+    return { mapsById, accountsById, charactersById };
+  };
   /**
    * Details of an administration line, stored as JSON: given back as an object, with the names of the
    * numbers it holds (map, object, switch, variable, enemy, character), for the panel to say it in words.
    */
-  const detailsWithNames = (json: string): Record<string, unknown> | string => {
+  const detailsWithNames = (json: string, mapsById: Map<number, string>): Record<string, unknown> | string => {
     let d: unknown;
     try {
       d = JSON.parse(json);
@@ -124,7 +162,7 @@ export function adminRouter(ctx: ServerContext): Router {
     }
     if (!d || typeof d !== 'object' || Array.isArray(d)) return json;
     const out: Record<string, unknown> = { ...(d as Record<string, unknown>) };
-    if (typeof out.mapId === 'number') out.mapName = ctx.maps.infos().find((m) => m.id === out.mapId)?.name;
+    if (typeof out.mapId === 'number') out.mapName = mapsById.get(out.mapId);
     if (typeof out.id === 'number' && typeof out.kind === 'string') out.itemName = itemName(out.kind, out.id);
     if (typeof out.switchId === 'number') out.switchName = declaredName('switches', out.switchId);
     if (typeof out.variableId === 'number') out.variableName = declaredName('variables', out.variableId);
@@ -136,17 +174,17 @@ export function adminRouter(ctx: ServerContext): Router {
    * Administration: the target account or character by its name (with its account, to open it) instead of
    * "character:15", and the details as an object with names.
    */
-  const withNames = (line: LogLine): Record<string, unknown> => {
+  const withNames = (line: LogLine, lookups: LogLookups): Record<string, unknown> => {
     const out: Record<string, unknown> = { ...line };
     const kind = out.kind;
     if (typeof out.item === 'number' && (kind === 'item' || kind === 'weapon' || kind === 'armor')) out.item = itemName(kind, out.item);
     if (typeof out.enemy === 'number') out.enemy = `${ctx.gameData.get('enemy', out.enemy)?.name ?? '?'} (#${out.enemy})`;
     for (const key of ['aItems', 'bItems'] as const) if (typeof out[key] === 'string') out[key] = tradeItems(out[key]);
-    if (typeof out.details === 'string') out.details = detailsWithNames(out.details);
+    if (typeof out.details === 'string') out.details = detailsWithNames(out.details, lookups.mapsById);
     const target = typeof out.target === 'string' && out.admin !== undefined ? /^(account|character):(\d+)$/.exec(out.target) : null;
     if (target) {
       const id = Number(target[2]);
-      const found = target[1] === 'account' ? ctx.accounts.findById(id) : ctx.characters.findById(id);
+      const found = target[1] === 'account' ? lookups.accountsById.get(id) : lookups.charactersById.get(id);
       if (found) {
         out.target = 'username' in found ? found.username : found.name;
         out.targetAccount = 'username' in found ? found.id : found.accountId;
@@ -175,7 +213,9 @@ export function adminRouter(ctx: ServerContext): Router {
     const account = ctx.admin.account(id);
     if (!account) return fail(res, 404, 'error.admin.not_found');
     const characters = ctx.characters.listByAccount(id).map((c) => ({ id: c.id, name: c.name, level: c.level, mapId: c.mapId, x: c.x, y: c.y, gold: c.gold, online: !!world.player(c.id) }));
-    const logs = Object.fromEntries(LOG_TYPES.map((t) => [t, ctx.admin.logs(t, id, 50).map((line) => forViewer(res, withNames(line)))]));
+    const rawLogs = LOG_TYPES.map((t) => [t, ctx.admin.logs(t, id, 50)] as const);
+    const lookups = buildLogLookups(rawLogs.flatMap(([, list]) => list));
+    const logs = Object.fromEntries(rawLogs.map(([t, list]) => [t, list.map((line) => forViewer(res, withNames(line, lookups)))]));
     res.json({ account: forViewer(res, account), characters, logs, currency: world.currencyName() });
   });
 
@@ -387,7 +427,8 @@ export function adminRouter(ctx: ServerContext): Router {
     const before = Math.trunc(Number(req.query.before ?? 0)) || 0;
     const date = (v: unknown) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(v) ? v : undefined);
     const lines = ctx.admin.logs(type, accountId, limit, { before: before > 0 ? before : undefined, from: date(req.query.from), to: date(req.query.to) });
-    res.json({ lines: lines.map((line) => forViewer(res, withNames(line))) });
+    const lookups = buildLogLookups(lines);
+    res.json({ lines: lines.map((line) => forViewer(res, withNames(line, lookups))) });
   });
 
   // --- Backups (administrators) ------------------------------------------------------------
@@ -398,17 +439,30 @@ export function adminRouter(ctx: ServerContext): Router {
    * otherwise act as any logged-in player). Restoring such a copy logs everybody
    * out and creates new secrets.
    */
+  let backingUp = false;
   router.get('/backup', adminOnly, async (_req, res) => {
+    if (backingUp) return fail(res, 409, 'error.admin.restore_busy');
+    backingUp = true;
     const dir = dataDirOf(ctx.config.dbPath);
     const file = join(dir, `backup-${Date.now()}-${randomBytes(6).toString('hex')}.db`);
+    let released = false;
     const cleanUp = () => {
-      for (const suffix of ['', '-journal', '-wal', '-shm']) if (existsSync(file + suffix)) unlinkSync(file + suffix);
+      if (!released) {
+        released = true;
+        backingUp = false;
+      }
+      for (const suffix of ['', '-journal', '-wal', '-shm']) {
+        try {
+          rmSync(file + suffix, { force: true });
+        } catch {}
+      }
     };
     try {
       mkdirSync(dir, { recursive: true });
       await ctx.db.backup(file);
       stripSecrets(file);
       log(res, 'backup', 'server');
+      res.once('close', cleanUp);
       res.download(file, `brindiwanko-${sqlDate(Date.now()).replace(/[: ]/g, '-')}.db`, cleanUp);
     } catch (err) {
       cleanUp();

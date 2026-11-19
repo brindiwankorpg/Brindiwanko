@@ -60,11 +60,18 @@ for (const file of readdirSync(LOCALES_DIR).filter((f) => f.endsWith('.json'))) 
   }
 }
 
+const referenceKeys = [...reference.keys()];
 for (const file of walkEjs(VIEWS_DIR)) {
   const src = readFileSync(file, 'utf8');
   for (const m of src.matchAll(/(?<![\w.$])t\(\s*['"]([a-zA-Z0-9_.-]+)['"]\s*(?:,|\))/g)) {
     const key = m[1]!;
     if (!reference.has(key)) errors.push(`${file}: unknown translation key "${key}"`);
+  }
+  for (const m of src.matchAll(/(?<![\w.$])t\(\s*['"]([a-zA-Z0-9_.-]+\.)['"]\s*\+/g)) {
+    const prefix = m[1]!;
+    if (!referenceKeys.some((k) => k.startsWith(prefix))) {
+      errors.push(`${file}: unknown dynamic translation prefix "${prefix}"`);
+    }
   }
 }
 

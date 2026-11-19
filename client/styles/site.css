@@ -82,6 +82,7 @@ a { color: var(--accent); }
   gap: 6px;
   z-index: 100;
 }
+.lang-form { margin: 0; display: flex; }
 .lang-option {
   display: flex;
   align-items: center;
@@ -91,9 +92,11 @@ a { color: var(--accent); }
   border-radius: 4px;
   background: rgba(16, 29, 74, 0.8);
   color: var(--text-dim);
+  font-family: inherit;
   font-size: 0.8rem;
   font-weight: 600;
   text-decoration: none;
+  cursor: pointer;
 }
 .lang-option.active { border-color: var(--win-border); color: var(--text); }
 .lang-option .flag { width: 21px; height: 14px; display: block; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6); }

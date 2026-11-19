@@ -80,6 +80,8 @@ export interface PlayerSocial {
   lastWhisper: number;
   tokens: number;
   lastRefill: number;
+  emoteTokens: number;
+  lastEmoteRefill: number;
   lastText: string;
   repeats: number;
   /** Time of the last report sent. */
@@ -88,7 +90,8 @@ export interface PlayerSocial {
 
 /** A new social state (loaded when entering the world). */
 export function emptySocial(): PlayerSocial {
-  return { friends: new Set(), ignored: new Set(), lastWhisper: 0, tokens: CHAT_BURST, lastRefill: Date.now(), lastText: '', repeats: 0, lastReport: 0 };
+  const now = Date.now();
+  return { friends: new Set(), ignored: new Set(), lastWhisper: 0, tokens: CHAT_BURST, lastRefill: now, emoteTokens: CHAT_BURST, lastEmoteRefill: now, lastText: '', repeats: 0, lastReport: 0 };
 }
 
 /** Chat and friends for the whole world. */
@@ -308,6 +311,20 @@ export class SocialService {
     return true;
   }
 
+  /** Anti-flood check for emotes (separate bucket so emotes cannot reset `s.repeats`). */
+  private allowedEmote(p: PlayerSession): boolean {
+    const s = p.social;
+    const now = Date.now();
+    s.emoteTokens = Math.min(CHAT_BURST, s.emoteTokens + (now - s.lastEmoteRefill) / 1000 / CHAT_REFILL_S);
+    s.lastEmoteRefill = now;
+    if (s.emoteTokens < 1) {
+      this.system(p, 'error.chat.flood');
+      return false;
+    }
+    s.emoteTokens -= 1;
+    return true;
+  }
+
   /** Item links of a message (`[Name]` of an item, weapon or armor), at most three. */
   private links(text: string): ItemLink[] | undefined {
     const names = [...text.matchAll(/\[([^[\]]{1,60})\]/g)].map((m) => m[1]!.trim().toLowerCase()).slice(0, 3);
@@ -423,7 +440,7 @@ export class SocialService {
         // Nobody wrote to this player yet: there is nobody to answer.
         if (!p.social.lastWhisper) return this.system(p, 'error.chat.no_reply');
         const target = this.world.player(p.social.lastWhisper);
-        this.whisper(p, target && this.world.isLive(target) ? target : undefined, target?.name ?? '?', arg);
+        this.whisper(p, target && this.world.isLive(target) && !target.invisible ? target : undefined, target?.name ?? '?', arg);
         return;
       }
       case 's':
@@ -490,9 +507,13 @@ export class SocialService {
 
   // --- Emotes ---------------------------------------------------------------------
 
-  /** Shows an emotion balloon above the player, for everyone on the map. */
+  /** Shows an emotion balloon above the player, for everyone on the map who does not ignore them. */
   emote(p: PlayerSession, balloon: number): void {
-    if (!this.allowed(p, `\u0000emote${balloon}${Date.now()}`)) return;
-    this.world.room(p.mapId, p.instance)?.emit('emote', { id: p.characterId, balloon: Math.max(1, Math.min(10, Math.trunc(balloon))) });
+    if (this.muted(p) || p.invisible || !this.allowedEmote(p)) return;
+    const payload = { id: p.characterId, balloon: Math.max(1, Math.min(10, Math.trunc(balloon))) };
+    for (const r of this.world.playersOn(p.mapId, p.instance)) {
+      if (r !== p && this.ignores(r, p.characterId)) continue;
+      if (this.world.isLive(r)) r.socket.emit('emote', payload);
+    }
   }
 }

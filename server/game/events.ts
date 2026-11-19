@@ -44,9 +44,6 @@ const BALLOON_MS = 1000;
 /** Player walking speed. */
 const PLAYER_SPEED = 4;
 
-/** A pause of an event (up to 10 minutes): it never keeps the process alive after the server has stopped. */
-const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms).unref());
-
 /** Milliseconds to walk one cell at a move speed (1–6). */
 export function stepMs(speed: number): number {
   return ((256 / 2 ** speed) * 1000) / 60;
@@ -238,6 +235,7 @@ export class EventRunner {
       const done = () => {
         clearTimeout(timer);
         set?.delete(done);
+        if (set && set.size === 0 && this.mapSleeps.get(p.characterId) === set) this.mapSleeps.delete(p.characterId);
         resolve();
       };
       const timer = setTimeout(done, ms);
@@ -489,13 +487,13 @@ export class EventRunner {
         const anim = ctx.gameData.get('animation', animationId);
         if (!t || !anim) return;
         emitEffect({ kind: 'animation', target: targetId(t), sheet: anim.sheet, frameCount: anim.frameCount, frameSize: anim.frameSize, fps: anim.fps, sound: anim.sound });
-        if (wait) await sleep((anim.frameCount / Math.max(1, anim.fps)) * 1000);
+        if (wait) await this.sleepMap(p, p.mapGen, (anim.frameCount / Math.max(1, anim.fps)) * 1000);
       },
       showBalloon: async (ref, balloonId, wait) => {
         const t = this.target(run, ref);
         if (!t) return;
         emitEffect({ kind: 'balloon', target: targetId(t), balloon: Math.max(1, Math.min(15, balloonId)) });
-        if (wait) await sleep(BALLOON_MS);
+        if (wait) await this.sleepMap(p, p.mapGen, BALLOON_MS);
       },
       eraseEvent: () => {
         if (run.event && p.mapGen === run.gen) {
@@ -504,12 +502,12 @@ export class EventRunner {
         }
       },
       playSe: (se) => emitEffect({ kind: 'se', ...se }),
-      wait: (ms) => sleep(ms),
+      wait: (ms) => this.sleepMap(p, p.mapGen, ms),
       notify: (text) => p.socket.emit('notify', { key: 'notify.custom', params: { text } }),
       quest: (command, questId, step) => w.quests.command(p, command, questId, step),
       screen: async (effect, wait) => {
         emitEffect(effect);
-        if (wait) await sleep(effect.ms);
+        if (wait) await this.sleepMap(p, p.mapGen, effect.ms);
       },
       effect: (effect) => emitEffect(effect),
       setTimer: (seconds) => {
@@ -552,13 +550,18 @@ export class EventRunner {
           p.socket.emit('notify', { key: 'error.inn.not_enough_gold', params: { currency: w.currencyName() } });
           return;
         }
-        if (price > 0) w.changeGold(p, -price);
+        const gen = p.mapGen;
         emitEffect({ kind: 'fade', ms: 1200 });
-        await sleep(600);
-        if (!w.isLive(p) || p.combat.dead) return;
+        await this.sleepMap(p, gen, 600);
+        if (!w.isLive(p) || p.combat.dead || p.mapGen !== gen) return;
+        if (ctx.inventory.gold(p.characterId) < price) {
+          p.socket.emit('notify', { key: 'error.inn.not_enough_gold', params: { currency: w.currencyName() } });
+          return;
+        }
+        if (price > 0) w.changeGold(p, -price);
         this.recoverAll(p);
-        await sleep(600);
-        if (w.isLive(p) && !p.combat.dead) p.socket.emit('notify', { key: 'notify.inn_rested' });
+        await this.sleepMap(p, gen, 600);
+        if (w.isLive(p) && !p.combat.dead && p.mapGen === gen) p.socket.emit('notify', { key: 'notify.inn_rested' });
       },
       setRespawn: (point) => {
         const target = point ?? { mapId: p.mapId, x: p.x, y: p.y };

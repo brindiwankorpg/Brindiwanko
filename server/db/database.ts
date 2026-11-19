@@ -38,22 +38,30 @@ export function openDatabase(file: string): Db {
 const statementCache = new WeakMap<Db, Map<string, Statement<never[], unknown>>>();
 
 /**
- * Prepares a statement once per connection and SQL text, then returns the same one on later calls.
+ * Prepares a statement once per connection, SQL text, and pluck mode, then returns the same one on later calls.
  * Repositories use it for queries issued from game events (each `db.prepare` would parse the SQL
- * and compile it again). Do not call `.pluck()`, `.raw()` or `.expand()` differently for one SQL text.
+ * and compile it again). Pass `{ pluck: true }` instead of calling `.pluck()` on the returned statement.
  * @param db - Connection.
  * @param sql - SQL text.
+ * @param options - Optional statement mode (`pluck: true` keeps a separate cache entry).
  */
-export function prepareCached<P extends unknown[] = unknown[], R = unknown>(db: Db, sql: string): Statement<P, R> {
+export function prepareCached<P extends unknown[] = unknown[], R = unknown>(
+  db: Db,
+  sql: string,
+  options?: { pluck?: boolean },
+): Statement<P, R> {
   let statements = statementCache.get(db);
   if (!statements) {
     statements = new Map();
     statementCache.set(db, statements);
   }
-  let statement = statements.get(sql);
+  const pluck = options?.pluck === true;
+  const key = `${pluck ? 'P:' : 'R:'}${sql}`;
+  let statement = statements.get(key);
   if (!statement) {
-    statement = db.prepare(sql) as unknown as Statement<never[], unknown>;
-    statements.set(sql, statement);
+    const prepared = db.prepare(sql);
+    statement = (pluck ? prepared.pluck() : prepared) as unknown as Statement<never[], unknown>;
+    statements.set(key, statement);
   }
   return statement as unknown as Statement<P, R>;
 }

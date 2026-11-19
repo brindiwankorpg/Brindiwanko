@@ -52,6 +52,8 @@ const REGEN_DELAY_MS = 8000;
 const SKILL_MESSAGE_RADIUS = 10;
 /** How long the fight state of a player who left is kept for its return (page reload, dropped connection). */
 const CARRY_COMBAT_MS = 10 * 60 * 1000;
+/** Maximum active adds a single boss may have alive at once. */
+const MAX_BOSS_ADDS = 24;
 /** Cells a monster spawning in a painted region may step outside it while chasing before returning home. */
 const REGION_CHASE_MARGIN = 2;
 
@@ -399,11 +401,18 @@ export class CombatSystem {
     if (phase.mechanic === 'adds') {
       const def = this.ctx.gameData.get('enemy', phase.enemyId);
       if (!def) return;
-      for (let i = 0; i < phase.count; i++) {
+      let activeAdds = 0;
+      for (const other of mc.monsters.values()) if (!other.dead && other.summoner === m.id) activeAdds++;
+      let summoned = 0;
+      for (let i = 0; i < phase.count && activeAdds < MAX_BOSS_ADDS; i++) {
         const add = this.summon(mc, def, m.x, m.y);
-        if (add) add.summoner = m.id;
+        if (add) {
+          add.summoner = m.id;
+          activeAdds++;
+          summoned++;
+        }
       }
-      for (const p of this.world.playersOn(mc.mapId, mc.instance)) p.socket.emit('notify', { key: 'notify.boss_adds', params: { name: m.def.name } });
+      if (summoned > 0) for (const p of this.world.playersOn(mc.mapId, mc.instance)) p.socket.emit('notify', { key: 'notify.boss_adds', params: { name: m.def.name } });
     } else if (phase.mechanic === 'zone') {
       const players = this.world.playersOn(mc.mapId, mc.instance).filter((p) => !p.combat.dead && !p.invisible && !this.protectedFromMonsters(p));
       const target = players[Math.floor(Math.random() * players.length)];
@@ -959,6 +968,16 @@ export class CombatSystem {
     return this.world.isLive(p) && !p.busy && !p.combat.dead && !this.restricted(p.combat.states, 'act');
   }
 
+  /** Whether a player may use an item now (able to act and off the global cooldown). */
+  canUseItem(p: PlayerSession, now = Date.now()): boolean {
+    return this.ready(p) && now >= p.combat.globalReadyAt;
+  }
+
+  /** Starts the global cooldown after using a consumable item. */
+  triggerGlobalCooldown(p: PlayerSession, now = Date.now()): void {
+    p.combat.globalReadyAt = now + GLOBAL_COOLDOWN_MS;
+  }
+
   /** Normal attack of a player in the direction it faces. */
   attack(p: PlayerSession): void {
     const now = Date.now();
@@ -1053,9 +1072,13 @@ export class CombatSystem {
       if (scope === 'enemy') return { list: target ? [target] : [], cells: [target ? this.position(target) : cell], hostile: true };
       const center = target ? this.position(target) : cell;
       const list: Combatant[] = [];
+      const seenCells = new Set<number>();
       for (let y = center.y - area; y <= center.y + area; y++) {
         for (let x = center.x - area; x <= center.x + area; x++) {
           const cell = wrapCell(mc.map, x, y);
+          const key = cell.y * mc.map.width + cell.x;
+          if (seenCells.has(key)) continue;
+          seenCells.add(key);
           list.push(...this.targetsAt(mc, user, cell.x, cell.y));
         }
       }

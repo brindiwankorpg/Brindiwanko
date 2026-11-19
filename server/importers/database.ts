@@ -186,7 +186,7 @@ export function importDatabase(ctx: ServerContext, plan: DatabasePlan, warnings:
           break;
         }
       }
-      ctx.gameData.save(type, normalizeRecord(type, record, id) as never);
+      ctx.gameData.saveRecord(type, normalizeRecord(type, record, id));
       counts[type] = (counts[type] ?? 0) + 1;
     }
   }

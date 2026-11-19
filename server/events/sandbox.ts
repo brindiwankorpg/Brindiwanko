@@ -70,10 +70,11 @@ const WAIT_MS = 2000;
 const MEMORY_MB = 64;
 /** Sandbox processes running at most (one core is left to the game). */
 export const POOL_SIZE = Math.max(1, Math.min(4, availableParallelism() - 1));
-/** Maximum operations and code size accepted. */
+/** Maximum operations, code size, and IPC output size accepted. */
 const MAX_OPS = 200;
 const MAX_CODE = 20_000;
 const MAX_NOTIFY = 200;
+const MAX_OUTPUT_BYTES = 64 * 1024;
 
 const PRELUDE = `
 const __ops = [];
@@ -114,7 +115,7 @@ process.on('message', (message) => {
     const context = vm.createContext(Object.create(null), { codeGeneration: { strings: false, wasm: false }, microtaskMode: 'afterEvaluate' });
     vm.runInContext(${JSON.stringify(`for (const name of ${JSON.stringify(OFF_HEAP_GLOBALS)}) delete globalThis[name];`)}, context);
     const result = new vm.Script(String(message.source)).runInContext(context, { timeout: ${TIMEOUT_MS} });
-    if (typeof result === 'string') out = result;
+    if (typeof result === 'string' && result.length <= ${MAX_OUTPUT_BYTES}) out = result;
   } catch {}
   process.send({ id: message.id, out });
 });
@@ -192,7 +193,7 @@ function start(): Sandbox {
     if (!run) return;
     s.pending.delete(message.id as number);
     arm(s);
-    run.resolve(typeof message.out === 'string' ? message.out : null);
+    run.resolve(typeof message.out === 'string' && message.out.length <= MAX_OUTPUT_BYTES ? message.out : null);
   });
   child.on('exit', () => stop(s));
   child.on('error', () => stop(s));
@@ -249,14 +250,15 @@ async function run(code: string, state: ScriptState, expression: boolean): Promi
     return { ops: [], value: undefined };
   }
   const source = `(() => {
+const __stringify = JSON.stringify;
 const __state = JSON.parse(${JSON.stringify(JSON.stringify(state))});
 ${PRELUDE}
 let __value;
-try { __value = (() => { ${body} })(); } catch (e) { __value = undefined; }
-return JSON.stringify({ ops: __ops, value: typeof __value === 'number' || typeof __value === 'boolean' ? __value : null });
+try { __value = ((__ops, __state, __push, __stringify, __int) => { ${body} })(); } catch (e) { __value = undefined; }
+return __stringify({ ops: __ops, value: typeof __value === 'number' || typeof __value === 'boolean' ? __value : null });
 })()`;
   const out = await execute(source);
-  if (out === null) return { ops: [], value: undefined };
+  if (out === null || out.length > MAX_OUTPUT_BYTES) return { ops: [], value: undefined };
   try {
     // Syntax errors, timeouts and malformed answers come back as `null`: the script does nothing.
     const parsed = JSON.parse(out) as { ops?: unknown; value?: unknown };

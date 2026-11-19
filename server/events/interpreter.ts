@@ -252,6 +252,7 @@ class Interpreter {
       case Cmd.If: {
         // A script condition waiting for approval (imported file) is false.
         const result = isQuarantined(c) ? false : await this.condition(p);
+        if (!h.isActive()) return false;
         this.branch[c.indent] = result;
         if (!result) this.skipBranch();
         break;
@@ -260,10 +261,10 @@ class Interpreter {
         if (this.branch[c.indent] !== false) this.skipBranch();
         break;
       case Cmd.LoopEnd: {
-        // Back to the matching loop start.
+        // Back to the matching loop start (ignore orphan LoopEnd without a matching Loop).
         let i = this.index - 1;
         while (i >= 0 && !(this.list[i]!.code === Cmd.Loop && this.list[i]!.indent === c.indent)) i--;
-        this.index = Math.max(0, i);
+        if (i >= 0) this.index = i;
         break;
       }
       case Cmd.BreakLoop: {
@@ -407,7 +408,11 @@ class Interpreter {
           lines.push(String(this.current.parameters[0] ?? ''));
         }
         // A script waiting for approval (imported file) does nothing.
-        if (!isQuarantined(c)) this.applyScript(await h.runScript(lines.join('\n')));
+        if (!isQuarantined(c)) {
+          const ops = await h.runScript(lines.join('\n'));
+          if (!h.isActive()) return false;
+          this.applyScript(ops);
+        }
         break;
       }
       case Cmd.FadeOut:
@@ -733,7 +738,8 @@ class Interpreter {
     const h = this.host;
     const from = Math.max(1, int(p[0]));
     const to = Math.min(int(p[1]), from + 999);
-    const scripted = int(p[3]) === 4 && !quarantined ? Number(await h.evaluate(String(p[4] ?? ''))) || 0 : 0;
+    const scripted = int(p[3]) === 4 && !quarantined ? Math.trunc(Number(await h.evaluate(String(p[4] ?? ''))) || 0) : 0;
+    if (!h.isActive()) return;
     const apply = (): void => {
     for (let id = from; id <= to; id++) {
       let value: number;

@@ -182,17 +182,32 @@ async function fetchDictionary(locale: Locale): Promise<Dictionary> {
   return (await response.json()) as Dictionary;
 }
 
+let switchSeq = 0;
+
 /**
  * Switches the interface language without reloading the page.
  * @param locale - New locale.
  */
 export async function setLocale(locale: Locale): Promise<void> {
+  const seq = ++switchSeq;
   const [dict, fallback] = await Promise.all([
     fetchDictionary(locale),
     locale === DEFAULT_LOCALE ? Promise.resolve(undefined) : fetchDictionary(DEFAULT_LOCALE),
   ]);
-  // Persist the choice server-side (cookie, and account when logged in).
-  await fetch(`/lang/${locale}?next=/healthz`, { credentials: 'same-origin', redirect: 'manual' });
+  if (seq !== switchSeq) return;
+  // Persist the choice server-side (CSRF-protected POST saves to the logged-in account too).
+  const csrf = document.querySelector<HTMLElement>('[data-csrf]')?.dataset.csrf;
+  if (csrf) {
+    await fetch(`/lang/${locale}?next=/healthz`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      redirect: 'manual',
+      headers: { 'X-CSRF-Token': csrf },
+    });
+  } else {
+    await fetch(`/lang/${locale}?next=/healthz`, { credentials: 'same-origin', redirect: 'manual' });
+  }
+  if (seq !== switchSeq) return;
   currentLocale = locale;
   dictionary = dict;
   translate = createTranslator(dict, fallback);

@@ -51,9 +51,11 @@ export function isSameOrigin(req: IncomingMessage, trustProxy: boolean, publicUr
   }
   if (publicUrl) return url.origin === publicUrl;
   const forwarded = trustProxy ? req.headers['x-forwarded-host'] : undefined;
-  const forwardedHost = typeof forwarded === 'string' ? forwarded.split(',')[0]!.trim() : Array.isArray(forwarded) ? forwarded[0]?.split(',')[0]?.trim() : undefined;
+  const forwardedHost = (Array.isArray(forwarded) ? forwarded.join(',') : forwarded ?? '').split(',').map((s) => s.trim()).filter(Boolean).at(-1);
   const expected = (forwardedHost || req.headers.host)?.replace(/:(80|443)$/, '');
-  return url.host !== '' && url.host === expected;
+  const rawProto = trustProxy ? req.headers['x-forwarded-proto'] : undefined;
+  const forwardedProto = (Array.isArray(rawProto) ? rawProto.join(',') : rawProto ?? '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean).at(-1);
+  return url.host !== '' && url.host === expected && (!forwardedProto || url.protocol === `${forwardedProto}:`);
 }
 
 /**
@@ -149,7 +151,7 @@ export function createSocketServer(httpServer: HttpServer, ctx: ServerContext): 
   io.on('connection', (socket) => {
     // socket.io calls handlers outside any try: an exception (or a rejected promise) in one
     // handler is logged instead of stopping the whole server.
-    const listen = socket.on.bind(socket);
+    const listen = socket.on.bind(socket) as (event: string, listener: (...args: unknown[]) => unknown) => typeof socket;
     socket.on = ((event: string, listener: (...args: unknown[]) => unknown) => {
       const wrapped = (...args: unknown[]) => {
         const fail = (err: unknown) => console.error(`[brindiwanko] socket handler "${event}" failed`, err);
@@ -162,7 +164,7 @@ export function createSocketServer(httpServer: HttpServer, ctx: ServerContext): 
       };
       // Keeps the original reference so that `off(event, original)` (and `once`) still find it.
       (wrapped as { listener?: unknown }).listener = (listener as { listener?: unknown }).listener ?? listener;
-      return listen(event as never, wrapped as never);
+      return listen(event, wrapped);
     }) as typeof socket.on;
     const limiter = new RateLimiter();
     socket.use((_packet, next) => {

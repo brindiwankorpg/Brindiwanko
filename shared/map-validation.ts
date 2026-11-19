@@ -40,7 +40,8 @@ function validateCommand(c: unknown, path: string): ValidationError {
 function validatePage(page: unknown, path: string): ValidationError {
   const p = page as EventPage;
   if (typeof p !== 'object' || p === null) return path;
-  if (typeof p.conditions !== 'object' || p.conditions === null) return `${path}.conditions`;
+  if (typeof p.conditions !== 'object' || p.conditions === null || Array.isArray(p.conditions)) return `${path}.conditions`;
+  if (JSON.stringify(p.conditions).length > 4_000) return `${path}.conditions`;
   const img = p.image;
   if (typeof img !== 'object' || img === null) return `${path}.image`;
   if (!isInt(img.tileId, 0, TILE_ID_MAX - 1) || !isStr(img.characterName, 200) || !isInt(img.characterIndex, 0, 7)) return `${path}.image`;
@@ -51,7 +52,12 @@ function validatePage(page: unknown, path: string): ValidationError {
   if (typeof p.moveRoute !== 'object' || p.moveRoute === null || !Array.isArray(p.moveRoute.list) || p.moveRoute.list.length > MAX_COMMANDS) return `${path}.moveRoute`;
   for (const c of p.moveRoute.list as unknown[]) {
     const cmd = c as { code?: unknown; parameters?: unknown } | null;
-    if (typeof cmd !== 'object' || cmd === null || !Number.isInteger(cmd.code) || (cmd.parameters !== undefined && !Array.isArray(cmd.parameters))) {
+    if (
+      typeof cmd !== 'object' ||
+      cmd === null ||
+      !isInt(cmd.code, 0, 99_999) ||
+      (cmd.parameters !== undefined && (!Array.isArray(cmd.parameters) || cmd.parameters.length > 64 || JSON.stringify(cmd.parameters).length > 4_000))
+    ) {
       return `${path}.moveRoute`;
     }
   }

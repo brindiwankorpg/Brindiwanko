@@ -61,8 +61,17 @@ export async function readZip(buf: Buffer, limits: ZipLimits = DEFAULT_ZIP_LIMIT
   const count = buf.readUInt16LE(eocd + 10);
   let offset = buf.readUInt32LE(eocd + 16);
   if (count > limits.maxEntries) throw new ZipError('error.import.too_many_files');
-  const entries: ZipEntry[] = [];
-  const usedRanges: Array<[number, number]> = [];
+  interface EntryPlan {
+    name: string;
+    method: number;
+    compressed: number;
+    size: number;
+    localOffset: number;
+    start: number;
+  }
+  // Pass 1: validate the central directory, local headers, totals, ratios and non-overlapping ranges
+  // before allocating any decompressed buffers.
+  const plans: EntryPlan[] = [];
   let total = 0;
   for (let n = 0; n < count; n++) {
     if (offset + 46 > buf.length || buf.readUInt32LE(offset) !== CENTRAL) throw new ZipError('error.import.corrupt');
@@ -77,32 +86,37 @@ export async function readZip(buf: Buffer, limits: ZipLimits = DEFAULT_ZIP_LIMIT
     const name = buf.toString('utf8', offset + 46, offset + 46 + nameLength).replace(/\\/g, '/');
     offset += 46 + nameLength + extraLength + commentLength;
     if (name.endsWith('/')) continue;
+    if (method !== 0 && method !== 8) throw new ZipError('error.import.unsupported_compression');
     total += size;
     if (total > limits.maxTotalBytes) throw new ZipError('error.import.too_large');
     if (compressed > 0 && size / compressed > limits.maxRatio) throw new ZipError('error.import.corrupt');
     if (localOffset + 30 > buf.length || buf.readUInt32LE(localOffset) !== LOCAL) throw new ZipError('error.import.corrupt');
     const start = localOffset + 30 + buf.readUInt16LE(localOffset + 26) + buf.readUInt16LE(localOffset + 28);
     if (start + compressed > buf.length) throw new ZipError('error.import.corrupt');
-    usedRanges.push([localOffset, start + compressed]);
-    const raw = buf.subarray(start, start + compressed);
-    let data: Buffer;
-    if (method === 0) {
-      if (raw.length !== size) throw new ZipError('error.import.corrupt');
-      data = Buffer.from(raw);
-    }
-    else if (method === 8) {
-      try {
-        data = await inflate(raw, { maxOutputLength: Math.max(size, 1) });
-      } catch {
-        throw new ZipError('error.import.corrupt');
-      }
-      if (data.length !== size) throw new ZipError('error.import.corrupt');
-    } else throw new ZipError('error.import.unsupported_compression');
-    entries.push({ name, data });
+    plans.push({ name, method, compressed, size, localOffset, start });
   }
+  const usedRanges: Array<[number, number]> = plans.map((p) => [p.localOffset, p.start + p.compressed]);
   usedRanges.sort((a, b) => a[0] - b[0]);
   for (let i = 1; i < usedRanges.length; i++) {
     if (usedRanges[i]![0] < usedRanges[i - 1]![1]) throw new ZipError('error.import.corrupt');
+  }
+  // Pass 2: decompress only once every structural check has passed.
+  const entries: ZipEntry[] = [];
+  for (const p of plans) {
+    const raw = buf.subarray(p.start, p.start + p.compressed);
+    let data: Buffer;
+    if (p.method === 0) {
+      if (raw.length !== p.size) throw new ZipError('error.import.corrupt');
+      data = Buffer.from(raw);
+    } else {
+      try {
+        data = await inflate(raw, { maxOutputLength: Math.max(p.size, 1) });
+      } catch {
+        throw new ZipError('error.import.corrupt');
+      }
+      if (data.length !== p.size) throw new ZipError('error.import.corrupt');
+    }
+    entries.push({ name: p.name, data });
   }
   return entries;
 }

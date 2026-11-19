@@ -30,6 +30,11 @@ test('reverse friend and ignore lookups, map versions by author and logs by date
     assert.match(plan(db, 'SELECT id FROM characters WHERE respawn_map = 1'), /USING (COVERING )?INDEX idx_characters_respawn_map/);
     assert.match(plan(db, 'SELECT character_id FROM character_skills WHERE skill_id = 1'), /USING (COVERING )?INDEX idx_character_skills_skill/);
     assert.match(plan(db, 'SELECT character_id FROM character_quests WHERE quest_id = 1'), /USING (COVERING )?INDEX idx_character_quests_quest/);
+    assert.match(plan(db, "SELECT character_id FROM character_items WHERE item_kind = 'item' AND item_id = 1"), /USING (COVERING )?INDEX idx_character_items_item/);
+    assert.match(plan(db, "SELECT character_id FROM character_bank WHERE item_kind = 'item' AND item_id = 1"), /USING (COVERING )?INDEX idx_character_bank_item/);
+    assert.match(plan(db, "SELECT character_id FROM character_equipment WHERE item_kind = 'weapon' AND item_id = 1"), /USING (COVERING )?INDEX idx_character_equipment_item/);
+    assert.match(plan(db, "SELECT guild_id FROM guild_bank_items WHERE item_kind = 'item' AND item_id = 1"), /USING (COVERING )?INDEX idx_guild_bank_items_item/);
+    assert.match(plan(db, 'SELECT character_id FROM character_raid_lockouts WHERE raid_id = 1'), /USING (COVERING )?INDEX idx_raid_lockouts_raid/);
     assert.equal(db.pragma('cache_size', { simple: true }), -32000);
   } finally {
     db.close();

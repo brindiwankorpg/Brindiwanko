@@ -10,24 +10,63 @@
  * `SameSite=Lax` cookies already block most cross-site posts; the token covers
  * older browsers and same-site subdomain attacks.
  */
-import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import type { NextFunction, Request, Response } from 'express';
 import { SECURE_COOKIES, readCookie } from './cookies.js';
 import './session-data.js';
 
-/** Cookie holding the token of visitors who are not logged in. */
+/** Cookie holding the signed token of visitors who are not logged in (plain HTTP / dev). */
 export const CSRF_COOKIE = 'brindiwanko.csrf';
+/** Host-locked cookie name used over HTTPS (production) to prevent subdomain cookie-tossing. */
+export const HOST_CSRF_COOKIE = '__Host-brindiwanko.csrf';
+/** Express app setting key holding the HMAC secret for anonymous CSRF cookies. */
+export const CSRF_SECRET = 'csrfSecret';
 
-/** Shape of a token (24 random bytes in base64url). */
+/** Fallback secret if an Express app is created without setting `CSRF_SECRET`. */
+const FALLBACK_SECRET = randomBytes(32).toString('base64url');
+
+/** Shape of a session token (24 random bytes in base64url). */
 const TOKEN = /^[A-Za-z0-9_-]{32}$/;
+/** Shape of a signed anonymous token (`<32-char nonce>.<43-char HMAC-SHA256>`). */
+const SIGNED_TOKEN = /^([A-Za-z0-9_-]{32})\.([A-Za-z0-9_-]{43})$/;
 const newToken = (): string => randomBytes(24).toString('base64url');
 
 /** Tells whether the request belongs to a logged-in session. */
 const loggedIn = (req: Request): boolean => req.session?.accountId !== undefined;
 
+/** Cookie name for anonymous CSRF tokens (`__Host-` over HTTPS). */
+export function csrfCookieName(req: Request): string {
+  return req.app.get(SECURE_COOKIES) === true ? HOST_CSRF_COOKIE : CSRF_COOKIE;
+}
+
+function csrfSecret(req: Request): string {
+  const configured = req.app.get(CSRF_SECRET);
+  return typeof configured === 'string' && configured.length > 0 ? configured : FALLBACK_SECRET;
+}
+
+function signAnonymous(nonce: string, secret: string): string {
+  const sig = createHmac('sha256', secret).update(nonce).digest('base64url');
+  return `${nonce}.${sig}`;
+}
+
+function isValidAnonymous(token: string | undefined, secret: string): token is string {
+  if (!token) return false;
+  const match = SIGNED_TOKEN.exec(token);
+  if (!match) return false;
+  const expected = createHmac('sha256', secret).update(match[1]!).digest('base64url');
+  const got = match[2]!;
+  return got.length === expected.length && timingSafeEqual(Buffer.from(got), Buffer.from(expected));
+}
+
+/** Clears the anonymous CSRF cookie once an authenticated session takes over. */
+export function clearAnonymousCsrfCookie(req: Request, res: Response): void {
+  const secure = req.app.get(SECURE_COOKIES) === true;
+  res.clearCookie(csrfCookieName(req), { path: '/', httpOnly: true, sameSite: 'lax', secure });
+}
+
 /**
  * Returns the request's CSRF token, creating it if needed: in the session for
- * logged-in visitors, in a cookie for the others.
+ * logged-in visitors, in a signed cookie for the others.
  * @param req - Request.
  * @param res - Response (receives the cookie of a new anonymous token).
  */
@@ -38,23 +77,28 @@ export function csrfToken(req: Request, res: Response): string {
   }
   const cached = res.locals.anonymousCsrf;
   if (cached) return cached;
-  const current = readCookie(req, CSRF_COOKIE);
-  const token = current && TOKEN.test(current) ? current : newToken();
-  if (token !== current) res.cookie(CSRF_COOKIE, token, { httpOnly: true, sameSite: 'lax', secure: req.app.get(SECURE_COOKIES) === true, path: '/' });
+  const name = csrfCookieName(req);
+  const secret = csrfSecret(req);
+  const current = readCookie(req, name);
+  const token = isValidAnonymous(current, secret) ? current : signAnonymous(newToken(), secret);
+  if (token !== current) res.cookie(name, token, { httpOnly: true, sameSite: 'lax', secure: req.app.get(SECURE_COOKIES) === true, path: '/' });
   res.locals.anonymousCsrf = token;
   return token;
 }
 
-/** Token the request must send back (`undefined` when none was given out). */
+/** Token the request must send back (`undefined` when none was given out or signature is invalid). */
 function expectedToken(req: Request): string | undefined {
-  return loggedIn(req) ? req.session.csrfToken : readCookie(req, CSRF_COOKIE);
+  if (loggedIn(req)) return req.session.csrfToken;
+  const raw = readCookie(req, csrfCookieName(req));
+  return isValidAnonymous(raw, csrfSecret(req)) ? raw : undefined;
 }
 
 /** Constant-time comparison of a sent token with the expected one. */
-function matches(sent: unknown, expected: string | undefined): boolean {
+function matches(sent: unknown, expected: string | undefined, signed = false): boolean {
+  const pattern = signed ? SIGNED_TOKEN : TOKEN;
   return (
     typeof expected === 'string' &&
-    TOKEN.test(expected) &&
+    pattern.test(expected) &&
     typeof sent === 'string' &&
     sent.length === expected.length &&
     timingSafeEqual(Buffer.from(sent), Buffer.from(expected))
@@ -73,7 +117,7 @@ export function exposeCsrf(req: Request, res: Response, next: NextFunction): voi
  * Middleware rejecting POST requests whose `_csrf` field does not match the expected token.
  */
 export function verifyCsrf(req: Request, res: Response, next: NextFunction): void {
-  if (matches((req.body as Record<string, unknown> | undefined)?._csrf, expectedToken(req))) {
+  if (matches((req.body as Record<string, unknown> | undefined)?._csrf, expectedToken(req), !loggedIn(req))) {
     next();
     return;
   }
@@ -95,4 +139,17 @@ export function verifyCsrfHeader(req: Request, res: Response, next: NextFunction
     return;
   }
   res.status(403).json({ error: 'error.http.csrf' });
+}
+
+/**
+ * Middleware accepting either the form `_csrf` field or the `X-CSRF-Token` header
+ * (for endpoints called by both HTML forms and same-origin `fetch`).
+ */
+export function verifyCsrfAny(req: Request, res: Response, next: NextFunction): void {
+  const sent = (req.body as Record<string, unknown> | undefined)?._csrf ?? req.get('x-csrf-token');
+  if (matches(sent, expectedToken(req), !loggedIn(req))) {
+    next();
+    return;
+  }
+  res.status(403).render('error', { code: 403, messageKey: 'error.http.csrf' });
 }

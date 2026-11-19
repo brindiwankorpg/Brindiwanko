@@ -17,7 +17,7 @@ import type { ServerContext } from '../context.js';
 import type { Account } from '../db/accounts.js';
 import { readCookie, safeRedirectPath } from '../http/cookies.js';
 import { addressKey } from '../http/address.js';
-import { CSRF_COOKIE, verifyCsrf } from '../http/csrf.js';
+import { clearAnonymousCsrfCookie, verifyCsrf } from '../http/csrf.js';
 import { field } from '../http/form.js';
 import { SlidingWindowLimiter } from '../http/rate-limit.js';
 import { SESSION_COOKIE } from '../http/session.js';
@@ -48,7 +48,7 @@ function startSession(req: Request, res: Response, account: Account, next: strin
     if (isLocale(account.locale)) setLocaleCookie(res, account.locale);
     res.cookie(DEVICE_COOKIE, deviceToken, { httpOnly: true, sameSite: 'lax', secure, maxAge: DEVICE_MAX_AGE_MS, path: '/' });
     // The anonymous form token is not needed any more: the session has its own.
-    res.clearCookie(CSRF_COOKIE, { path: '/' });
+    clearAnonymousCsrfCookie(req, res);
     req.session.save(() => res.redirect(303, next));
   });
 }

@@ -126,11 +126,17 @@ export function characterRouter(ctx: ServerContext): Router {
       renderList(res, 'error.character.online', 409);
       return;
     }
-    const error = ctx.characterService.delete(currentAccount(res)!.id, id, field(req, 'confirmName'), (c) => ctx.world.guilds.characterDeleted(c.id, c.name));
+    let updatedGuildId: number | null = null;
+    const error = ctx.db.transaction(() =>
+      ctx.characterService.delete(currentAccount(res)!.id, id, field(req, 'confirmName'), (c) => {
+        updatedGuildId = ctx.world.guilds.characterDeleted(c.id, c.name, false);
+      }),
+    )();
     if (error) {
       renderList(res, error, 400);
       return;
     }
+    if (updatedGuildId !== null) ctx.world.guilds.notifyGuildUpdated(updatedGuildId);
     res.redirect(303, '/characters');
   });
 

@@ -7,7 +7,7 @@
  * be duplicated or lost, even if the offers changed at the last moment.
  */
 import { nameKey } from '../../shared/names.js';
-import { prepareCached, type Db } from './database.js';
+import { prepareCached, safeJsonParse, type Db } from './database.js';
 import { MAX_GOLD, type ItemKind } from './inventory.js';
 
 /** A character reference. */
@@ -72,7 +72,7 @@ export class SocialRepository {
 
   /** Characters who have `characterId` as a friend (to tell them it came online). */
   friendOf(characterId: number): number[] {
-    return prepareCached<[number], number>(this.db, 'SELECT character_id FROM character_friends WHERE friend_id = ?').pluck().all(characterId);
+    return prepareCached<[number], number>(this.db, 'SELECT character_id FROM character_friends WHERE friend_id = ?', { pluck: true }).all(characterId);
   }
 
   addFriend(characterId: number, friendId: number): void {
@@ -108,9 +108,9 @@ export class SocialRepository {
     const a = normalizeOffer(offerA);
     const b = normalizeOffer(offerB);
     if (!a || !b) return 'error.trade.changed';
-    const quantity = prepareCached<[number, string, number], number>(this.db, 'SELECT quantity FROM character_items WHERE character_id = ? AND item_kind = ? AND item_id = ?').pluck();
-    const entries = prepareCached<[number], number>(this.db, 'SELECT COUNT(*) FROM character_items WHERE character_id = ?').pluck();
-    const gold = prepareCached<[number], number>(this.db, 'SELECT gold FROM characters WHERE id = ?').pluck();
+    const quantity = prepareCached<[number, string, number], number>(this.db, 'SELECT quantity FROM character_items WHERE character_id = ? AND item_kind = ? AND item_id = ?', { pluck: true });
+    const entries = prepareCached<[number], number>(this.db, 'SELECT COUNT(*) FROM character_items WHERE character_id = ?', { pluck: true });
+    const gold = prepareCached<[number], number>(this.db, 'SELECT gold FROM characters WHERE id = ?', { pluck: true });
     const setQty = prepareCached(this.db, `INSERT INTO character_items (character_id, item_kind, item_id, quantity) VALUES (?, ?, ?, ?)
       ON CONFLICT(character_id, item_kind, item_id) DO UPDATE SET quantity = excluded.quantity`);
     const del = prepareCached(this.db, 'DELETE FROM character_items WHERE character_id = ? AND item_kind = ? AND item_id = ?');
@@ -156,6 +156,15 @@ export class SocialRepository {
     type Row = { id: number; a_id: number; b_id: number; a_items: string; b_items: string; a_gold: number; b_gold: number; created_at: string };
     return prepareCached<[number, number, number], Row>(this.db, 'SELECT * FROM trade_log WHERE a_id = ? OR b_id = ? ORDER BY id DESC LIMIT ?')
       .all(characterId, characterId, limit)
-      .map((r) => ({ id: r.id, aId: r.a_id, bId: r.b_id, aItems: JSON.parse(r.a_items), bItems: JSON.parse(r.b_items), aGold: r.a_gold, bGold: r.b_gold, createdAt: r.created_at }));
+      .map((r) => ({
+        id: r.id,
+        aId: r.a_id,
+        bId: r.b_id,
+        aItems: safeJsonParse(r.a_items, []),
+        bItems: safeJsonParse(r.b_items, []),
+        aGold: r.a_gold,
+        bGold: r.b_gold,
+        createdAt: r.created_at,
+      }));
   }
 }

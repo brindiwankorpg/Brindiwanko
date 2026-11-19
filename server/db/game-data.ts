@@ -56,7 +56,12 @@ export class GameDataRepository {
         let record = parsed;
         // Records written by older versions are completed with the current schema's defaults.
         if ((DATABASE_TYPES as readonly string[]).includes(type)) {
-          record = normalizeRecord(type as DatabaseType, record, record.id) as unknown as GameDataTypes[T];
+          try {
+            record = normalizeRecord(type as DatabaseType, record, record.id) as unknown as GameDataTypes[T];
+          } catch (err) {
+            console.error(`[brindiwanko] skipping corrupted ${type} record #${record.id}:`, err);
+            continue;
+          }
         }
         entries.set(record.id, record);
       }
@@ -95,6 +100,12 @@ export class GameDataRepository {
 
   /** Inserts or replaces a record. */
   save<T extends GameDataType>(type: T, record: GameDataTypes[T]): void {
+    this.upsertStmt.run(type, record.id, record.name, JSON.stringify(record));
+    this.changed(type);
+  }
+
+  /** Inserts or replaces a database record whose `type` is a runtime `DatabaseType` union. */
+  saveRecord(type: DatabaseType, record: GameDataTypes[DatabaseType]): void {
     this.upsertStmt.run(type, record.id, record.name, JSON.stringify(record));
     this.changed(type);
   }
