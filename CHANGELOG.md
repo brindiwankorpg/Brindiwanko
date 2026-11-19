@@ -11,7 +11,7 @@
   [![Version](https://img.shields.io/badge/version-1.0.0--beta.1-2563eb?style=for-the-badge)](package.json)
   [![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/fr/1.1.0/)
   [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/lang/fr/)
-  [![Tests](https://img.shields.io/badge/tests-330%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+  [![Tests](https://img.shields.io/badge/tests-342%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
   [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
 
   <br />
@@ -149,7 +149,7 @@
   [![Version](https://img.shields.io/badge/version-1.0.0--beta.1-2563eb?style=for-the-badge)](package.json)
   [![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/en/1.1.0/)
   [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/)
-  [![Tests](https://img.shields.io/badge/tests-330%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+  [![Tests](https://img.shields.io/badge/tests-342%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
   [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
 
   <br />
