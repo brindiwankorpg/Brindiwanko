@@ -60,7 +60,7 @@
 | 🏰 **Donjons & Raids** | Instances privées par groupe, boss à phases scriptées, verrouillage de présence de groupe à l'entrée, lockouts hebdomadaires et butin aux dés. |
 | 👑 **Administration** | Tableau de bord live (CPU, lag, instances), sanctions (`/kick`, `/mute`, `/ban`), outils MJ, journaux d'audit, sauvegardes automatiques et restauration vérifiée. |
 | 🎨 **100 % Graphismes générés** | Tilesets, personnages, portraits, monstres, boss, icônes et fenêtres générés en pixel-art vectoriel depuis `assets/generators/` (`npm run assets:build`), libres et sans dépendance tierce. |
-| 📱 **Mobile & Bilingue** | Joystick virtuel, boutons `A`/`B`, compétences en arc, bascule tactile/bureau à chaud (`(hover: none)`), PWA plein écran, interface et contenu de départ disponibles en **Français / Anglais**. |
+| 📱 **Mobile & Bilingue** | Joystick virtuel, boutons `A`/`B`, compétences en arc, bascule tactile/bureau à chaud (`(hover: none)`), PWA plein écran, logiciel et contenu disponibles en **Français / Anglais**. |
 
 ### 🏗️ Architecture technique en bref
 
@@ -706,7 +706,7 @@ Historique détaillé dans [CHANGELOG.md](CHANGELOG.md). Principaux apports depu
 | 🏰 **Dungeons & Raids** | Dynamic party instances, multi-phase raid bosses, party entrance readiness check, weekly lockouts, and dice-roll loot distribution. |
 | 👑 **Administration** | Live dashboard (CPU, event loop lag, instances), staff commands (`/kick`, `/mute`, `/ban`), GM tools, audit logs, scheduled backups, and schema-checked restores. |
 | 🎨 **100% Generated Art** | Tilesets, characters, facesets, monsters, bosses, icons, and window skins compiled as vector pixel art from `assets/generators/` (`npm run assets:build`) with zero external asset packs. |
-| 📱 **Mobile & Bilingual** | Virtual joystick, `A`/`B` touch controls, skill arc layout, live `(hover: none)` desktop/touch switching, fullscreen PWA, interface and starter content available in **English / French**. |
+| 📱 **Mobile & Bilingual** | Virtual joystick, `A`/`B` touch controls, skill arc layout, live `(hover: none)` desktop/touch switching, fullscreen PWA, software and content available in **English / French**. |
 
 ### 🏗️ Architecture Overview
 
