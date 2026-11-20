@@ -230,7 +230,7 @@ export function seed(db: Db, language: Locale = 'fr'): void {
         maps.save({ id, parentId, name: L(name), order, expanded: true }, localizeMap(map, lang));
       demo(DEMO_MAPS.village, 0, 'Village', 1, buildDemoVillage());
       demo(DEMO_MAPS.forest, 0, 'Forêt', 2, buildDemoForest());
-      demo(DEMO_MAPS.house, DEMO_MAPS.village, 'Maison de Tomas', 1, buildDemoHouse());
+      demo(DEMO_MAPS.house, DEMO_MAPS.village, 'Maison de Thomas', 1, buildDemoHouse());
       demo(DEMO_MAPS.dungeon, DEMO_MAPS.forest, 'Grotte (donjon)', 1, buildDemoDungeon());
     });
     // A raid needs its map and its boss: on a database created before raids

@@ -594,7 +594,7 @@ export function buildDemoVillage(): MapData {
 
   map.events = [
     null,
-    npc('Villageois', 17, 16, 'People1', 0, ['People1', 0], 'Tomas', [
+    npc('Villageois', 17, 16, 'People1', 0, ['People1', 0], 'Thomas', [
       ['Bienvenue au village de Brindiwanko !', 'La place du puits est le cœur du village.'],
       ['Si tu cherches de l’aventure, prends la route du nord :', 'la forêt n’attend que toi.'],
     ]),
@@ -756,7 +756,7 @@ export function buildDemoHouse(): MapData {
   const W = 12;
   const H = 10;
   const map = createMap(W, H, 2);
-  map.displayName = 'Maison de Tomas';
+  map.displayName = 'Maison de Thomas';
   map.mmo = { type: 'town', pvp: false, instance: false };
   const p = new Painter(map);
   const floor = a2(0, 0);

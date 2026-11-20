@@ -124,7 +124,7 @@ export const EN_TEXT: ReadonlyMap<string, string> = new Map<string, string>([
   ["Loup gris", "Gray Wolf"],
   ["Lumière", "Light"],
   ["Magie", "Magic"],
-  ["Maison de Tomas", "Tomas's House"],
+  ["Maison de Thomas", "Thomas's House"],
   ["Marchand", "Merchant"],
   ["Masse", "Mace"],
   ["Masse bénie", "Blessed Mace"],
