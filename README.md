@@ -124,6 +124,27 @@ Brindiwanko/
 | :---: | :---: | :---: |
 | ![Ajout d'évènement rapide](docs/screenshots/12-quick-event-editor.png) | ![Éditeur d'évènement complet](docs/screenshots/13-full-event-editor.png) | ![Sélecteur de commande](docs/screenshots/14-event-command-picker.png) |
 
+<details>
+<summary>📱 Voir les captures d'écran en mode mobile (390×844)</summary>
+
+| Connexion | Inscription | Création de personnage | Choix du personnage |
+| :---: | :---: | :---: | :---: |
+| ![Connexion mobile](docs/screenshots/mobile/01-login-mobile.png) | ![Inscription mobile](docs/screenshots/mobile/02-register-mobile.png) | ![Création de personnage mobile](docs/screenshots/mobile/03-character-creation-mobile.png) | ![Choix du personnage mobile](docs/screenshots/mobile/04-character-selection-mobile.png) |
+
+| Monde & HUD | Statistiques | Dialogue PNJ |
+| :---: | :---: | :---: |
+| ![Monde et HUD mobile](docs/screenshots/mobile/05-ingame-world-hud-mobile.png) | ![Statistiques mobile](docs/screenshots/mobile/06-ingame-character-stats-mobile.png) | ![Dialogue PNJ mobile](docs/screenshots/mobile/07-ingame-npc-dialogue-mobile.png) |
+
+| Éditeur (Tuiles) | Éditeur (Évènements) | Base de données (Objets) | Base de données (Ennemis) |
+| :---: | :---: | :---: | :---: |
+| ![Éditeur tuiles mobile](docs/screenshots/mobile/08-map-editor-tiles-mobile.png) | ![Éditeur évènements mobile](docs/screenshots/mobile/09-map-editor-events-mobile.png) | ![Base de données objets mobile](docs/screenshots/mobile/10-database-items-mobile.png) | ![Base de données ennemis mobile](docs/screenshots/mobile/11-database-enemies-mobile.png) |
+
+| Évènement rapide | Éditeur d'évènement complet | Sélecteur de commande |
+| :---: | :---: | :---: |
+| ![Évènement rapide mobile](docs/screenshots/mobile/12-quick-event-editor-mobile.png) | ![Éditeur d'évènement complet mobile](docs/screenshots/mobile/13-full-event-editor-mobile.png) | ![Sélecteur de commande mobile](docs/screenshots/mobile/14-event-command-picker-mobile.png) |
+
+</details>
+
 ---
 
 <a id="fr-demarrage"></a>
@@ -734,6 +755,27 @@ Brindiwanko/
 | Quick Event Editor | Full Event Editor | Command Picker |
 | :---: | :---: | :---: |
 | ![Quick Event Editor](docs/screenshots/12-quick-event-editor.png) | ![Full Event Editor](docs/screenshots/13-full-event-editor.png) | ![Command Picker](docs/screenshots/14-event-command-picker.png) |
+
+<details>
+<summary>📱 View mobile screenshots (390×844)</summary>
+
+| Login | Register | Character Creation | Character Selection |
+| :---: | :---: | :---: | :---: |
+| ![Login mobile](docs/screenshots/mobile/01-login-mobile.png) | ![Register mobile](docs/screenshots/mobile/02-register-mobile.png) | ![Character Creation mobile](docs/screenshots/mobile/03-character-creation-mobile.png) | ![Character Selection mobile](docs/screenshots/mobile/04-character-selection-mobile.png) |
+
+| World & HUD | Character Stats | NPC Dialogue |
+| :---: | :---: | :---: |
+| ![World and HUD mobile](docs/screenshots/mobile/05-ingame-world-hud-mobile.png) | ![Character Stats mobile](docs/screenshots/mobile/06-ingame-character-stats-mobile.png) | ![NPC Dialogue mobile](docs/screenshots/mobile/07-ingame-npc-dialogue-mobile.png) |
+
+| Map Editor (Tiles) | Map Editor (Events) | Database (Items) | Database (Enemies) |
+| :---: | :---: | :---: | :---: |
+| ![Map Editor Tiles mobile](docs/screenshots/mobile/08-map-editor-tiles-mobile.png) | ![Map Editor Events mobile](docs/screenshots/mobile/09-map-editor-events-mobile.png) | ![Database Items mobile](docs/screenshots/mobile/10-database-items-mobile.png) | ![Database Enemies mobile](docs/screenshots/mobile/11-database-enemies-mobile.png) |
+
+| Quick Event Editor | Full Event Editor | Command Picker |
+| :---: | :---: | :---: |
+| ![Quick Event Editor mobile](docs/screenshots/mobile/12-quick-event-editor-mobile.png) | ![Full Event Editor mobile](docs/screenshots/mobile/13-full-event-editor-mobile.png) | ![Command Picker mobile](docs/screenshots/mobile/14-event-command-picker-mobile.png) |
+
+</details>
 
 ---
 
