@@ -37,6 +37,12 @@
 > [!TIP]
 > **Lot de stabilisation AppSec, Performance & Bêta UX :** résolution des deux priorités `P1` sur la restauration à chaud et la boucle `20 Hz`, accompagnée de `22` améliorations `P2` *(sécurité, concurrence, SQLite, client, réseau, documentation)* et de la mise à jour de `nodemailer`.
 
+### 📸 Documentation & Captures d'écran
+
+| Domaine | Évolution apportée | Fichiers concernés |
+| :--- | :--- | :--- |
+| **Captures d'écran PC & Mobile** | Ajout de 28 captures d'écran en anglais (`14` PC `1920×1080` + `14` Mobile `390×844`) couvrant l'authentification, les personnages, le jeu, l'éditeur de map, la base de données et les éditeurs d'évènements, intégrées dans les sections française et anglaise. | `README.md`, `docs/screenshots/pc/`, `docs/screenshots/mobile/` |
+
 ### 🔒 Sécurité & Durcissement
 
 | Domaine | Évolution apportée | Fichiers concernés |
@@ -176,6 +182,12 @@
 
 > [!TIP]
 > **AppSec, Performance & Beta UX stabilization:** resolves both `P1` operational issues (restore request ordering & async restore prep) alongside `22` `P2` improvements across security, concurrency, SQLite performance, client lifecycle, networking, and setup docs, plus the `nodemailer` dependency bump.
+
+### 📸 Documentation & Screenshots
+
+| Area | Change | Files |
+| :--- | :--- | :--- |
+| **Desktop & Mobile Screenshots** | Added 28 English screenshots (`14` Desktop `1920×1080` + `14` Mobile `390×844`) covering authentication, characters, in-game views, map editor, database, and event editors across both French and English sections. | `README.md`, `docs/screenshots/pc/`, `docs/screenshots/mobile/` |
 
 ### 🔒 Security & Hardening
 
