@@ -20,7 +20,7 @@
 
   <br />
 
-  [🚧 Non publié (18/11/2026)](#fr-unreleased) •
+  [🚧 Non publié (20/11/2026)](#fr-unreleased) •
   [🧪 1.0.0-beta.1 (11/11/2026)](#fr-beta-1) •
   [📖 Guide README](README.md)
 
@@ -32,7 +32,7 @@
 
 <a id="fr-unreleased"></a>
 
-## 🚧 Non publié — 18/11/2026
+## 🚧 Non publié — 20/11/2026
 
 > [!TIP]
 > **Lot de stabilisation AppSec, Performance & Bêta UX :** résolution des deux priorités `P1` sur la restauration à chaud et la boucle `20 Hz`, accompagnée de `22` améliorations `P2` *(sécurité, concurrence, SQLite, client, réseau, documentation)* et de la mise à jour de `nodemailer`.
@@ -47,6 +47,7 @@
 | **Sandbox & monde** | Bornage des IDs switches/variables à `1..9999` (`isOp`, `setSwitch`, `setVariable`) et validation `Number.isSafeInteger` sur les opérations scriptées. | `server/events/sandbox.ts`, `server/game/world.ts` |
 | **Verrous d'édition** | Libération immédiate via `editLocks.releaseAll(id)` sur changement ou réinitialisation de mot de passe ; verrou sur `PATCH /api/editor/maps/:id/info` restreint à `name` et `parentId` *(sans bloquer `expanded` ni `order`)*. | `server/auth/account-routes.ts`, `server/admin/admin-routes.ts`, `server/admin/editor-routes.ts` |
 | **Handshakes & i18n** | Rejet dans `isSameOrigin` des requêtes Socket.io ayant `Sec-Fetch-Site` cross-site même sans `Origin` ; garde `Object.hasOwn` dans `lookup()`. | `server/net/socket.ts`, `shared/i18n.ts` |
+| **Contre-expertise V2** | Garde anti-cycle `parentId` (`PATCH /maps/:id/info` & `importProject`), `readZip` en 2 passes, durcissement `isSafeSvg`/`svgSize`, sandbox isolée (`64 KiB` IPC), verrou `/import` avant `express.raw`, `isSameOrigin` (`.at(-1)` + `X-Forwarded-Proto`), cookie CSRF `__Host-` + HMAC, `originFromEnv` + CSP `connect-src 'self'`, `POST /lang/:locale` protégé par CSRF et `intFromEnv` strict. | `server/admin/editor-routes.ts`, `server/importers/zip.ts`, `server/resources/uploads.ts`, `server/events/sandbox.ts`, `server/http/csrf.ts`, `server/http/security.ts`, `server/config.ts`, `server/app.ts` |
 
 ### ⚡ Performance & Architecture
 
@@ -76,6 +77,7 @@
 | **Focus & réactivité** | Cliquer sur la carte retire le focus du champ de chat ou du HUD pour rendre aussitôt la main au clavier ; buffer d'entrée de `150 ms` sur `action` (`Espace`, `Entrée`, `Z`, tactile `A`) pressée juste avant la fin d'un pas. | `client/game.ts`, `client/engine/player-controller.ts` |
 | **Dialogues & mode tactile** | Masquage des barres du bas, du chat et des contrôles tactiles sous `body.dialogue-active` ; suivi dynamique de `(hover: none)` et `resize` sans rechargement de page. | `client/game.ts`, `client/styles/game.css`, `client/ui/mobile.ts`, `client/ui/windows.ts` |
 | **Ergonomie de l'éditeur** | Mémoire de sélection et de défilement par onglet dans la palette *(réinitialisée uniquement si les planches changent)* et ancrage des boutons `+ Ajouter` avec focus automatique sur la ligne créée. | `client/editor/palette.ts`, `client/editor/database-editor.ts`, `client/styles/editor.css` |
+| **Correctifs V2, Démo & Tests (`342`)** | `useItem` sous GCD/étourdissement, AoE toroïdale dédupliquée et plafond `MAX_BOSS_ADDS = 24`, `emote()`/`/r` respectant sourdine/invisibilité/ignorés, `CharacterSheet` (`openWindow`, `buy`, `reloadMap`) + `inn()` après fondu, `bootToken` client, correction `Tomas` ➔ `Thomas` (`Maison de Thomas`) et `12` tests de régression V2. | `server/game/combat.ts`, `server/game/world.ts`, `server/game/social.ts`, `server/game/character-sheet.ts`, `client/main.ts`, `server/db/demo-map.ts`, `server/db/seed.ts`, `tests/hardening-v2.test.ts` |
 
 </details>
 
@@ -158,7 +160,7 @@
 
   <br />
 
-  [🚧 Unreleased (2026-11-18)](#en-unreleased) •
+  [🚧 Unreleased (2026-11-20)](#en-unreleased) •
   [🧪 1.0.0-beta.1 (2026-11-11)](#en-beta-1) •
   [📖 README](README.md#en-top)
 
@@ -170,7 +172,7 @@
 
 <a id="en-unreleased"></a>
 
-## 🚧 Unreleased — 2026-11-18
+## 🚧 Unreleased — 2026-11-20
 
 > [!TIP]
 > **AppSec, Performance & Beta UX stabilization:** resolves both `P1` operational issues (restore request ordering & async restore prep) alongside `22` `P2` improvements across security, concurrency, SQLite performance, client lifecycle, networking, and setup docs, plus the `nodemailer` dependency bump.
@@ -185,6 +187,7 @@
 | **Sandbox & world bounds** | Clamp switch/variable IDs to integer `1..9999` (`isOp`, `setSwitch`, `setVariable`) and require `Number.isSafeInteger` for sandbox script variables. | `server/events/sandbox.ts`, `server/game/world.ts` |
 | **Edit locks & passwords** | Call `editLocks.releaseAll(id)` immediately on password changes/resets; enforce edit locks on `PATCH /api/editor/maps/:id/info` for `name` and `parentId` only *(never blocking `expanded` or `order`)*. | `server/auth/account-routes.ts`, `server/admin/admin-routes.ts`, `server/admin/editor-routes.ts` |
 | **Handshakes & i18n lookup** | Reject cross-site `Sec-Fetch-Site` Socket.io handshakes even without `Origin`; guard `lookup()` dictionary traversal with `Object.hasOwn`. | `server/net/socket.ts`, `shared/i18n.ts` |
+| **V2 Counter-Audit Hardening** | `parentId` cycle guard (`PATCH /maps/:id/info` & `importProject`), 2-pass `readZip`, `isSafeSvg`/`svgSize` hardening, sandbox variable isolation (`64 KiB` IPC cap), `/import` lock before `express.raw`, `isSameOrigin` (`.at(-1)` + `X-Forwarded-Proto`), `__Host-` HMAC anonymous CSRF cookie, `originFromEnv` + `connect-src 'self'`, CSRF-protected `POST /lang/:locale`, and strict `intFromEnv`. | `server/admin/editor-routes.ts`, `server/importers/zip.ts`, `server/resources/uploads.ts`, `server/events/sandbox.ts`, `server/http/csrf.ts`, `server/http/security.ts`, `server/config.ts`, `server/app.ts` |
 
 ### ⚡ Performance & Architecture
 
@@ -214,6 +217,7 @@
 | **Canvas focus & input buffer** | Clicking the map canvas blurs active non-window inputs *(such as chat)* so keyboard movement resumes right away; a `150 ms` action buffer executes `Space`/`Enter`/`Z`/touch `A` presses made just before step arrival. | `client/game.ts`, `client/engine/player-controller.ts` |
 | **Dialogues & live touch toggle** | Active dialogues toggle `body.dialogue-active` to hide bottom bars, chat, and touch controls cleanly; automatic `touch-mode` follows `(hover: none)` and `resize` events without reloading. | `client/game.ts`, `client/styles/game.css`, `client/ui/mobile.ts`, `client/ui/windows.ts` |
 | **Editor ergonomics** | Tile palettes retain selection and scroll position per tab *(resetting only when tilesets change)*, and database `+ Add` buttons remain sticky with automatic scroll/focus on added rows. | `client/editor/palette.ts`, `client/editor/database-editor.ts`, `client/styles/editor.css` |
+| **V2 Fixes, Demo & Tests (`342`)** | `useItem` GCD & stun checks, deduplicated toroidal AoE & `MAX_BOSS_ADDS = 24`, `emote()`/`/r` mute/invisibility/ignore checks, `CharacterSheet` (`openWindow`, `buy`, `reloadMap`) + `inn()` post-fade charge, client `bootToken`, `Tomas` ➔ `Thomas` (`Thomas's House`) demo fix, and `12` V2 regression tests. | `server/game/combat.ts`, `server/game/world.ts`, `server/game/social.ts`, `server/game/character-sheet.ts`, `client/main.ts`, `server/db/demo-map.ts`, `server/db/seed.ts`, `tests/hardening-v2.test.ts` |
 
 </details>
 
