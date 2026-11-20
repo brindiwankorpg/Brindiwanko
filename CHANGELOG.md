@@ -41,7 +41,7 @@
 
 | Domaine | Évolution apportée | Fichiers concernés |
 | :--- | :--- | :--- |
-| **Captures d'écran PC & Mobile** | Ajout de 28 captures d'écran en anglais (`14` PC `1920×1080` + `14` Mobile `390×844`) couvrant l'authentification, les personnages, le jeu, l'éditeur de map, la base de données et les éditeurs d'évènements, intégrées dans les sections française et anglaise. | `README.md`, `docs/screenshots/pc/`, `docs/screenshots/mobile/` |
+| **Captures d'écran PC & Mobile** | Ajout de 28 captures d'écran en anglais (`14` PC `1920×1080` + `14` Mobile Pixel 8 `412×915 @ 2.625x` / `1082×2402`) avec joystick tactile visible, dialogue PNJ complet et vues de l'éditeur de map (`08`–`09`), couvrant l'authentification, les personnages, le jeu, la base de données et les éditeurs d'évènements dans les sections française et anglaise. | `README.md`, `docs/screenshots/pc/`, `docs/screenshots/mobile/` |
 
 ### 🔒 Sécurité & Durcissement
 
@@ -93,6 +93,7 @@
 | :--- | :--- | :--- |
 | **Dépendances** | Mise à jour de `nodemailer` (`10.5.0` → `10.6.0`) et resynchronisation du lockfile pour `npm ci`. | `package.json`, `package-lock.json` |
 | **Guides d'installation** | Refonte bilingue du démarrage local PC/Mac/Linux *(téléchargement Node.js 24/26, archive `.zip` directe sans prérequis Git + option `git clone`)* et du guide VPS Linux débutant *(`Debian/Ubuntu`, `4 Go RAM`, `>= 2 vCore`, `nvm` + note avancée `apt`, DNS `A`, `pm2` sans `sudo` avec `nvm` vs `sudo` sous `apt`, Nginx, Certbot HTTPS et dépannage `WebSocket 400`)*. | `README.md`, `CHANGELOG.md` |
+| **Présentation bilingue** | Formulation clarifiée de la ligne **Mobile & Bilingue** dans les tableaux de fonctionnalités FR/EN *(adaptation automatique mobile/PC, logiciel et contenu disponibles en français et en anglais)*. | `README.md`, `CHANGELOG.md` |
 
 <div align="right">
 
@@ -187,7 +188,7 @@
 
 | Area | Change | Files |
 | :--- | :--- | :--- |
-| **Desktop & Mobile Screenshots** | Added 28 English screenshots (`14` Desktop `1920×1080` + `14` Mobile `390×844`) covering authentication, characters, in-game views, map editor, database, and event editors across both French and English sections. | `README.md`, `docs/screenshots/pc/`, `docs/screenshots/mobile/` |
+| **Desktop & Mobile Screenshots** | Added 28 English screenshots (`14` Desktop `1920×1080` + `14` Mobile Pixel 8 `412×915 @ 2.625x` / `1082×2402`) with touch joystick visible, full NPC dialogue, and fixed map editor views (`08`–`09`), covering authentication, characters, in-game views, database, and event editors across both French and English sections. | `README.md`, `docs/screenshots/pc/`, `docs/screenshots/mobile/` |
 
 ### 🔒 Security & Hardening
 
@@ -239,6 +240,7 @@
 | :--- | :--- | :--- |
 | **Dependencies** | Updated `nodemailer` (`10.5.0` → `10.6.0`) and resynchronized the lockfile for `npm ci`. | `package.json`, `package-lock.json` |
 | **Setup & VPS guides** | Refreshed bilingual local desktop instructions *(Node.js 24/26 download links, direct `.zip` workflow without requiring Git + optional `git clone`)* and beginner step-by-step Linux VPS deployment *(`Debian/Ubuntu`, `4 GB RAM`, `>= 2 vCores`, streamlined `nvm` setup plus advanced `apt` notes, DNS `A` setup, `pm2` `sudo` vs non-`sudo` rules, Nginx, Certbot SSL, and troubleshooting covering `WebSocket 400`)*. | `README.md`, `CHANGELOG.md` |
+| **Bilingual overview** | Refined the **Mobile & Bilingual** row wording across both FR/EN capability tables *(automatic mobile/desktop adaptation, software and content available in English and French)*. | `README.md`, `CHANGELOG.md` |
 
 <div align="right">
 
