@@ -98,52 +98,30 @@ Brindiwanko/
 > 💡 **100 % Responsive :** L'ensemble de l'interface (jeu, éditeur de map, base de données et éditeur d'évènements) s'adapte automatiquement aux écrans PC, tablettes et mobiles.
 
 ### Authentification & Personnages
-| Connexion | Inscription |
+| PC | Mobile |
 | :---: | :---: |
-| ![Connexion](docs/screenshots/01-login.png) | ![Inscription](docs/screenshots/02-register.png) |
-
-| Création de personnage | Choix du personnage |
-| :---: | :---: |
-| ![Création de personnage](docs/screenshots/03-character-creation.png) | ![Choix du personnage](docs/screenshots/04-character-selection.png) |
+| **Connexion**<br>![Connexion](docs/screenshots/01-login.png) | **Connexion**<br>![Connexion mobile](docs/screenshots/mobile/01-login-mobile.png) |
+| **Inscription**<br>![Inscription](docs/screenshots/02-register.png) | **Inscription**<br>![Inscription mobile](docs/screenshots/mobile/02-register-mobile.png) |
+| **Création de personnage**<br>![Création de personnage](docs/screenshots/03-character-creation.png) | **Création de personnage**<br>![Création de personnage mobile](docs/screenshots/mobile/03-character-creation-mobile.png) |
+| **Choix du personnage**<br>![Choix du personnage](docs/screenshots/04-character-selection.png) | **Choix du personnage**<br>![Choix du personnage mobile](docs/screenshots/mobile/04-character-selection-mobile.png) |
 
 ### En jeu
-| Monde & HUD | Statistiques du personnage | Dialogue PNJ |
-| :---: | :---: | :---: |
-| ![Monde et HUD](docs/screenshots/05-ingame-world-hud.png) | ![Statistiques du personnage](docs/screenshots/06-ingame-character-stats.png) | ![Dialogue PNJ](docs/screenshots/07-ingame-npc-dialogue.png) |
+| PC | Mobile |
+| :---: | :---: |
+| **Monde & HUD**<br>![Monde et HUD](docs/screenshots/05-ingame-world-hud.png) | **Monde & HUD**<br>![Monde et HUD mobile](docs/screenshots/mobile/05-ingame-world-hud-mobile.png) |
+| **Statistiques du personnage**<br>![Statistiques du personnage](docs/screenshots/06-ingame-character-stats.png) | **Statistiques du personnage**<br>![Statistiques mobile](docs/screenshots/mobile/06-ingame-character-stats-mobile.png) |
+| **Dialogue PNJ**<br>![Dialogue PNJ](docs/screenshots/07-ingame-npc-dialogue.png) | **Dialogue PNJ**<br>![Dialogue PNJ mobile](docs/screenshots/mobile/07-ingame-npc-dialogue-mobile.png) |
 
 ### Éditeur de monde, Base de données & Évènements
-| Éditeur de map (Tuiles) | Éditeur de map (Évènements) |
+| PC | Mobile |
 | :---: | :---: |
-| ![Éditeur de map - Tuiles](docs/screenshots/08-map-editor-tiles.png) | ![Éditeur de map - Évènements](docs/screenshots/09-map-editor-events.png) |
-
-| Base de données (Objets) | Base de données (Ennemis) |
-| :---: | :---: |
-| ![Base de données - Objets](docs/screenshots/10-database-items.png) | ![Base de données - Ennemis](docs/screenshots/11-database-enemies.png) |
-
-| Ajout d'évènement rapide | Éditeur d'évènement complet | Sélecteur de commande |
-| :---: | :---: | :---: |
-| ![Ajout d'évènement rapide](docs/screenshots/12-quick-event-editor.png) | ![Éditeur d'évènement complet](docs/screenshots/13-full-event-editor.png) | ![Sélecteur de commande](docs/screenshots/14-event-command-picker.png) |
-
-<details>
-<summary>📱 Voir les captures d'écran en mode mobile (390×844)</summary>
-
-| Connexion | Inscription | Création de personnage | Choix du personnage |
-| :---: | :---: | :---: | :---: |
-| ![Connexion mobile](docs/screenshots/mobile/01-login-mobile.png) | ![Inscription mobile](docs/screenshots/mobile/02-register-mobile.png) | ![Création de personnage mobile](docs/screenshots/mobile/03-character-creation-mobile.png) | ![Choix du personnage mobile](docs/screenshots/mobile/04-character-selection-mobile.png) |
-
-| Monde & HUD | Statistiques | Dialogue PNJ |
-| :---: | :---: | :---: |
-| ![Monde et HUD mobile](docs/screenshots/mobile/05-ingame-world-hud-mobile.png) | ![Statistiques mobile](docs/screenshots/mobile/06-ingame-character-stats-mobile.png) | ![Dialogue PNJ mobile](docs/screenshots/mobile/07-ingame-npc-dialogue-mobile.png) |
-
-| Éditeur (Tuiles) | Éditeur (Évènements) | Base de données (Objets) | Base de données (Ennemis) |
-| :---: | :---: | :---: | :---: |
-| ![Éditeur tuiles mobile](docs/screenshots/mobile/08-map-editor-tiles-mobile.png) | ![Éditeur évènements mobile](docs/screenshots/mobile/09-map-editor-events-mobile.png) | ![Base de données objets mobile](docs/screenshots/mobile/10-database-items-mobile.png) | ![Base de données ennemis mobile](docs/screenshots/mobile/11-database-enemies-mobile.png) |
-
-| Évènement rapide | Éditeur d'évènement complet | Sélecteur de commande |
-| :---: | :---: | :---: |
-| ![Évènement rapide mobile](docs/screenshots/mobile/12-quick-event-editor-mobile.png) | ![Éditeur d'évènement complet mobile](docs/screenshots/mobile/13-full-event-editor-mobile.png) | ![Sélecteur de commande mobile](docs/screenshots/mobile/14-event-command-picker-mobile.png) |
-
-</details>
+| **Éditeur de map (Tuiles)**<br>![Éditeur de map - Tuiles](docs/screenshots/08-map-editor-tiles.png) | **Éditeur de map (Tuiles)**<br>![Éditeur tuiles mobile](docs/screenshots/mobile/08-map-editor-tiles-mobile.png) |
+| **Éditeur de map (Évènements)**<br>![Éditeur de map - Évènements](docs/screenshots/09-map-editor-events.png) | **Éditeur de map (Évènements)**<br>![Éditeur évènements mobile](docs/screenshots/mobile/09-map-editor-events-mobile.png) |
+| **Base de données (Objets)**<br>![Base de données - Objets](docs/screenshots/10-database-items.png) | **Base de données (Objets)**<br>![Base de données objets mobile](docs/screenshots/mobile/10-database-items-mobile.png) |
+| **Base de données (Ennemis)**<br>![Base de données - Ennemis](docs/screenshots/11-database-enemies.png) | **Base de données (Ennemis)**<br>![Base de données ennemis mobile](docs/screenshots/mobile/11-database-enemies-mobile.png) |
+| **Ajout d'évènement rapide**<br>![Ajout d'évènement rapide](docs/screenshots/12-quick-event-editor.png) | **Ajout d'évènement rapide**<br>![Évènement rapide mobile](docs/screenshots/mobile/12-quick-event-editor-mobile.png) |
+| **Éditeur d'évènement complet**<br>![Éditeur d'évènement complet](docs/screenshots/13-full-event-editor.png) | **Éditeur d'évènement complet**<br>![Éditeur d'évènement complet mobile](docs/screenshots/mobile/13-full-event-editor-mobile.png) |
+| **Sélecteur de commande**<br>![Sélecteur de commande](docs/screenshots/14-event-command-picker.png) | **Sélecteur de commande**<br>![Sélecteur de commande mobile](docs/screenshots/mobile/14-event-command-picker-mobile.png) |
 
 ---
 
@@ -730,52 +708,30 @@ Brindiwanko/
 > 💡 **Fully Responsive:** The entire interface (game, map editor, database, and event editor) adapts seamlessly to desktop, tablet, and mobile screens.
 
 ### Authentication & Characters
-| Login | Register |
+| Desktop | Mobile |
 | :---: | :---: |
-| ![Login](docs/screenshots/01-login.png) | ![Register](docs/screenshots/02-register.png) |
-
-| Character Creation | Character Selection |
-| :---: | :---: |
-| ![Character Creation](docs/screenshots/03-character-creation.png) | ![Character Selection](docs/screenshots/04-character-selection.png) |
+| **Login**<br>![Login](docs/screenshots/01-login.png) | **Login**<br>![Login mobile](docs/screenshots/mobile/01-login-mobile.png) |
+| **Register**<br>![Register](docs/screenshots/02-register.png) | **Register**<br>![Register mobile](docs/screenshots/mobile/02-register-mobile.png) |
+| **Character Creation**<br>![Character Creation](docs/screenshots/03-character-creation.png) | **Character Creation**<br>![Character Creation mobile](docs/screenshots/mobile/03-character-creation-mobile.png) |
+| **Character Selection**<br>![Character Selection](docs/screenshots/04-character-selection.png) | **Character Selection**<br>![Character Selection mobile](docs/screenshots/mobile/04-character-selection-mobile.png) |
 
 ### In-Game
-| World & HUD | Character Stats | NPC Dialogue |
-| :---: | :---: | :---: |
-| ![World and HUD](docs/screenshots/05-ingame-world-hud.png) | ![Character Stats](docs/screenshots/06-ingame-character-stats.png) | ![NPC Dialogue](docs/screenshots/07-ingame-npc-dialogue.png) |
+| Desktop | Mobile |
+| :---: | :---: |
+| **World & HUD**<br>![World and HUD](docs/screenshots/05-ingame-world-hud.png) | **World & HUD**<br>![World and HUD mobile](docs/screenshots/mobile/05-ingame-world-hud-mobile.png) |
+| **Character Stats**<br>![Character Stats](docs/screenshots/06-ingame-character-stats.png) | **Character Stats**<br>![Character Stats mobile](docs/screenshots/mobile/06-ingame-character-stats-mobile.png) |
+| **NPC Dialogue**<br>![NPC Dialogue](docs/screenshots/07-ingame-npc-dialogue.png) | **NPC Dialogue**<br>![NPC Dialogue mobile](docs/screenshots/mobile/07-ingame-npc-dialogue-mobile.png) |
 
 ### World Editor, Database & Events
-| Map Editor (Tiles) | Map Editor (Events) |
+| Desktop | Mobile |
 | :---: | :---: |
-| ![Map Editor - Tiles](docs/screenshots/08-map-editor-tiles.png) | ![Map Editor - Events](docs/screenshots/09-map-editor-events.png) |
-
-| Database (Items) | Database (Enemies) |
-| :---: | :---: |
-| ![Database - Items](docs/screenshots/10-database-items.png) | ![Database - Enemies](docs/screenshots/11-database-enemies.png) |
-
-| Quick Event Editor | Full Event Editor | Command Picker |
-| :---: | :---: | :---: |
-| ![Quick Event Editor](docs/screenshots/12-quick-event-editor.png) | ![Full Event Editor](docs/screenshots/13-full-event-editor.png) | ![Command Picker](docs/screenshots/14-event-command-picker.png) |
-
-<details>
-<summary>📱 View mobile screenshots (390×844)</summary>
-
-| Login | Register | Character Creation | Character Selection |
-| :---: | :---: | :---: | :---: |
-| ![Login mobile](docs/screenshots/mobile/01-login-mobile.png) | ![Register mobile](docs/screenshots/mobile/02-register-mobile.png) | ![Character Creation mobile](docs/screenshots/mobile/03-character-creation-mobile.png) | ![Character Selection mobile](docs/screenshots/mobile/04-character-selection-mobile.png) |
-
-| World & HUD | Character Stats | NPC Dialogue |
-| :---: | :---: | :---: |
-| ![World and HUD mobile](docs/screenshots/mobile/05-ingame-world-hud-mobile.png) | ![Character Stats mobile](docs/screenshots/mobile/06-ingame-character-stats-mobile.png) | ![NPC Dialogue mobile](docs/screenshots/mobile/07-ingame-npc-dialogue-mobile.png) |
-
-| Map Editor (Tiles) | Map Editor (Events) | Database (Items) | Database (Enemies) |
-| :---: | :---: | :---: | :---: |
-| ![Map Editor Tiles mobile](docs/screenshots/mobile/08-map-editor-tiles-mobile.png) | ![Map Editor Events mobile](docs/screenshots/mobile/09-map-editor-events-mobile.png) | ![Database Items mobile](docs/screenshots/mobile/10-database-items-mobile.png) | ![Database Enemies mobile](docs/screenshots/mobile/11-database-enemies-mobile.png) |
-
-| Quick Event Editor | Full Event Editor | Command Picker |
-| :---: | :---: | :---: |
-| ![Quick Event Editor mobile](docs/screenshots/mobile/12-quick-event-editor-mobile.png) | ![Full Event Editor mobile](docs/screenshots/mobile/13-full-event-editor-mobile.png) | ![Command Picker mobile](docs/screenshots/mobile/14-event-command-picker-mobile.png) |
-
-</details>
+| **Map Editor (Tiles)**<br>![Map Editor - Tiles](docs/screenshots/08-map-editor-tiles.png) | **Map Editor (Tiles)**<br>![Map Editor Tiles mobile](docs/screenshots/mobile/08-map-editor-tiles-mobile.png) |
+| **Map Editor (Events)**<br>![Map Editor - Events](docs/screenshots/09-map-editor-events.png) | **Map Editor (Events)**<br>![Map Editor Events mobile](docs/screenshots/mobile/09-map-editor-events-mobile.png) |
+| **Database (Items)**<br>![Database - Items](docs/screenshots/10-database-items.png) | **Database (Items)**<br>![Database Items mobile](docs/screenshots/mobile/10-database-items-mobile.png) |
+| **Database (Enemies)**<br>![Database - Enemies](docs/screenshots/11-database-enemies.png) | **Database (Enemies)**<br>![Database Enemies mobile](docs/screenshots/mobile/11-database-enemies-mobile.png) |
+| **Quick Event Editor**<br>![Quick Event Editor](docs/screenshots/12-quick-event-editor.png) | **Quick Event Editor**<br>![Quick Event Editor mobile](docs/screenshots/mobile/12-quick-event-editor-mobile.png) |
+| **Full Event Editor**<br>![Full Event Editor](docs/screenshots/13-full-event-editor.png) | **Full Event Editor**<br>![Full Event Editor mobile](docs/screenshots/mobile/13-full-event-editor-mobile.png) |
+| **Command Picker**<br>![Command Picker](docs/screenshots/14-event-command-picker.png) | **Command Picker**<br>![Command Picker mobile](docs/screenshots/mobile/14-event-command-picker-mobile.png) |
 
 ---
 
