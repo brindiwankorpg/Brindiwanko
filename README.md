@@ -91,6 +91,41 @@ Brindiwanko/
 
 ---
 
+<a id="fr-screenshots"></a>
+
+## 📸 Captures d'écran
+
+> 💡 **100 % Responsive :** L'ensemble de l'interface (jeu, éditeur de map, base de données et éditeur d'évènements) s'adapte automatiquement aux écrans PC, tablettes et mobiles.
+
+### Authentification & Personnages
+| Connexion | Inscription |
+| :---: | :---: |
+| ![Connexion](docs/screenshots/01-login.png) | ![Inscription](docs/screenshots/02-register.png) |
+
+| Création de personnage | Choix du personnage |
+| :---: | :---: |
+| ![Création de personnage](docs/screenshots/03-character-creation.png) | ![Choix du personnage](docs/screenshots/04-character-selection.png) |
+
+### En jeu
+| Monde & HUD | Statistiques du personnage | Dialogue PNJ |
+| :---: | :---: | :---: |
+| ![Monde et HUD](docs/screenshots/05-ingame-world-hud.png) | ![Statistiques du personnage](docs/screenshots/06-ingame-character-stats.png) | ![Dialogue PNJ](docs/screenshots/07-ingame-npc-dialogue.png) |
+
+### Éditeur de monde, Base de données & Évènements
+| Éditeur de map (Tuiles) | Éditeur de map (Évènements) |
+| :---: | :---: |
+| ![Éditeur de map - Tuiles](docs/screenshots/08-map-editor-tiles.png) | ![Éditeur de map - Évènements](docs/screenshots/09-map-editor-events.png) |
+
+| Base de données (Objets) | Base de données (Ennemis) |
+| :---: | :---: |
+| ![Base de données - Objets](docs/screenshots/10-database-items.png) | ![Base de données - Ennemis](docs/screenshots/11-database-enemies.png) |
+
+| Ajout d'évènement rapide | Éditeur d'évènement complet | Sélecteur de commande |
+| :---: | :---: | :---: |
+| ![Ajout d'évènement rapide](docs/screenshots/12-quick-event-editor.png) | ![Éditeur d'évènement complet](docs/screenshots/13-full-event-editor.png) | ![Sélecteur de commande](docs/screenshots/14-event-command-picker.png) |
+
+---
+
 <a id="fr-demarrage"></a>
 
 ## 🚀 Installation & Lancement en local (PC / Mac / Linux)
@@ -664,6 +699,41 @@ Brindiwanko/
 ```
 
 </details>
+
+---
+
+<a id="en-screenshots"></a>
+
+## 📸 Screenshots
+
+> 💡 **Fully Responsive:** The entire interface (game, map editor, database, and event editor) adapts seamlessly to desktop, tablet, and mobile screens.
+
+### Authentication & Characters
+| Login | Register |
+| :---: | :---: |
+| ![Login](docs/screenshots/01-login.png) | ![Register](docs/screenshots/02-register.png) |
+
+| Character Creation | Character Selection |
+| :---: | :---: |
+| ![Character Creation](docs/screenshots/03-character-creation.png) | ![Character Selection](docs/screenshots/04-character-selection.png) |
+
+### In-Game
+| World & HUD | Character Stats | NPC Dialogue |
+| :---: | :---: | :---: |
+| ![World and HUD](docs/screenshots/05-ingame-world-hud.png) | ![Character Stats](docs/screenshots/06-ingame-character-stats.png) | ![NPC Dialogue](docs/screenshots/07-ingame-npc-dialogue.png) |
+
+### World Editor, Database & Events
+| Map Editor (Tiles) | Map Editor (Events) |
+| :---: | :---: |
+| ![Map Editor - Tiles](docs/screenshots/08-map-editor-tiles.png) | ![Map Editor - Events](docs/screenshots/09-map-editor-events.png) |
+
+| Database (Items) | Database (Enemies) |
+| :---: | :---: |
+| ![Database - Items](docs/screenshots/10-database-items.png) | ![Database - Enemies](docs/screenshots/11-database-enemies.png) |
+
+| Quick Event Editor | Full Event Editor | Command Picker |
+| :---: | :---: | :---: |
+| ![Quick Event Editor](docs/screenshots/12-quick-event-editor.png) | ![Full Event Editor](docs/screenshots/13-full-event-editor.png) | ![Command Picker](docs/screenshots/14-event-command-picker.png) |
 
 ---
 
