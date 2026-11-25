@@ -11,7 +11,7 @@
   [![Version](https://img.shields.io/badge/version-1.0.0--beta.1-2563eb?style=for-the-badge)](package.json)
   [![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/fr/1.1.0/)
   [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/lang/fr/)
-  [![Tests](https://img.shields.io/badge/tests-342%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+  [![Tests](https://img.shields.io/badge/tests-354%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
   [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
 
   <br />
@@ -20,7 +20,7 @@
 
   <br />
 
-  [🚧 Non publié (20/11/2026)](#fr-unreleased) •
+  [🚧 Non publié (25/11/2026)](#fr-unreleased) •
   [🧪 1.0.0-beta.1 (11/11/2026)](#fr-beta-1) •
   [📖 Guide README](README.md)
 
@@ -32,10 +32,27 @@
 
 <a id="fr-unreleased"></a>
 
-## 🚧 Non publié — 20/11/2026
+## 🚧 Non publié — 25/11/2026
 
 > [!TIP]
 > **Lot de stabilisation AppSec, Performance & Bêta UX :** résolution des deux priorités `P1` sur la restauration à chaud et la boucle `20 Hz`, accompagnée de `22` améliorations `P2` *(sécurité, concurrence, SQLite, client, réseau, documentation)* et de la mise à jour de `nodemailer`.
+
+> [!IMPORTANT]
+> **Contre-expertise de l'audit 360° (25/11/2026) :** correction de l'unique `P1` restant *(arrêt du serveur sur une écriture SQLite refusée à la connexion d'un joueur)* et des `P2` validés ; suite portée à `354` tests. **Changements incompatibles :** protocole Socket.io `v4` *(clients rechargés automatiquement)*, schéma de `001_init.sql` modifié *(une base existante est à recréer)* et réinitialisation d'un mot de passe depuis le panneau admin confirmée par le mot de passe de l'appelant.
+
+### 🛠️ Contre-expertise de l'audit 360°
+
+| Domaine | Évolution apportée | Fichiers concernés |
+| :--- | :--- | :--- |
+| **Connexion Socket.io (`P1`)** | Entrée dans le monde isolée (`enterWorld` / `abortEntry`) : une écriture SQLite refusée ne coupe que le socket concerné au lieu d'arrêter le serveur ; erreur de `io.use` renvoyée au client (`error.http.server`) ; à la déconnexion, le joueur quitte le monde avant l'écriture du journal ; plafond de connexions par compte et par IP (`SOCKET_CONNECTIONS_PER_MIN`). | `server/net/socket.ts`, `server/config.ts` |
+| **Sauvegardes du monde** | `leave()` nettoie la mémoire même si la sauvegarde échoue, `kickAccount()` déconnecte dans un `finally`, `savedAt` n'avance qu'après une écriture réussie, fermeture idempotente du monde et du contexte. | `server/game/world.ts`, `server/context.ts` |
+| **Administration** | Rôle et mot de passe d'un admin modifiables par le seul propriétaire ; réinitialisation confirmée par le mot de passe de l'appelant ; journal `progress` limité aux champs appliqués ; identifiants de `DELETE /db` bornés à `1..9999` ; `baseVersion` obligatoire à l'enregistrement d'une carte ; réponses `404` en JSON sous `/api/`. | `server/admin/admin-routes.ts`, `server/admin/database-routes.ts`, `server/admin/editor-routes.ts`, `server/app.ts`, `client/pages/admin.ts` |
+| **Comptes & e-mails** | Avis à l'ancienne adresse et fermeture des autres sessions au changement d'e-mail ; `5` e-mails de réinitialisation par jour et par compte ; confirmation d'adresse par lien *(indicative, avec `SMTP_URL`)* affichée sur le compte et dans le panneau admin ; file bornée devant bcrypt (`503` quand elle est pleine) ; avertissement si `PUBLIC_URL` est défini sans `NODE_ENV=production`. | `server/auth/service.ts`, `server/auth/hash-gate.ts`, `server/auth/account-routes.ts`, `server/db/accounts.ts`, `views/account.ejs`, `server/index.ts` |
+| **Sécurité web & bac à sable** | CSP sans `'unsafe-inline'` *(nuanciers via `data-swatch`)* ; scripts d'évènements refusés sur un Node.js sans `--allow-net`, sauf `SANDBOX_WITHOUT_NETWORK_ISOLATION=1` ; `1000` évaluations en attente au plus ; restauration écrite sur disque au fil de l'eau et verrou commun entre import et restauration. | `server/http/security.ts`, `views/character-new.ejs`, `server/events/sandbox.ts`, `server/admin/heavy-jobs.ts`, `server/admin/admin-routes.ts` |
+| **Gameplay & éditeur** | Protection d'arrivée étendue au PvP ; plus de rafale de pas après une téléportation ; `turn()` bloqué par `cannot_move` ; repli de `evacuateMap` sur le départ de la classe ; délai `instanceLockMinutes` contre la remise à zéro des donjons ; plafond `guildMaxMembers` ; réponse d'échange liée au demandeur ; rafraîchissements globaux regroupés par tick ; alerte avant d'enregistrer une carte dont des instances sont occupées. | `server/game/combat.ts`, `server/game/world.ts`, `server/game/instances.ts`, `server/game/guild.ts`, `server/game/trade.ts`, `client/editor/editor.ts`, `shared/settings.ts` |
+| **Textes & noms** | Message du jour et noms de rangs de guilde nettoyés comme le chat ; alphabets arménien et cherokee ajoutés aux homoglyphes ; remplacements `\P` / `\G` insensibles aux motifs `$&`. | `server/game/guild.ts`, `server/game/social.ts`, `shared/names.ts`, `server/events/interpreter.ts` |
+| **Performance** | Présence en guilde et des amis sans N+1 (`friendPresence`) ; index des membres en ligne et des noms ; caches des tags de guilde, des stats de monstres, de l'équipement et des commandes de quête par page ; journal de quêtes reconstruit sur empreinte ; réglages gelés lus sans copie (`peek`) ; itérations sans copie (`zoneMembers`, `gameData.values`) ; seuls les évènements mobiles parcourus ; upload asynchrone. | `server/game/*.ts`, `server/db/*.ts`, `server/resources/*.ts` |
+| **Typage & tests (`354`)** | `noUncheckedIndexedAccess` activé partout ; `12` tests de régression ; tests mis à jour pour les nouvelles règles ; correction `Tomas` ➔ `Thomas` restante dans les tests et `demo/data`. | `tsconfig.json`, `tests/avalanche-fixes.test.ts`, `tests/*.test.ts`, `demo/data/*.json` |
 
 ### 📸 Documentation & Captures d'écran
 
@@ -158,7 +175,7 @@
   [![Version](https://img.shields.io/badge/version-1.0.0--beta.1-2563eb?style=for-the-badge)](package.json)
   [![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/en/1.1.0/)
   [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/)
-  [![Tests](https://img.shields.io/badge/tests-342%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+  [![Tests](https://img.shields.io/badge/tests-354%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
   [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
 
   <br />
@@ -167,7 +184,7 @@
 
   <br />
 
-  [🚧 Unreleased (2026-11-20)](#en-unreleased) •
+  [🚧 Unreleased (2026-11-25)](#en-unreleased) •
   [🧪 1.0.0-beta.1 (2026-11-11)](#en-beta-1) •
   [📖 README](README.md#en-top)
 
@@ -179,10 +196,27 @@
 
 <a id="en-unreleased"></a>
 
-## 🚧 Unreleased — 2026-11-20
+## 🚧 Unreleased — 2026-11-25
 
 > [!TIP]
 > **AppSec, Performance & Beta UX stabilization:** resolves both `P1` operational issues (restore request ordering & async restore prep) alongside `22` `P2` improvements across security, concurrency, SQLite performance, client lifecycle, networking, and setup docs, plus the `nodemailer` dependency bump.
+
+> [!IMPORTANT]
+> **Second opinion on the 360° audit (2026-11-25):** fixes the only remaining `P1` *(server stopping on a refused SQLite write while a player connects)* and the confirmed `P2` items; the suite now has `354` tests. **Breaking changes:** Socket.io protocol `v4` *(clients reload automatically)*, `001_init.sql` schema changed *(an existing database must be recreated)*, and admin password resets now require the caller's password.
+
+### 🛠️ Second Opinion on the 360° Audit
+
+| Area | Change | Files |
+| :--- | :--- | :--- |
+| **Socket.io connection (`P1`)** | World entry isolated (`enterWorld` / `abortEntry`): a refused SQLite write closes only that socket instead of stopping the server; `io.use` errors reach the client (`error.http.server`); on disconnect the player leaves the world before the log is written; per-account and per-IP connection cap (`SOCKET_CONNECTIONS_PER_MIN`). | `server/net/socket.ts`, `server/config.ts` |
+| **World saves** | `leave()` cleans memory even when the save fails, `kickAccount()` disconnects in a `finally`, `savedAt` only moves after a successful write, idempotent world and context shutdown. | `server/game/world.ts`, `server/context.ts` |
+| **Administration** | Only the owner changes another admin's role or password; resets confirmed by the caller's password; `progress` log limited to applied fields; `DELETE /db` ids bounded to `1..9999`; `baseVersion` required to save a map; JSON `404` under `/api/`. | `server/admin/admin-routes.ts`, `server/admin/database-routes.ts`, `server/admin/editor-routes.ts`, `server/app.ts`, `client/pages/admin.ts` |
+| **Accounts & e-mails** | Old address notified and other sessions closed on e-mail change; `5` reset e-mails per account per day; address confirmation link *(informational, with `SMTP_URL`)* shown on the account page and in the admin panel; bounded queue in front of bcrypt (`503` when full); warning when `PUBLIC_URL` is set without `NODE_ENV=production`. | `server/auth/service.ts`, `server/auth/hash-gate.ts`, `server/auth/account-routes.ts`, `server/db/accounts.ts`, `views/account.ejs`, `server/index.ts` |
+| **Web security & sandbox** | CSP without `'unsafe-inline'` *(swatches through `data-swatch`)*; event scripts refused on a Node.js without `--allow-net` unless `SANDBOX_WITHOUT_NETWORK_ISOLATION=1`; at most `1000` pending evaluations; restores streamed to disk and a shared import/restore lock. | `server/http/security.ts`, `views/character-new.ejs`, `server/events/sandbox.ts`, `server/admin/heavy-jobs.ts`, `server/admin/admin-routes.ts` |
+| **Gameplay & editor** | Arrival protection extended to PvP; no step burst after teleports; `turn()` blocked by `cannot_move`; `evacuateMap` falls back to the class start; `instanceLockMinutes` delay against dungeon resets; `guildMaxMembers` cap; trade answers bound to the requester; global refreshes batched per tick; warning before saving a map with occupied instances. | `server/game/combat.ts`, `server/game/world.ts`, `server/game/instances.ts`, `server/game/guild.ts`, `server/game/trade.ts`, `client/editor/editor.ts`, `shared/settings.ts` |
+| **Texts & names** | Guild message of the day and rank names cleaned like the chat; Armenian and Cherokee added to look-alike alphabets; `\P` / `\G` replacements immune to `$&` patterns. | `server/game/guild.ts`, `server/game/social.ts`, `shared/names.ts`, `server/events/interpreter.ts` |
+| **Performance** | Guild and friend presence without N+1 (`friendPresence`); online member and name indexes; caches for guild tags, monster stats, equipment and per-page quest commands; quest journal rebuilt on fingerprint change; frozen settings read without copies (`peek`); copy-free iteration (`zoneMembers`, `gameData.values`); only moving events walked; async uploads. | `server/game/*.ts`, `server/db/*.ts`, `server/resources/*.ts` |
+| **Typing & tests (`354`)** | `noUncheckedIndexedAccess` enabled everywhere; `12` regression tests; tests updated for the new rules; remaining `Tomas` ➔ `Thomas` fix in tests and `demo/data`. | `tsconfig.json`, `tests/avalanche-fixes.test.ts`, `tests/*.test.ts`, `demo/data/*.json` |
 
 ### 📸 Documentation & Screenshots
 
