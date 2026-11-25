@@ -48,7 +48,8 @@ CREATE TABLE accounts (
   banned_until  TEXT,                                 -- NULL = not banned; '9999-12-31 ...' = permanent
   ban_reason    TEXT,
   muted_until   TEXT,                                 -- chat mute, like banned_until
-  mute_reason   TEXT
+  mute_reason   TEXT,
+  email_confirmed_at TEXT                             -- when the owner confirmed its address (NULL = not confirmed; nothing depends on it)
 );
 CREATE INDEX idx_accounts_role ON accounts(role);
 
@@ -72,6 +73,17 @@ CREATE TABLE password_resets (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX idx_password_resets_account ON password_resets(account_id);
+
+-- Links confirming the address of an account, sent at registration and at each change of address (when a
+-- mail server is configured). Only a hash of the token is stored, with the address it confirms: a later
+-- change of address makes the link useless.
+CREATE TABLE email_confirmations (
+  token_hash TEXT PRIMARY KEY,                -- SHA-256 of the token, hex
+  account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  email      TEXT NOT NULL,                   -- address the link confirms
+  expires_at INTEGER NOT NULL                 -- Unix time in milliseconds
+);
+CREATE INDEX idx_email_confirmations_account ON email_confirmations(account_id);
 
 -- --- Editor content and characters --------------------------------------------------------------------
 
