@@ -68,6 +68,7 @@ test('security headers, cookie flags and CSRF on API writes', async () => {
   const res = await client.request('/login');
   assert.match(res.headers.get('content-security-policy') ?? '', /script-src 'self'/);
   assert.match(res.headers.get('content-security-policy') ?? '', /frame-ancestors 'none'/);
+  assert.match(res.headers.get('content-security-policy') ?? '', /style-src 'self'(;|$)/, 'no inline style is allowed');
   assert.equal(res.headers.get('x-content-type-options'), 'nosniff');
   assert.equal(res.headers.get('x-frame-options'), 'DENY');
   assert.equal(res.headers.get('cross-origin-resource-policy'), 'same-origin');

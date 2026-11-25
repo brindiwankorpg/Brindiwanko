@@ -12,7 +12,7 @@
  * the quest progress, so a quest resumes exactly where it was.
  */
 import type { QuestData, QuestObjective } from '../../shared/database.js';
-import { MmoCmd, QuestStatus } from '../../shared/events.js';
+import { MmoCmd, QuestStatus, type EventPage } from '../../shared/events.js';
 import type { QuestJournalPayload, QuestObjectiveView, QuestView } from '../../shared/quests.js';
 import type { QuestProgress } from '../db/progression.js';
 import { MapRuntime, type EventInstance } from './map-runtime.js';
@@ -29,6 +29,7 @@ export class QuestService {
   /** Players whose objectives are being checked (re-entrance guard). */
   private readonly checking = new Set<number>();
   /** Last journal sent to each player (unchanged journals are not sent again). */
+  /** Summary of what the journal last sent to each player was built from (see {@link journalKey}). */
   private readonly sent = new Map<number, string>();
 
   constructor(private readonly world: World) {}
@@ -339,22 +340,20 @@ export class QuestService {
   marker(p: PlayerSession, e: EventInstance): number {
     const page = MapRuntime.page(e);
     if (!page) return Marker.None;
-    let marker: number = Marker.None;
-    for (const c of page.list) {
-      const id = Number(c.parameters[0]);
-      if (c.code === MmoCmd.CompleteQuest) {
-        const quest = this.quest(id);
-        const status = this.status(p, id);
-        if (status === QuestStatus.Ready || (status === QuestStatus.InProgress && quest?.steps.length === 0)) return Marker.TurnIn;
-      } else if (c.code === MmoCmd.StartQuest && marker === Marker.None) {
-        const quest = this.quest(id);
-        if (quest && this.lockReason(p, quest) === null) marker = Marker.Available;
-      }
+    const { completes, starts } = questCommandsOf(page);
+    for (const id of completes) {
+      const quest = this.quest(id);
+      const status = this.status(p, id);
+      if (status === QuestStatus.Ready || (status === QuestStatus.InProgress && quest?.steps.length === 0)) return Marker.TurnIn;
     }
     for (const { progress, objective, index } of this.activeObjectives(p)) {
       if (objective.kind === 'talk' && objective.mapId === p.mapId && objective.eventId === e.def.id && (progress.counters[index] ?? 0) < 1) return Marker.TurnIn;
     }
-    return marker;
+    for (const id of starts) {
+      const quest = this.quest(id);
+      if (quest && this.lockReason(p, quest) === null) return Marker.Available;
+    }
+    return Marker.None;
   }
 
   // --- Journal ----------------------------------------------------------------
@@ -421,16 +420,33 @@ export class QuestService {
   }
 
   /**
+   * Everything the journal of a player is built from, in short: its quests and where they stand, the values
+   * and targets of the objectives of their current steps, and the versions of the records it names. While it
+   * stays the same, so does the journal: it is neither built nor serialized again (completed quests pile up,
+   * and the journal is checked at every refresh of the player's events).
+   */
+  private journalKey(p: PlayerSession): string {
+    const data = this.ctx.gameData;
+    const parts: (string | number)[] = [data.generation('quest'), data.generation('item'), data.generation('weapon'), data.generation('armor'), data.generation('enemy')];
+    for (const [id, progress] of p.progress.quests) {
+      const status = this.status(p, id);
+      parts.push(id, status, progress.step, progress.updatedAt);
+      if (status !== QuestStatus.InProgress) continue;
+      this.quest(id)?.steps[progress.step]?.objectives.forEach((o, i) => parts.push(this.objectiveProgress(p, progress, o, i).value, this.targetName(o)));
+    }
+    return parts.join('\u0001');
+  }
+
+  /**
    * Sends the journal to the player if it changed since the last time (item
    * and switch objectives change without any quest command).
    */
   push(p: PlayerSession): void {
     if (!this.world.isLive(p)) return;
-    const payload = this.payload(p);
-    const json = JSON.stringify(payload);
-    if (this.sent.get(p.characterId) === json) return;
-    this.sent.set(p.characterId, json);
-    p.socket.emit('quests', payload);
+    const key = this.journalKey(p);
+    if (this.sent.get(p.characterId) === key) return;
+    this.sent.set(p.characterId, key);
+    p.socket.emit('quests', this.payload(p));
   }
 
   /** Sends the journal even if unchanged (entering the world). */
@@ -444,4 +460,21 @@ export class QuestService {
     this.sent.delete(characterId);
     this.checking.delete(characterId);
   }
+}
+
+/** Quests started and completed by the commands of a page, read once per page (pages are replaced, not changed, when a map is saved). */
+const pageQuests = new WeakMap<EventPage, { completes: number[]; starts: number[] }>();
+
+/** Quests a page completes and starts (its quest commands, in order). */
+function questCommandsOf(page: EventPage): { completes: number[]; starts: number[] } {
+  let found = pageQuests.get(page);
+  if (!found) {
+    found = { completes: [], starts: [] };
+    for (const c of page.list) {
+      if (c.code === MmoCmd.CompleteQuest) found.completes.push(Number(c.parameters[0]));
+      else if (c.code === MmoCmd.StartQuest) found.starts.push(Number(c.parameters[0]));
+    }
+    pageQuests.set(page, found);
+  }
+  return found;
 }

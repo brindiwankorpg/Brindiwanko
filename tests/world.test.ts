@@ -194,7 +194,7 @@ test('the server applies valid steps, rejects blocked or too fast ones, and save
 test('talking to an NPC runs its dialogue and freezes the player until acknowledged', async () => {
   const { socket, payload } = await playerSocket('Talker');
   const p = server.ctx.world.player(payload.character.id)!;
-  // Tomas stands at (17,16): face him from (18,16).
+  // Thomas stands at (17,16): face him from (18,16).
   p.x = 18;
   p.y = 16;
   socket.emit('turn', 4);
@@ -216,25 +216,27 @@ test('talking to an NPC runs its dialogue and freezes the player until acknowled
   assert.deepEqual([p.x, p.y], [18, 16], 'cannot walk away during the dialogue');
   await wait(300);
   assert.equal(messages.length, 2);
-  assert.equal(messages[0]!.speaker, 'Tomas');
+  assert.equal(messages[0]!.speaker, 'Thomas');
   assert.equal(messages[0]!.faceName, 'People1');
   assert.equal(p.busy, false);
   assert.deepEqual(busyStates, [true, false], 'client is notified when a non-parallel event starts and finishes');
   socket.close();
 });
 
-/** Gives a player their own copy of Tomas' definition, with the active page tweaked (other tests keep the original). */
-function tweakTomas(p: ReturnType<typeof server.ctx.world.player>, change: (page: { trigger: number; priorityType: number; moveType: number }) => void) {
+/** Gives a player their own copy of Thomas' definition, with the active page tweaked (other tests keep the original). */
+function tweakThomas(p: ReturnType<typeof server.ctx.world.player>, change: (page: { trigger: number; priorityType: number; moveType: number }) => void) {
   const tomas = [...p!.events.values()].find((e) => e.def.x === 17 && e.def.y === 16)!;
   (tomas as { def: unknown }).def = structuredClone(tomas.def);
   change(tomas.def.pages[tomas.pageIndex]!);
+  // A new set of event copies, as the server makes at each map entry: what moves by itself is read from it again.
+  p!.events = new Map(p!.events);
   return tomas;
 }
 
 test('walking into a solid touch-triggered event makes the server start it', async () => {
   const { socket, payload } = await playerSocket('Bumper');
   const p = server.ctx.world.player(payload.character.id)!;
-  tweakTomas(p, (page) => {
+  tweakThomas(p, (page) => {
     page.trigger = Trigger.PlayerTouch;
     page.priorityType = 1;
   });
@@ -245,7 +247,7 @@ test('walking into a solid touch-triggered event makes the server start it', asy
     messages.push(m);
     setTimeout(() => ack(0), 20);
   });
-  socket.emit('move', 4, p.epoch); // into Tomas at (17,16), without pressing Action
+  socket.emit('move', 4, p.epoch); // into Thomas at (17,16), without pressing Action
   await wait(400);
   assert.ok(messages.length >= 1, 'the dialogue started');
   assert.deepEqual([p.x, p.y], [18, 16], 'the step itself is refused');
@@ -255,7 +257,7 @@ test('walking into a solid touch-triggered event makes the server start it', asy
 test('an event with the "event touch" trigger starts once when it reaches the player', async () => {
   const { socket, payload } = await playerSocket('Touched');
   const p = server.ctx.world.player(payload.character.id)!;
-  tweakTomas(p, (page) => {
+  tweakThomas(p, (page) => {
     page.trigger = Trigger.EventTouch;
     page.moveType = 2; // towards the player
   });
@@ -265,7 +267,7 @@ test('an event with the "event touch" trigger starts once when it reaches the pl
     setTimeout(() => ack(0), 20);
   });
   p.x = 18;
-  p.y = 16; // next to Tomas
+  p.y = 16; // next to Thomas
   await wait(1200);
   assert.equal(messages.length, 2, 'the two messages of the dialogue, once');
   await wait(800);

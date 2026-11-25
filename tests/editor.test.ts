@@ -157,16 +157,16 @@ test('locks, validation, live update of players and version history', async () =
   assert.equal(conflict.body.params.name, 'Admin');
 
   const { body } = await admin.api<{ map: MapData }>('GET', '/maps/1');
-  const bad = await admin.api<{ error: string }>('PUT', '/maps/1', { map: { ...body.map, data: [1, 2, 3] } });
+  const bad = await admin.api<{ error: string }>('PUT', '/maps/1', { map: { ...body.map, data: [1, 2, 3] }, baseVersion: server.ctx.maps.revision(1) });
   assert.equal(bad.status, 400);
   assert.equal(bad.body.error, 'error.editor.invalid_map');
-  assert.equal((await second.api('PUT', '/maps/1', { map: body.map })).status, 409, 'saving needs the lock');
+  assert.equal((await second.api('PUT', '/maps/1', { map: body.map, baseVersion: server.ctx.maps.revision(1) })).status, 409, 'saving needs the lock');
 
   const updated = new Promise<MapUpdatedPayload>((resolve) => socket.on('mapUpdated', resolve));
   const watcher = server.ctx.world.player(server.ctx.characters.listByAccount(server.ctx.accounts.findByUsername('Watcher')!.id)[0]!.id)!;
   const epoch = watcher.epoch;
   const edited = { ...body.map, displayName: 'Village rénové' };
-  assert.equal((await admin.api('PUT', '/maps/1', { map: edited })).status, 200);
+  assert.equal((await admin.api('PUT', '/maps/1', { map: edited, baseVersion: server.ctx.maps.revision(1) })).status, 200);
   const update = await updated;
   assert.equal(update.map.displayName, 'Village rénové', 'players on the map receive the new version');
   assert.deepEqual([update.x, update.y, update.epoch], [watcher.x, watcher.y, epoch + 1], 'with their position and a new movement epoch');
@@ -222,7 +222,7 @@ test('an admin creates a map, draws it, places a teleporter, and a player goes t
     id: 1, name: 'Retour', note: '', x: 5, y: 9,
     pages: [createPage({ priorityType: Priority.Below, trigger: Trigger.PlayerTouch, list: [{ code: Cmd.TransferPlayer, indent: 0, parameters: [0, 1, 20, 17, 2, 0] }, { code: 0, indent: 0, parameters: [] }] })],
   }];
-  assert.equal((await admin.api('PUT', `/maps/${newId}`, { map })).status, 200);
+  assert.equal((await admin.api('PUT', `/maps/${newId}`, { map, baseVersion: server.ctx.maps.revision(newId) })).status, 200);
 
   // Place a teleporter on the village plaza towards the new map.
   await admin.api('POST', '/maps/1/lock');
@@ -231,7 +231,7 @@ test('an admin creates a map, draws it, places a teleporter, and a player goes t
     id: village.events.length, name: 'Vers la clairière', note: '', x: 18, y: 12,
     pages: [createPage({ priorityType: Priority.Below, trigger: Trigger.PlayerTouch, list: [{ code: Cmd.TransferPlayer, indent: 0, parameters: [0, newId, 5, 8, 8, 0] }, { code: 0, indent: 0, parameters: [] }] })],
   });
-  assert.equal((await admin.api('PUT', '/maps/1', { map: village })).status, 200);
+  assert.equal((await admin.api('PUT', '/maps/1', { map: village, baseVersion: server.ctx.maps.revision(1) })).status, 200);
 
   // A player already in the village walks onto the new teleporter.
   const traveller = await account('Traveller');

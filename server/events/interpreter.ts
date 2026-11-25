@@ -165,8 +165,9 @@ export function compare(a: number, b: number, op: number): boolean {
 export function resolveText(text: string, host: Pick<InterpreterHost, 'getVariable' | 'playerName' | 'currencyName'>): string {
   return text
     .replace(/\\V\[(\d+)\]/gi, (_, id: string) => String(host.getVariable(Number(id))))
-    .replace(/\\P/g, host.playerName())
-    .replace(/\\G/g, host.currencyName());
+    // Functions, not strings: a `$&` or `$1` in a name is shown as typed, not read as a replacement pattern.
+    .replace(/\\P/g, () => host.playerName())
+    .replace(/\\G/g, () => host.currencyName());
 }
 
 /** Runs one command list (a page, or a common event called from it). */

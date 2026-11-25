@@ -53,6 +53,10 @@ async function newPlayer(name: string): Promise<Player> {
   socket.on('chat', (m) => player.chat.push(m));
   socket.on('notify', (n) => player.notes.push(n.key));
   socket.on('friends', (f) => (player.friends = f));
+  // A friend coming or going only sends its own line: it is merged like the client does.
+  socket.on('friendPresence', (f) => {
+    if (player.friends) player.friends = { ...player.friends, friends: player.friends.friends.map((x) => (x.id === f.id ? f : x)) };
+  });
   socket.on('trade', (v) => (player.trade = v));
   socket.on('tradeRequest', (r) => player.requests.push(r));
   socket.on('emote', (e) => player.emotes.push(e.balloon));
@@ -152,7 +156,11 @@ test('criterion: two players trade an item and gold, and nothing can be duplicat
 
   erin.socket.emit('tradeRequest', f.characterId);
   await until(() => finn.requests.length === 1);
-  finn.socket.emit('tradeRespond', true);
+  // An answer meant for another player does not open this trade.
+  finn.socket.emit('tradeRespond', true, f.characterId);
+  await wait(50);
+  assert.equal(erin.trade, null);
+  finn.socket.emit('tradeRespond', true, e.characterId);
   await until(() => erin.trade !== null && finn.trade !== null);
   assert.equal(erin.trade!.partner.name, 'Finn');
 
@@ -205,7 +213,7 @@ test('criterion: two players trade an item and gold, and nothing can be duplicat
   // Leaving cancels a trade in progress for the other player.
   erin.socket.emit('tradeRequest', f.characterId);
   await until(() => finn.requests.length === 2);
-  finn.socket.emit('tradeRespond', true);
+  finn.socket.emit('tradeRespond', true, e.characterId);
   await until(() => finn.trade !== null);
   erin.socket.close();
   await until(() => finn.trade === null && finn.notes.includes('notify.trade_partner_left'));
@@ -291,7 +299,7 @@ test('a player cannot bury another one under invitations and trade requests', as
   assert.equal(invites, 1, 'one invitation reaches the other player');
   assert.equal(calm.requests.length, 1, 'one trade request too');
   // A declined request means a longer wait before asking again.
-  calm.socket.emit('tradeRespond', false);
+  calm.socket.emit('tradeRespond', false, pest.session.characterId);
   await until(() => pest.notes.includes('notify.trade_declined'));
   const throttle = (server.ctx.world.trade as unknown as { throttle: { take: (from: number, to: number, now: number) => number } }).throttle;
   assert.ok(throttle.take(p.characterId, c.characterId, Date.now() + 30_000) > 0, 'still waiting 30 s later');

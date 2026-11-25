@@ -95,7 +95,8 @@ export function authRouter(ctx: ServerContext): Router {
     const next = safeRedirectPath(field(req, 'next'), AFTER_LOGIN_PATH);
     const result = await ctx.auth.login(username, field(req, 'password'), req.ip ?? 'unknown', readCookie(req, DEVICE_COOKIE));
     if (!result.ok) {
-      res.status(result.errorKey === 'error.auth.too_many_attempts' ? 429 : 401).render('auth/login', {
+      const status = result.errorKey === 'error.auth.too_many_attempts' ? 429 : result.errorKey === 'error.auth.busy' ? 503 : 401;
+      res.status(status).render('auth/login', {
         errorKey: result.errorKey,
         errorParams: result.params ?? {},
         values: { username },

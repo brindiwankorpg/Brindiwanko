@@ -9,7 +9,8 @@
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { extname, join, relative } from 'node:path';
+import { stat } from 'node:fs/promises';
+import { basename, extname, join, relative } from 'node:path';
 import { RESOURCE_KINDS, detectFormat, type ResourceKind } from '../../shared/resource-formats.js';
 import type { ScannedResource } from '../db/resources.js';
 import { PATHS } from '../paths.js';
@@ -67,6 +68,40 @@ function fileInfo(full: string, ext: string, size: number, mtimeMs: number): { w
   return info;
 }
 
+/** Manifest entry of a resource file. */
+function entryOf(full: string, kind: ResourceKind, name: string, ext: string, mime: string, origin: ScannedResource['origin'], info: { width: number; height: number; hash: string }): ScannedResource {
+  return {
+    id: `${kind}/${name}`,
+    kind,
+    name,
+    // Uploads are served under `/uploads/` wherever their folder is (`UPLOADS_DIR`).
+    path: (origin === 'uploaded' ? `uploads/${relative(PATHS.uploads, full)}` : relative(PATHS.root, full)).replaceAll('\\', '/'),
+    format: detectFormat(kind, name, info.width, info.height).format,
+    mime,
+    width: info.width || null,
+    height: info.height || null,
+    hash: info.hash,
+    origin,
+  };
+}
+
+/**
+ * Manifest entry of a file just uploaded, from its content already in memory: the other resources are not
+ * scanned again for one new file.
+ * @param full - Path of the file written.
+ * @param kind - Resource folder.
+ * @param data - Its content.
+ */
+export async function scanUploadedFile(full: string, kind: ResourceKind, data: Buffer): Promise<ScannedResource | null> {
+  const ext = extname(full).toLowerCase();
+  const mime = MIME[ext];
+  if (!mime) return null;
+  const { size, mtimeMs } = await stat(full);
+  const info = { ...imageSize(data, ext), hash: createHash('sha1').update(data).digest('hex').slice(0, 12) };
+  known.set(full, { size, mtimeMs, ...info });
+  return entryOf(full, kind, basename(full, extname(full)), ext, mime, 'uploaded', info);
+}
+
 function scanFolder(base: string, kind: ResourceKind, origin: ScannedResource['origin'], out: Map<string, ScannedResource>, seen: Set<string>): void {
   const dir = join(base, kind);
   if (!existsSync(dir)) return;
@@ -79,22 +114,8 @@ function scanFolder(base: string, kind: ResourceKind, origin: ScannedResource['o
     if (!stat.isFile()) continue;
     seen.add(full);
     const name = file.slice(0, -ext.length);
-    const id = `${kind}/${name}`;
-    const { width, height, hash } = fileInfo(full, ext, stat.size, stat.mtimeMs);
     // Uploaded files override generated ones with the same id.
-    out.set(id, {
-      id,
-      kind,
-      name,
-      // Uploads are served under `/uploads/` wherever their folder is (`UPLOADS_DIR`).
-      path: (origin === 'uploaded' ? `uploads/${relative(PATHS.uploads, full)}` : relative(PATHS.root, full)).replaceAll('\\', '/'),
-      format: detectFormat(kind, name, width, height).format,
-      mime,
-      width: width || null,
-      height: height || null,
-      hash,
-      origin,
-    });
+    out.set(`${kind}/${name}`, entryOf(full, kind, name, ext, mime, origin, fileInfo(full, ext, stat.size, stat.mtimeMs)));
   }
 }
 

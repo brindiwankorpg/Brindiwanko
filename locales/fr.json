@@ -115,6 +115,10 @@
     "reset_mail": {
       "subject": "{{game}} : choisir un nouveau mot de passe",
       "body": "Bonjour {{name}},\n\nQuelqu’un (vous, sans doute) a demandé à changer le mot de passe de votre compte {{game}}.\nPour en choisir un nouveau, ouvrez ce lien (valable {{minutes}} minutes) :\n\n{{link}}\n\nSi vous n’avez rien demandé, ignorez ce message : votre mot de passe reste le même."
+    },
+    "email_changed_mail": {
+      "subject": "{{game}} : votre adresse e-mail a été changée",
+      "body": "Bonjour {{name}},\n\nL’adresse e-mail de votre compte {{game}} vient d’être changée : les messages du jeu ne seront plus envoyés à cette adresse.\n\nSi c’est vous qui avez fait ce changement, vous n’avez rien d’autre à faire.\nSinon, quelqu’un connaît votre mot de passe : si un lien « mot de passe oublié » est déjà arrivé à cette adresse, utilisez-le tout de suite, et contactez les administrateurs de {{game}}."
     }
   },
   "error": {
@@ -145,7 +149,8 @@
       "too_many_register_attempts": "Trop de tentatives d’inscription depuis votre connexion. Réessayez dans {{minutes}} minutes.",
       "banned_reason": "Ce compte est banni jusqu’au {{until}} (UTC). Motif : {{reason}}",
       "banned_forever": "Ce compte est banni définitivement.",
-      "banned_forever_reason": "Ce compte est banni définitivement. Motif : {{reason}}"
+      "banned_forever_reason": "Ce compte est banni définitivement. Motif : {{reason}}",
+      "busy": "Le serveur est très sollicité en ce moment. Réessayez dans un instant."
     },
     "character": {
       "name_invalid": "Nom invalide : 3 à 16 caractères, lettres, chiffres, espaces, apostrophes ou tirets, en commençant par une lettre.",
@@ -156,12 +161,13 @@
       "delete_confirm": "Le nom saisi ne correspond pas : suppression annulée.",
       "online": "Ce personnage est en jeu : quittez la partie avant de le supprimer.",
       "not_selected": "Aucun personnage sélectionné.",
-      "name_mixed_scripts": "Un nom ne peut pas mélanger plusieurs alphabets (latin, cyrillique, grec)."
+      "name_mixed_scripts": "Un nom ne peut pas mélanger plusieurs alphabets (latin, cyrillique, grec, arménien, cherokee)."
     },
     "net": {
       "replaced": "Ce personnage vient de se connecter depuis un autre onglet ou appareil.",
       "no_map": "Aucune carte n’est disponible pour entrer dans le monde.",
       "rate_limited": "Trop d’actions en peu de temps, ralentissez.",
+      "too_many_connections": "Trop de connexions en peu de temps. Patientez une minute avant de réessayer.",
       "kicked": "Vous avez été déconnecté par un modérateur",
       "other_character": "Vous jouez maintenant {{name}} : un compte ne joue qu’un personnage à la fois.",
       "kicked_reason": "Vous avez été déconnecté par un modérateur. Motif : {{reason}}"
@@ -314,8 +320,9 @@
       "leader_leave": "Confiez d’abord la direction à un autre membre",
       "bank_full": "La banque de guilde est pleine",
       "bank_not_empty": "Videz la banque de guilde avant de dissoudre la guilde",
-      "mixed_scripts": "Un nom ou un tag ne peut pas mélanger plusieurs alphabets (latin, cyrillique, grec)",
-      "invite_expired": "Cette invitation ne vaut plus : la personne qui l’a envoyée ne peut plus inviter dans la guilde"
+      "mixed_scripts": "Un nom ou un tag ne peut pas mélanger plusieurs alphabets (latin, cyrillique, grec, arménien, cherokee)",
+      "invite_expired": "Cette invitation ne vaut plus : la personne qui l’a envoyée ne peut plus inviter dans la guilde",
+      "full": "La guilde est complète ({{max}} membres)."
     },
     "instance": {
       "level": "Niveau insuffisant pour entrer ici",
@@ -971,6 +978,7 @@
       "maxLevel": "Niveau maximum",
       "maxPartySize": "Taille max. des groupes",
       "guildCreationCost": "Coût de création d’une guilde",
+      "guildMaxMembers": "Taille maximale d’une guilde",
       "startPosition": "Position de départ",
       "mapId": "Carte",
       "x": "X",
@@ -1275,6 +1283,7 @@
       "maxPartySize": "Nombre maximal de joueurs dans un groupe.",
       "maxRaidSize": "Nombre maximal de joueurs dans un raid (groupe élargi).",
       "instanceIdleMinutes": "Une instance vide est fermée après ce nombre de minutes.",
+      "guildMaxMembers": "Nombre maximal de membres d’une guilde. Une guilde déjà plus grande garde ses membres mais ne peut plus recruter.",
       "startPosition": "Où apparaissent les nouveaux personnages : carte et case.",
       "bossEnemyId": "Monstre qui joue le rôle du boss de ce raid.",
       "minPlayers": "Nombre minimal de joueurs pour entrer.",
@@ -2460,6 +2469,8 @@
     "kick": "Déconnecter",
     "set_role": "Changer le rôle",
     "reset_password": "Réinitialiser le mot de passe",
+    "reset_password_confirm": "Votre mot de passe (pour confirmer)",
+    "reset_password_needed": "Saisissez votre propre mot de passe pour confirmer la réinitialisation.",
     "new_password": "Nouveau mot de passe (à transmettre au joueur) : {{password}}",
     "last_login": "Dernière connexion",
     "characters": "Personnages",

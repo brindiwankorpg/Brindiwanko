@@ -29,8 +29,12 @@
  *
  * Node.js versions whose permission model does not cover the network (before
  * `--allow-net`) cannot keep a script that escaped `node:vm` from opening
- * connections: the server says so once, and an isolation by the system (a
- * dedicated user, a network namespace) is advised for imported scripts.
+ * connections: on those, scripts are refused (they do nothing) unless the
+ * operator chose otherwise (`SANDBOX_WITHOUT_NETWORK_ISOLATION=1`, with an
+ * isolation by the system: a dedicated user, a network namespace).
+ *
+ * At most `MAX_PENDING` runs wait for an answer at once, all sandboxes
+ * together: beyond, a run does nothing instead of queueing.
  *
  * Helpers available to scripts:
  *   v(id), setV(id, value)          variables
@@ -75,6 +79,10 @@ const MAX_OPS = 200;
 const MAX_CODE = 20_000;
 const MAX_NOTIFY = 200;
 const MAX_OUTPUT_BYTES = 64 * 1024;
+/** Runs waiting for an answer at once, all sandboxes together (each run of an event waits for its own). */
+export const MAX_PENDING = 1000;
+/** The saturation was already written in the log (until the line is short again). */
+let saturationReported = false;
 
 const PRELUDE = `
 const __ops = [];
@@ -129,6 +137,43 @@ function permissionFlags(): string[] {
   return [];
 }
 
+/** Tells whether this Node.js can cut the sandbox processes off the network (permission model with `--allow-net`). */
+export function sandboxNetworkIsolated(): boolean {
+  return permissionFlags().length > 0 && process.allowedNodeEnvironmentFlags.has('--allow-net');
+}
+
+/** Scripts run even when the network of the sandbox cannot be closed (the operator isolates the server otherwise). */
+let withoutNetworkIsolation = false;
+
+/**
+ * Sets whether scripts run on a Node.js that cannot close the network of the sandbox (server configuration,
+ * `SANDBOX_WITHOUT_NETWORK_ISOLATION`).
+ */
+export function allowSandboxWithoutNetworkIsolation(allowed: boolean): void {
+  withoutNetworkIsolation = allowed;
+}
+
+/** Tells whether scripts may run now (and says once why they may not, or run without network isolation). */
+function mayRun(): boolean {
+  if (sandboxNetworkIsolated()) return true;
+  if (!warned) {
+    warned = true;
+    console.warn(
+      withoutNetworkIsolation
+        ? `[sandbox] Node.js ${process.version} cannot close the network of the script sandbox: scripts run anyway (SANDBOX_WITHOUT_NETWORK_ISOLATION=1)`
+        : `[sandbox] Node.js ${process.version} cannot close the network of the script sandbox: event scripts are refused (they do nothing). Use a Node.js with --allow-net, or set SANDBOX_WITHOUT_NETWORK_ISOLATION=1 once the server runs as a user without access to your other services`,
+    );
+  }
+  return withoutNetworkIsolation;
+}
+
+/** Runs waiting for an answer, every sandbox together. */
+function pendingRuns(): number {
+  let count = 0;
+  for (const s of pool) count += s.pending.size;
+  return count;
+}
+
 interface Sandbox {
   process: ChildProcess;
   /** Runs sent and not answered yet, in the order they were sent. */
@@ -177,10 +222,6 @@ function arm(s: Sandbox): void {
 
 function start(): Sandbox {
   const flags = permissionFlags();
-  if (!warned && (flags.length === 0 || !process.allowedNodeEnvironmentFlags.has('--allow-net'))) {
-    warned = true;
-    console.warn(`[sandbox] Node.js ${process.version} ${flags.length ? 'does not restrict the network of the script sandbox' : 'has no permission model for the script sandbox'}: a newer Node.js, or running the server as a dedicated user without network access to your other services, is advised before approving imported scripts`);
-  }
   const child = spawn(process.execPath, [...flags, '--disallow-code-generation-from-strings', `--max-old-space-size=${MEMORY_MB}`, '-e', SANDBOX_SOURCE], {
     stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
     // None of the server's environment (secrets, NODE_OPTIONS...) reaches the sandbox.
@@ -216,8 +257,16 @@ function sandbox(): Sandbox {
   return s;
 }
 
-/** Runs a source in a sandbox and resolves with its JSON answer, or `null`. */
+/** Runs a source in a sandbox and resolves with its JSON answer, or `null` (also when too many runs wait already). */
 function execute(source: string, retried = false): Promise<string | null> {
+  if (pendingRuns() >= MAX_PENDING) {
+    if (!saturationReported) {
+      saturationReported = true;
+      console.warn(`[sandbox] ${MAX_PENDING} scripts are waiting for an answer: the next ones do nothing until the sandboxes catch up`);
+    }
+    return Promise.resolve(null);
+  }
+  saturationReported = false;
   const s = sandbox();
   const id = nextId++;
   return new Promise((resolve) => {
@@ -239,7 +288,7 @@ export function stopSandbox(): void {
 }
 
 async function run(code: string, state: ScriptState, expression: boolean): Promise<{ ops: ScriptOp[]; value: unknown }> {
-  if (code.length > MAX_CODE) return { ops: [], value: undefined };
+  if (code.length > MAX_CODE || !mayRun()) return { ops: [], value: undefined };
   // The state enters the context as a JSON string parsed inside it: no host object is reachable.
   const body = expression ? `return (${code}\n);` : `${code}\n;return undefined;`;
   // The code must be valid on its own (compiled, never run, here): text such as `})(); } catch (e) {}` could

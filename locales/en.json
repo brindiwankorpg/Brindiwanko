@@ -115,6 +115,10 @@
     "reset_mail": {
       "subject": "{{game}}: choose a new password",
       "body": "Hello {{name}},\n\nSomeone (you, most likely) asked to change the password of your {{game}} account.\nTo choose a new one, open this link (valid for {{minutes}} minutes):\n\n{{link}}\n\nIf you did not ask for anything, ignore this message: your password stays the same."
+    },
+    "email_changed_mail": {
+      "subject": "{{game}}: your e-mail address was changed",
+      "body": "Hello {{name}},\n\nThe e-mail address of your {{game}} account was just changed: the messages of the game will no longer be sent to this address.\n\nIf you made this change, there is nothing more to do.\nIf you did not, someone knows your password: if a \"forgotten password\" link already reached this address, use it now, and contact the administrators of {{game}}."
     }
   },
   "error": {
@@ -145,7 +149,8 @@
       "too_many_register_attempts": "Too many registration attempts from your connection. Please try again in {{minutes}} minutes.",
       "banned_reason": "This account is banned until {{until}} (UTC). Reason: {{reason}}",
       "banned_forever": "This account is permanently banned.",
-      "banned_forever_reason": "This account is permanently banned. Reason: {{reason}}"
+      "banned_forever_reason": "This account is permanently banned. Reason: {{reason}}",
+      "busy": "The server is very busy right now. Please try again in a moment."
     },
     "character": {
       "name_invalid": "Invalid name: 3 to 16 characters, letters, digits, spaces, apostrophes or hyphens, starting with a letter.",
@@ -156,12 +161,13 @@
       "delete_confirm": "The typed name does not match: deletion cancelled.",
       "online": "This character is in the game: leave the game before deleting it.",
       "not_selected": "No character selected.",
-      "name_mixed_scripts": "A name cannot mix several alphabets (Latin, Cyrillic, Greek)."
+      "name_mixed_scripts": "A name cannot mix several alphabets (Latin, Cyrillic, Greek, Armenian, Cherokee)."
     },
     "net": {
       "replaced": "This character just connected from another tab or device.",
       "no_map": "No map is available to enter the world.",
       "rate_limited": "Too many actions in a short time, slow down.",
+      "too_many_connections": "Too many connections in a short time. Please wait a minute before trying again.",
       "kicked": "You were disconnected by a moderator",
       "other_character": "You are now playing {{name}}: an account plays one character at a time.",
       "kicked_reason": "You were disconnected by a moderator. Reason: {{reason}}"
@@ -314,8 +320,9 @@
       "leader_leave": "Hand the lead to another member first",
       "bank_full": "The guild bank is full",
       "bank_not_empty": "The guild bank must be emptied before the guild can end",
-      "mixed_scripts": "A name or tag cannot mix several alphabets (Latin, Cyrillic, Greek)",
-      "invite_expired": "This invitation no longer holds: whoever sent it can no longer invite into the guild"
+      "mixed_scripts": "A name or tag cannot mix several alphabets (Latin, Cyrillic, Greek, Armenian, Cherokee)",
+      "invite_expired": "This invitation no longer holds: whoever sent it can no longer invite into the guild",
+      "full": "The guild is full ({{max}} members)."
     },
     "instance": {
       "level": "Your level is too low to enter",
@@ -971,6 +978,7 @@
       "maxLevel": "Maximum level",
       "maxPartySize": "Maximum party size",
       "guildCreationCost": "Guild creation cost",
+      "guildMaxMembers": "Maximum guild size",
       "startPosition": "Start position",
       "mapId": "Map",
       "x": "X",
@@ -1275,6 +1283,7 @@
       "maxPartySize": "Maximum number of players in a party.",
       "maxRaidSize": "Maximum number of players in a raid (enlarged party).",
       "instanceIdleMinutes": "An empty instance is closed after this many minutes.",
+      "guildMaxMembers": "Maximum number of members in a guild. A guild that is already larger keeps its members but cannot recruit.",
       "startPosition": "Where new characters appear: map and tile.",
       "bossEnemyId": "Monster acting as this raid’s boss.",
       "minPlayers": "Minimum number of players to enter.",
@@ -2460,6 +2469,8 @@
     "kick": "Kick",
     "set_role": "Change the role",
     "reset_password": "Reset the password",
+    "reset_password_confirm": "Your password (to confirm the reset)",
+    "reset_password_needed": "Type your own password to confirm the reset.",
     "new_password": "New password (give it to the player): {{password}}",
     "last_login": "Last login",
     "characters": "Characters",

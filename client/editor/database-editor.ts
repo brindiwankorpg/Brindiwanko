@@ -237,7 +237,7 @@ const PANELS: Partial<Record<string, Panel[]>> = {
     { title: 'game', fields: ['gameTitle', 'currencyName', 'maxLevel'] },
     { title: 'economy', fields: ['startingGold', 'sellRate', 'guildCreationCost'] },
     { title: 'characters', fields: ['statPointsPerLevel', 'bagSize'], side: true },
-    { title: 'groups', fields: ['maxPartySize', 'maxRaidSize', 'instanceIdleMinutes'], side: true },
+    { title: 'groups', fields: ['maxPartySize', 'maxRaidSize', 'instanceIdleMinutes', 'guildMaxMembers'], side: true },
     { title: 'start_position', fields: ['startPosition'], side: true },
   ],
   terms: [{ title: 'basic_terms', fields: ['terms'] }],
@@ -1652,6 +1652,7 @@ export class DatabaseEditor {
             { key: 'maxRaidSize', type: 'int', min: 2, max: 40 },
             { key: 'instanceIdleMinutes', type: 'int', min: 1, max: 1440 },
             { key: 'guildCreationCost', type: 'int', min: 0, max: 99_999_999 },
+            { key: 'guildMaxMembers', type: 'int', min: 2, max: 1000 },
             { key: 'startPosition', type: 'group', fields: [{ key: 'mapId', type: 'map' }, { key: 'x', type: 'int', min: 0, max: 255 }, { key: 'y', type: 'int', min: 0, max: 255 }, { key: 'pick', type: 'cell', mapKey: 'mapId' }] },
           ]
         : [

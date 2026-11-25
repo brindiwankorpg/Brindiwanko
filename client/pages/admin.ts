@@ -532,6 +532,8 @@ async function open(id: number, host: HTMLElement, changed?: () => void, back?: 
   if (isAdmin) {
     const role = el('select', {}, ['player', 'moderator', 'admin'].map((r) => el('option', { text: tDynamic(`auth.role.${r}`), attrs: { value: r } })));
     role.value = String(a.role);
+    // A password reset is confirmed with the administrator's own password.
+    const myPassword = el('input', { attrs: { type: 'password', autocomplete: 'current-password', placeholder: t('admin_panel.reset_password_confirm'), 'aria-label': t('admin_panel.reset_password_confirm') } });
     adminTools.push(
       el('div', { className: 'admin-row' }, [
         role,
@@ -546,14 +548,17 @@ async function open(id: number, host: HTMLElement, changed?: () => void, back?: 
           if (!window.confirm(tDynamic(`admin_panel.confirm_role_${role.value}`, { name, role: roleName }))) return;
           void act(() => api('POST', `/accounts/${id}/role`, { role: role.value }), t('admin_panel.done_role', { name, role: roleName })).then(reload);
         }),
+        myPassword,
         button(t('admin_panel.reset_password'), () => {
+          if (!passwordTyped(myPassword, 'admin_panel.reset_password_needed')) return;
           if (!window.confirm(t('admin_panel.confirm_reset_password', { name: String(a.username) }))) return;
-          void api<{ password: string }>('POST', `/accounts/${id}/reset-password`)
+          void api<{ password: string }>('POST', `/accounts/${id}/reset-password`, { password: myPassword.value })
             .then((r) => {
               say('');
               passwordDialog(String(a.username), r.password);
             })
-            .catch((err: Error) => say(err.message, true));
+            .catch((err: Error) => say(err.message, true))
+            .finally(() => (myPassword.value = ''));
         }),
       ]),
     );
@@ -1023,9 +1028,9 @@ function backup(): void {
 }
 
 /** Tells whether the administrator typed its password to restore a backup; otherwise says so and goes to its field. */
-function passwordTyped(password: HTMLInputElement): boolean {
+function passwordTyped(password: HTMLInputElement, missingKey: 'admin_panel.restore_password_needed' | 'admin_panel.reset_password_needed' = 'admin_panel.restore_password_needed'): boolean {
   if (password.value) return true;
-  say(t('admin_panel.restore_password_needed'), true);
+  say(t(missingKey), true);
   password.focus();
   return false;
 }

@@ -14,6 +14,7 @@ import { hasInvisible, mixesScripts } from '../../shared/names.js';
 import { DEFAULT_SETTINGS } from '../../shared/settings.js';
 import type { ItemKind } from '../db/inventory.js';
 import { RequestThrottle } from './request-throttle.js';
+import { cleanPlayerText } from './social.js';
 import type { PlayerSession, World } from './world.js';
 
 /** An invitation expires after this delay. */
@@ -26,6 +27,8 @@ export class GuildService {
   private readonly invites = new Map<number, { guildId: number; from: number; at: number }>();
   /** Spacing of the invitations of one player to another. */
   private readonly throttle = new RequestThrottle();
+  /** Sessions in the world of each guild's members, so that "who of the guild is online" does not scan every player. */
+  private readonly onlineByGuild = new Map<number, Set<PlayerSession>>();
 
   constructor(private readonly world: World) {
     world.social.guildMembers = (p) => (p.guild ? this.onlineMembers(p.guild.id) : null);
@@ -41,15 +44,39 @@ export class GuildService {
     if (p.guild) this.pushAll(p.guild.id);
   }
 
-  /** A member logged in or out, or gained a level: the guild windows of the other online members follow. */
-  /** A player left the game: its pending invitation is dropped. */
+  /**
+   * A player left the game: its pending invitation is dropped and it is no longer counted online in its guild
+   * (its `guild` stays set, so that {@link memberPresenceChanged} still knows whom to tell).
+   */
   playerLeft(p: PlayerSession): void {
     this.invites.delete(p.characterId);
+    this.unlist(p);
   }
 
+  /**
+   * A member logged in or out, or gained a level: the guild windows of the online members follow. The guild is
+   * read from the database once for all of them, not once per member.
+   */
   memberPresenceChanged(p: PlayerSession): void {
+    if (p.guild) this.pushAll(p.guild.id);
+  }
+
+  /** Changes the guild of a session, keeping the index of online members in step. */
+  private setGuild(p: PlayerSession, guild: { id: number; rank: number } | null): void {
+    this.unlist(p);
+    p.guild = guild;
+    if (!guild) return;
+    let members = this.onlineByGuild.get(guild.id);
+    if (!members) this.onlineByGuild.set(guild.id, (members = new Set()));
+    members.add(p);
+  }
+
+  /** Takes a session out of the index of online members. */
+  private unlist(p: PlayerSession): void {
     if (!p.guild) return;
-    for (const m of this.onlineMembers(p.guild.id)) if (m !== p) this.push(m);
+    const members = this.onlineByGuild.get(p.guild.id);
+    members?.delete(p);
+    if (members?.size === 0) this.onlineByGuild.delete(p.guild.id);
   }
 
   private get repo() {
@@ -62,12 +89,18 @@ export class GuildService {
 
   /** Online members of a guild. */
   onlineMembers(guildId: number): PlayerSession[] {
-    return [...this.world.allPlayers()].filter((m) => m.guild?.id === guildId && this.world.isLive(m));
+    const members = this.onlineByGuild.get(guildId);
+    return members ? [...members].filter((m) => this.world.isLive(m)) : [];
   }
 
   /** Tag shown under a player's name (empty without a guild). */
   tagOf(p: PlayerSession): string {
-    return p.guild ? (this.repo.get(p.guild.id)?.tag ?? '') : '';
+    return p.guild ? this.repo.tag(p.guild.id) : '';
+  }
+
+  /** Largest number of members of a guild (System settings). */
+  private maxMembers(): number {
+    return this.world.ctx.settings.get('guildMaxMembers', DEFAULT_SETTINGS.guildMaxMembers);
   }
 
   /** Tells whether a member has a permission. */
@@ -90,7 +123,7 @@ export class GuildService {
   /** A player entered the world: its guild is loaded. */
   playerJoined(p: PlayerSession): void {
     const m = this.repo.membership(p.characterId);
-    p.guild = m ? { id: m.guildId, rank: m.rank } : null;
+    this.setGuild(p, m ? { id: m.guildId, rank: m.rank } : null);
   }
 
   /** Reads the guild data once from SQLite so `pushAll` can serve every online member without N+1 queries. */
@@ -164,7 +197,7 @@ export class GuildService {
 
   /** Sends the guild window to every online member (computing SQLite rows once). */
   private pushAll(guildId: number): void {
-    const online = this.onlineMembers(guildId).filter((m) => this.world.isLive(m));
+    const online = this.onlineMembers(guildId);
     if (online.length === 0) return;
     const loaded = this.loadSharedView(guildId);
     for (const m of online) m.socket.emit('guild', loaded ? this.viewFor(loaded, m) : null);
@@ -186,7 +219,7 @@ export class GuildService {
     const cost = this.world.ctx.settings.get('guildCreationCost', DEFAULT_SETTINGS.guildCreationCost);
     const result = this.repo.create(p.characterId, n, t, sanitizeEmblem(emblem), cost);
     if (!result.ok) return this.notify(p, result.error, { cost, currency: this.world.currencyName() });
-    p.guild = { id: result.guild.id, rank: 0 };
+    this.setGuild(p, { id: result.guild.id, rank: 0 });
     p.socket.emit('playerUpdate', { gold: this.world.ctx.inventory.gold(p.characterId) });
     this.world.pushInventory(p);
     this.notify(p, 'notify.guild_created', { name: n });
@@ -200,6 +233,8 @@ export class GuildService {
     if (!p.guild || !this.can(p, GuildPermission.Invite)) return this.notify(p, 'error.guild.permission');
     if (!target || target === p || !this.world.isLive(target) || target.invisible || this.world.social.ignores(target, p.characterId)) return this.notify(p, 'error.guild.unavailable');
     if (target.guild) return this.notify(p, 'error.guild.target_in_guild', { name: target.name });
+    const max = this.maxMembers();
+    if (this.repo.memberCount(p.guild.id) >= max) return this.notify(p, 'error.guild.full', { max });
     const wait = this.throttle.take(p.characterId, target.characterId);
     if (wait > 0) return this.notify(p, 'error.social.too_soon', { name: target.name, seconds: Math.ceil(wait / 1000) });
     const guild = this.repo.get(p.guild.id);
@@ -223,8 +258,16 @@ export class GuildService {
     this.throttle.accepted(invite.from, p.characterId);
     // The one who invited may have left the guild, been excluded or lost the right to invite meanwhile.
     if (!this.mayStillInvite(invite.from, invite.guildId)) return this.notify(p, 'error.guild.invite_expired');
-    if (!this.repo.get(invite.guildId) || !this.repo.addMember(invite.guildId, p.characterId, GUILD_RANKS - 1)) return;
-    p.guild = { id: invite.guildId, rank: GUILD_RANKS - 1 };
+    if (!this.repo.get(invite.guildId)) return;
+    // Counted and added in one transaction: two invitations accepted together cannot both take the last place.
+    const max = this.maxMembers();
+    const joined = this.world.ctx.db.transaction((): 'ok' | 'full' | 'refused' => {
+      if (this.repo.memberCount(invite.guildId) >= max) return 'full';
+      return this.repo.addMember(invite.guildId, p.characterId, GUILD_RANKS - 1) ? 'ok' : 'refused';
+    })();
+    if (joined === 'full') return this.notify(p, 'error.guild.full', { max });
+    if (joined !== 'ok') return;
+    this.setGuild(p, { id: invite.guildId, rank: GUILD_RANKS - 1 });
     this.repo.log(invite.guildId, p.characterId, 'joined');
     for (const m of this.onlineMembers(invite.guildId)) this.notify(m, 'notify.guild_joined', { name: p.name });
     this.pushAll(invite.guildId);
@@ -245,7 +288,7 @@ export class GuildService {
       this.repo.removeMember(p.characterId);
       this.repo.log(guildId, p.characterId, 'left');
     }
-    p.guild = null;
+    this.setGuild(p, null);
     this.push(p);
     this.tagChanged(p);
     this.pushAll(guildId);
@@ -289,7 +332,7 @@ export class GuildService {
     this.repo.log(p.guild.id, p.characterId, 'kicked', { name: target.name });
     const online = this.world.player(targetId);
     if (online) {
-      online.guild = null;
+      this.setGuild(online, null);
       this.notify(online, 'notify.guild_kicked');
       this.push(online);
       this.tagChanged(online);
@@ -342,7 +385,8 @@ export class GuildService {
   /** Renames a rank below the player's and sets its permissions. */
   editRank(p: PlayerSession, rank: number, name: string, permissions: number): void {
     if (!p.guild || !this.can(p, GuildPermission.Ranks) || !Number.isInteger(rank) || rank <= p.guild.rank || rank >= GUILD_RANKS) return this.notify(p, 'error.guild.permission');
-    const n = name.trim().slice(0, 20) || `#${rank}`;
+    // Same cleaning as the chat: no control, invisible or direction-changing characters in what other members read.
+    const n = cleanPlayerText(name, 20) || `#${rank}`;
     // A rank never gets permissions its editor does not have.
     const mine = p.guild.rank === 0 ? 63 : (this.repo.ranks(p.guild.id)[p.guild.rank]?.permissions ?? 0);
     this.repo.setRankInfo(p.guild.id, rank, n, (permissions & 63) & mine);
@@ -353,7 +397,7 @@ export class GuildService {
   /** Changes the message of the day. */
   setMotd(p: PlayerSession, motd: string): void {
     if (!p.guild || !this.can(p, GuildPermission.Motd)) return this.notify(p, 'error.guild.permission');
-    this.repo.setMotd(p.guild.id, motd.replace(/[\u0000-\u001f]/g, ' ').slice(0, 300));
+    this.repo.setMotd(p.guild.id, cleanPlayerText(motd, 300));
     this.repo.log(p.guild.id, p.characterId, 'motd');
     this.pushAll(p.guild.id);
   }

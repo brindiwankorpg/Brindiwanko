@@ -5,8 +5,9 @@
  * for another one (or for a moderator). SQLite only ignores the case of ASCII
  * letters, so names are compared through a key: Unicode compatibility form
  * (NFKC, which also turns full-width or styled letters into plain ones), lower
- * case in every alphabet, and the Cyrillic and Greek letters drawn like Latin
- * ones replaced by those. Names mixing these three alphabets are refused.
+ * case in every alphabet, and the Cyrillic, Greek and Armenian letters drawn
+ * like Latin ones replaced by those. Names mixing the Latin, Cyrillic, Greek,
+ * Armenian and Cherokee alphabets are refused.
  */
 
 /** Cyrillic and Greek letters (lower case) drawn like Latin letters. */
@@ -17,12 +18,14 @@ const LOOK_ALIKES: Readonly<Record<string, string>> = {
   // Greek.
   'α': 'a', 'β': 'b', 'ε': 'e', 'ζ': 'z', 'η': 'h', 'ι': 'i', 'κ': 'k', 'μ': 'm', 'ν': 'n', 'ο': 'o', 'ρ': 'p', 'τ': 't', 'υ': 'y',
   'χ': 'x', 'ϲ': 'c', 'ϳ': 'j',
+  // Armenian.
+  'օ': 'o', 'ս': 'u', 'ո': 'n', 'հ': 'h', 'ց': 'g', 'զ': 'q',
   // Latin letters without their dot.
   'ı': 'i', 'ȷ': 'j',
 };
 
-/** Alphabets whose letters can be confused with each other. */
-const CONFUSABLE_SCRIPTS = [/\p{Script=Latin}/u, /\p{Script=Cyrillic}/u, /\p{Script=Greek}/u];
+/** Alphabets whose letters can be confused with each other (Cherokee capitals are drawn like Latin ones). */
+const CONFUSABLE_SCRIPTS = [/\p{Script=Latin}/u, /\p{Script=Cyrillic}/u, /\p{Script=Greek}/u, /\p{Script=Armenian}/u, /\p{Script=Cherokee}/u];
 
 /**
  * Key under which two names are considered the same.
@@ -34,7 +37,7 @@ export function nameKey(name: string): string {
   return key.replace(/\s+/g, ' ').trim();
 }
 
-/** Tells whether a name mixes the Latin, Cyrillic and Greek alphabets. */
+/** Tells whether a name mixes the Latin, Cyrillic, Greek, Armenian and Cherokee alphabets. */
 export function mixesScripts(name: string): boolean {
   return CONFUSABLE_SCRIPTS.filter((script) => script.test(name)).length > 1;
 }

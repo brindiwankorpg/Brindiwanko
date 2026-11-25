@@ -163,7 +163,7 @@ export interface PlayerCombat {
   granted: number[];
   /** Last time the player was hurt (regeneration starts a while after). */
   lastHurt: number;
-  /** Arrival protection: monsters ignore the player until this time (loading screen), or until it attacks. */
+  /** Arrival protection: monsters and other players leave the player alone until this time (loading screen), or until it attacks. */
   protectedUntil: number;
   /** Earliest time to tell again that a raid boss waits for more players. */
   bossWaitNoticeAt?: number;
@@ -175,6 +175,9 @@ export interface PlayerCombat {
 export const JOIN_PROTECTION_MS = 8000;
 /** Same, after changing map. */
 export const TRANSFER_PROTECTION_MS = 3000;
+
+/** Zone without players (shared, never filled). */
+const EMPTY_ZONE: ReadonlySet<PlayerSession> = new Set();
 
 /** Name of the socket.io room of a map (or of one instance of an instanced map). */
 export const mapRoom = (mapId: number, instance = 0): string => (instance ? `map:${mapId}:${instance}` : `map:${mapId}`);
@@ -375,6 +378,14 @@ export class World {
     return set ? [...set] : [];
   }
 
+  /**
+   * Players currently in a zone, without a copy, for a walk that only reads them (monster AI, targeting): the
+   * walk must not transfer, add or remove players (use {@link playersOn} for that).
+   */
+  zoneMembers(mapId: number, instance: number): ReadonlySet<PlayerSession> {
+    return this.zonePlayers.get(mapRoom(mapId, instance)) ?? EMPTY_ZONE;
+  }
+
   /** Adds a player to the zone indexes (its map and instance must not change until {@link unindex}). */
   private index(p: PlayerSession): void {
     const key = mapRoom(p.mapId, p.instance);
@@ -488,8 +499,27 @@ export class World {
     return (this.isGlobalVariable(id) ? this.global.variables.get(id) : p.progress.variables.get(id)) ?? 0;
   }
 
-  /** Players whose events must be refreshed once the current atchRefresh ends. */
+  /** Players whose events must be refreshed once the current batchRefresh ends. */
   private deferredRefresh: Set<PlayerSession> | null = null;
+  /**
+   * A global switch or variable changed since the last tick: every player's events are refreshed once at
+   * the next tick, however many changes came in between (an event flipping a global switch in a loop
+   * costs at most one refresh of everyone per tick, not one per change).
+   */
+  private globalRefreshPending = false;
+
+  /** Asks for a refresh of every player's events at the next tick. */
+  private requestGlobalRefresh(): void {
+    this.globalRefreshPending = true;
+  }
+
+  /** Refreshes every player's events if a global switch or variable changed since the last tick. */
+  private flushGlobalRefresh(): void {
+    if (!this.globalRefreshPending) return;
+    this.globalRefreshPending = false;
+    // A copy: starting a player's automatic events may transfer or remove players.
+    for (const p of [...this.players.values()]) this.refreshEvents(p);
+  }
 
   /**
    * Runs a synchronous block that changes many switches or variables: the events of each player concerned
@@ -507,7 +537,7 @@ export class World {
     }
   }
 
-  /** Sets a switch; a global one refreshes every player's events. */
+  /** Sets a switch; a global one refreshes the player's events at once and everyone's at the next tick. */
   setSwitch(p: PlayerSession, id: number, on: boolean): void {
     if (!Number.isInteger(id) || id < 1 || id > 9999 || this.getSwitch(p, id) === on) return;
     if (this.instanceSwitchIds.has(id)) {
@@ -520,20 +550,24 @@ export class World {
     }
     if (this.isGlobalSwitch(id)) {
       this.ctx.progression.setGlobalSwitch(this.global, id, on);
-      for (const other of this.players.values()) this.refreshEvents(other);
+      this.refreshEvents(p);
+      this.requestGlobalRefresh();
     } else {
       this.ctx.progression.setSwitch(p.characterId, p.progress, id, on);
       this.refreshEvents(p);
     }
   }
 
-  /** Sets a variable; a global one refreshes every player's events. */
+  /** Sets a variable; a global one refreshes the player's events at once and everyone's at the next tick. */
   setVariable(p: PlayerSession, id: number, value: number): void {
     if (!Number.isInteger(id) || id < 1 || id > 9999 || !Number.isFinite(value)) return;
     const before = this.getVariable(p, id);
     if (this.isGlobalVariable(id)) {
       this.ctx.progression.setGlobalVariable(this.global, id, value);
-      if (this.getVariable(p, id) !== before) for (const other of this.players.values()) this.refreshEvents(other);
+      if (this.getVariable(p, id) !== before) {
+        this.refreshEvents(p);
+        this.requestGlobalRefresh();
+      }
     } else {
       this.ctx.progression.setVariable(p.characterId, p.progress, id, value);
       if (this.getVariable(p, id) !== before) this.refreshEvents(p);
@@ -696,7 +730,7 @@ export class World {
     p.hp = Math.min(p.hp, vitals.maxHp);
     p.mp = Math.min(p.mp, vitals.maxMp);
     this.setupEvents(p, runtime);
-    const terms = this.ctx.settings.get('terms', DEFAULT_SETTINGS.terms);
+    const terms = this.ctx.settings.peek('terms', DEFAULT_SETTINGS.terms);
     const payload: EnterWorldPayload = {
       ...this.mapPayload(p, runtime),
       character: { ...playerInfo(this.ctx, character), mapId, x, y, direction, ...this.maxVitals(p), hp: p.hp, mp: p.mp, guildTag: this.guilds.tagOf(p) },
@@ -731,7 +765,10 @@ export class World {
     this.runner.startTriggers(p);
   }
 
-  /** Removes a player and saves its state. */
+  /**
+   * Removes a player and saves its state. A save the database refuses (full disk...) is logged like a failed
+   * autosave: the player still leaves the world, so that no session without a socket stays behind.
+   */
   leave(characterId: number): void {
     const p = this.players.get(characterId);
     if (!p) return;
@@ -739,7 +776,11 @@ export class World {
     this.party.playerLeft(p);
     this.combat.playerLeft(p);
     this.leaveRoom(p);
-    this.save([p]);
+    try {
+      this.save([p]);
+    } catch (err) {
+      console.error(`[brindiwanko] character #${characterId} could not be saved when leaving the world`, err);
+    }
     p.mapGen++;
     this.unindex(p);
     this.players.delete(characterId);
@@ -748,6 +789,7 @@ export class World {
     this.runner.forget(characterId);
     this.guilds.playerLeft(p);
     this.guilds.memberPresenceChanged(p);
+    this.ctx.progression.forgetEquipment([characterId]);
   }
 
   /** Start position of the System settings. */
@@ -775,8 +817,12 @@ export class World {
     for (const p of [...this.players.values()]) {
       if (p.accountId !== accountId) continue;
       p.socket.emit('errorMessage', { key, params });
-      this.leave(p.characterId);
-      p.socket.disconnect(true);
+      // A banned or kicked player is disconnected whatever happens while it is taken out of the world.
+      try {
+        this.leave(p.characterId);
+      } finally {
+        p.socket.disconnect(true);
+      }
     }
   }
 
@@ -846,8 +892,9 @@ export class World {
   /** Spatial grids reused by {@link tick}, one pair per map size. */
   private readonly aoiGrids = new Map<string, { players: AoiGrid<PlayerSession>; monsters: AoiGrid<[number, number, number, Direction]> }>();
 
-  /** Server tick: flushes queued position changes to each map room. */
+  /** Server tick: refreshes events after global changes, then flushes queued position changes to each map room. */
   tick(): void {
+    this.flushGlobalRefresh();
     if (!this.io) return;
     const monsterMoves = new Map<string, Set<number>>();
     for (const [mapId, instance, moves] of this.combat.flushMoves()) monsterMoves.set(mapRoom(mapId, instance), new Set(moves.map((m) => m[0])));
@@ -991,9 +1038,9 @@ export class World {
     return true;
   }
 
-  /** Handles a turn intent. */
+  /** Handles a turn intent: like a step, refused while busy, knocked out or held in place by a state. */
   turn(p: PlayerSession, direction: Direction): void {
-    if (p.busy || p.direction === direction || p.combat.dead) return;
+    if (p.busy || p.direction === direction || !this.combat.canMove(p)) return;
     p.direction = direction;
     this.queueMove(p);
   }
@@ -1067,7 +1114,7 @@ export class World {
     p.y = y;
     if (direction) p.direction = direction;
     p.epoch++;
-    p.stepTokens = STEP_BURST;
+    // The step bucket keeps what it had: a teleporter must not hand out a burst of instant steps.
     p.combat.protectedUntil = Math.max(p.combat.protectedUntil, Date.now() + TRANSFER_PROTECTION_MS);
     this.setupEvents(p, runtime);
     p.socket.emit('mapChange', { ...this.mapPayload(p, runtime), x, y, direction: p.direction, epoch: p.epoch, fade });
@@ -1134,10 +1181,24 @@ export class World {
     for (const [id, runtime] of [...this.maps]) if (runtime.map.tilesetId === tilesetId) this.reloadMap(id);
   }
 
-  /** Sends every player of a map to the start position (the map is being deleted). */
+  /**
+   * Sends every player of a map to the start position (the map is being deleted). A start that refuses the
+   * player (deleted map, instance it may not enter) gives way to its class start; failing both, the player
+   * is taken out of the world (saved at the start, where it appears when it comes back) rather than left
+   * on a map that no longer exists.
+   */
   evacuateMap(mapId: number): void {
-    const start = this.ctx.settings.get<StartPosition>('startPosition', DEFAULT_SETTINGS.startPosition);
-    for (const p of this.playersOn(mapId)) this.transfer(p, start.mapId, start.x, start.y, start.direction);
+    for (const p of this.playersOn(mapId)) {
+      const system = this.startPosition();
+      const own = this.startPosition(p.classId);
+      const moved =
+        (system.mapId !== mapId && this.transfer(p, system.mapId, system.x, system.y, system.direction)) ||
+        (own.mapId !== mapId && this.transfer(p, own.mapId, own.x, own.y, own.direction));
+      if (moved) continue;
+      p.socket.emit('errorMessage', { key: 'error.net.no_map' });
+      this.leave(p.characterId);
+      p.socket.disconnect(true);
+    }
     this.maps.delete(mapId);
   }
 
@@ -1254,15 +1315,19 @@ export class World {
   private save(list: readonly PlayerSession[]): void {
     if (list.length === 0) return;
     const now = Date.now();
+    // Whole seconds played since the last save. The save time only moves once they are written: a write the
+    // database refuses leaves them to the next save instead of losing them.
+    const deltas = list.map((p) => Math.floor((now - p.savedAt) / 1000));
     this.ctx.characters.saveStates(
-      list.map((p) => {
-        const delta = Math.floor((now - p.savedAt) / 1000);
-        p.savedAt += delta * 1000;
+      list.map((p, i) => {
         // A knocked-out player is saved as it will reappear (respawn point, full HP and MP).
         const s = p.combat.dead ? this.combat.respawnState(p) : p;
-        return [p.characterId, { mapId: s.mapId, x: s.x, y: s.y, direction: s.direction, hp: s.hp, mp: s.mp, playTimeDelta: delta }] as const;
+        return [p.characterId, { mapId: s.mapId, x: s.x, y: s.y, direction: s.direction, hp: s.hp, mp: s.mp, playTimeDelta: deltas[i]! }] as const;
       }),
     );
+    list.forEach((p, i) => {
+      p.savedAt += deltas[i]! * 1000;
+    });
     // Story progress is changed in memory by the events: it reaches the database here.
     for (const p of list) this.ctx.progression.flush(p.characterId, p.progress);
   }
@@ -1285,8 +1350,12 @@ export class World {
     this.save([...this.players.values()]);
   }
 
-  /** Stops timers and saves everyone. */
+  private closed = false;
+
+  /** Stops timers and saves everyone (once: a second call, at the end of a shutdown, does nothing). */
   close(): void {
+    if (this.closed) return;
+    this.closed = true;
     for (const t of this.timers) clearInterval(t);
     try {
       this.saveAll();

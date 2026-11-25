@@ -40,6 +40,9 @@ export type CreateResult = { ok: true; guild: Guild } | { ok: false; error: 'err
 
 /** Data access for guilds. */
 export class GuildRepository {
+  /** Tag of each guild, shown under the names of its members to everyone around (read at every map entry). */
+  private readonly tags = new Map<number, string>();
+
   constructor(private readonly db: Db) {
     // Guilds founded before name keys existed get theirs.
     const missing = db.prepare<[], { id: number; name: string; tag: string }>('SELECT id, name, tag FROM guilds WHERE name_key IS NULL OR tag_key IS NULL').all();
@@ -53,6 +56,21 @@ export class GuildRepository {
 
   get(id: number): Guild | undefined {
     return this.toGuild(prepareCached<[number], GuildRow>(this.db, 'SELECT id, name, tag, emblem, motd, level, xp, gold FROM guilds WHERE id = ?').get(id));
+  }
+
+  /** Tag of a guild (empty when it does not exist), kept in memory: a tag never changes once the guild is founded. */
+  tag(id: number): string {
+    let tag = this.tags.get(id);
+    if (tag === undefined) {
+      tag = prepareCached<[number], string>(this.db, 'SELECT tag FROM guilds WHERE id = ?', { pluck: true }).get(id) ?? '';
+      this.tags.set(id, tag);
+    }
+    return tag;
+  }
+
+  /** Number of members of a guild. */
+  memberCount(guildId: number): number {
+    return prepareCached<[number], number>(this.db, 'SELECT COUNT(*) FROM guild_members WHERE guild_id = ?', { pluck: true }).get(guildId) ?? 0;
   }
 
   /**
@@ -121,6 +139,7 @@ export class GuildRepository {
       DEFAULT_RANKS.forEach((r, i) => prepareCached(this.db, 'INSERT INTO guild_ranks (guild_id, rank, name, permissions) VALUES (?, ?, ?, ?)').run(id, i, r.name, r.permissions));
       prepareCached(this.db, 'INSERT INTO guild_members (character_id, guild_id, rank) VALUES (?, ?, 0)').run(founderId, id);
       this.log(id, founderId, 'created', { name });
+      this.tags.delete(id);
       return { ok: true, guild: this.get(id)! };
     }).immediate();
   }
@@ -149,6 +168,7 @@ export class GuildRepository {
   /** Deletes a guild (its members, ranks, bank and log go with it). */
   disband(guildId: number): void {
     prepareCached(this.db, 'DELETE FROM guilds WHERE id = ?').run(guildId);
+    this.tags.delete(guildId);
   }
 
   /** Stores level and experience. */

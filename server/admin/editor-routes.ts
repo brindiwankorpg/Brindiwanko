@@ -26,8 +26,8 @@ import { verifyCsrfHeader } from '../http/csrf.js';
 import { SlidingWindowLimiter } from '../http/rate-limit.js';
 import { databaseRouter, MAX_USAGES } from './database-routes.js';
 import { findMapUsages } from './db-usage.js';
-import { imageSize, scanResources } from '../resources/scanner.js';
-import { MAX_UPLOAD_BYTES, deleteUpload, guessKind, sanitizeName, sniffType, storeUpload } from '../resources/uploads.js';
+import { imageSize, scanResources, scanUploadedFile } from '../resources/scanner.js';
+import { MAX_UPLOAD_BYTES, deleteUpload, guessKind, sanitizeName, sniffType, storeUploadAsync } from '../resources/uploads.js';
 import { exportMap, importProject } from '../importers/project.js';
 import { ZipError, readZip } from '../importers/zip.js';
 
@@ -125,8 +125,13 @@ export function editorRouter(ctx: ServerContext): Router {
     }
     const { map, baseVersion } = req.body as { map?: unknown; baseVersion?: unknown };
     // The editor sends the revision its copy was loaded from: a copy made before somebody else's save (a lock
-    // that expired while a computer slept, a second tab) must not silently replace that work.
-    if (baseVersion !== undefined && baseVersion !== ctx.maps.revision(id)) {
+    // that expired while a computer slept, a second tab) must not silently replace that work. A save without
+    // it could not be checked, and is refused.
+    if (typeof baseVersion !== 'number') {
+      fail(res, 400, 'error.http.bad_request');
+      return;
+    }
+    if (baseVersion !== ctx.maps.revision(id)) {
       fail(res, 409, 'error.editor.map_conflict');
       return;
     }
@@ -293,7 +298,7 @@ export function editorRouter(ctx: ServerContext): Router {
 
   // --- Resources ---------------------------------------------------------------
 
-  router.post('/resources', express.raw({ type: '*/*', limit: MAX_UPLOAD_BYTES }), (req, res) => {
+  router.post('/resources', express.raw({ type: '*/*', limit: MAX_UPLOAD_BYTES }), async (req, res) => {
     const data = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
     const name = sanitizeName(String(req.query.name ?? ''));
     let kind = String(req.query.kind ?? 'auto');
@@ -302,12 +307,15 @@ export function editorRouter(ctx: ServerContext): Router {
       const { width, height } = imageSize(data, type === 'svg' ? '.svg' : `.${type ?? ''}`);
       kind = type === 'ogg' || type === 'm4a' || type === 'mp3' || type === 'wav' ? 'se' : guessKind(name, width, height);
     }
-    const result = storeUpload(kind, name, data);
+    // The file is written off the game loop, and only its own entry of the manifest is updated.
+    const result = await storeUploadAsync(kind, name, data);
     if (!result.ok) {
       fail(res, 400, result.errorKey, result.params);
       return;
     }
-    ctx.resources.sync(scanResources());
+    const entry = await scanUploadedFile(result.file, result.kind, data);
+    if (entry) ctx.resources.upsert(entry);
+    else ctx.resources.sync(scanResources());
     res.json({ resource: ctx.resources.all().find((r) => r.id === result.id) ?? null });
   });
 

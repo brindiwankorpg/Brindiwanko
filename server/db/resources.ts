@@ -76,6 +76,11 @@ export class ResourceRepository {
    * @param scanned - Resources currently present on disk.
    * @returns Counts of changes.
    */
+  /** Adds or replaces the entry of one resource (a file just uploaded), without touching the others. */
+  upsert(r: ScannedResource): void {
+    this.upsertStmt.run(r.id, r.kind, r.name, r.path, r.format, r.mime, r.width, r.height, r.hash, r.origin);
+  }
+
   sync(scanned: readonly ScannedResource[]): { added: number; removed: number; total: number } {
     return this.db.transaction(() => {
       const existing = new Set(this.allStmt.all().map((r) => r.id));

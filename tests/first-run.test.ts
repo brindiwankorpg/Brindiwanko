@@ -61,7 +61,7 @@ test('a new database gets its demo content in the chosen language, and remembers
   assert.equal(en.data.get('class', 1)?.name, 'Warrior');
   assert.equal(en.data.get('item', 1)?.name, 'Potion');
   assert.equal(en.settings.get('currencyName', ''), 'Gold');
-  assert.deepEqual(en.maps.infos().map((m) => m.name), ['Village', 'Forest', "Tomas's House", 'Cave (dungeon)']);
+  assert.deepEqual(en.maps.infos().map((m) => m.name), ['Village', 'Forest', "Thomas's House", 'Cave (dungeon)']);
   assert.equal(en.maps.get(1)?.displayName, 'Brindiwanko Village');
   const fr = seeded('fr');
   assert.equal(fr.data.get('class', 1)?.name, 'Guerrier');

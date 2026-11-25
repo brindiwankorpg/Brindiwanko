@@ -26,7 +26,7 @@
  */
 import { EQUIP_SLOTS } from '../../shared/database.js';
 import { nameKey } from '../../shared/names.js';
-import { MAX_CHAT_LENGTH, MAX_REPORT_LENGTH, type ChatMessage, type FriendsPayload, type InspectPayload, type ItemLink, type WritableChannel } from '../../shared/social.js';
+import { MAX_CHAT_LENGTH, MAX_REPORT_LENGTH, type ChatMessage, type FriendView, type FriendsPayload, type InspectPayload, type ItemLink, type WritableChannel } from '../../shared/social.js';
 import { sqlDate } from '../db/admin.js';
 import { isStaff } from './moderation-commands.js';
 import type { PlayerSession, World } from './world.js';
@@ -53,9 +53,17 @@ const EMOJI_JOINERS = /[‍️]/g;
  */
 const INVISIBLE = /(?![‍️])\p{Default_Ignorable_Code_Point}/gu;
 
+/**
+ * Text a player writes for others to read (chat, guild message of the day, rank names): no control, invisible
+ * or direction-changing characters, trimmed, cut to a maximum length.
+ */
+export function cleanPlayerText(raw: string, max: number): string {
+  return raw.replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ').replace(INVISIBLE, '').trim().slice(0, max);
+}
+
 /** A line typed in the chat as it is handled: no control or invisible characters, trimmed, cut to the maximum length. */
 export function cleanChatLine(raw: string): string {
-  return raw.replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ').replace(INVISIBLE, '').trim().slice(0, MAX_CHAT_LENGTH);
+  return cleanPlayerText(raw, MAX_CHAT_LENGTH);
 }
 
 /**
@@ -102,6 +110,8 @@ export class SocialService {
    */
   partyMembers: (p: PlayerSession) => PlayerSession[] | null = () => null;
   guildMembers: (p: PlayerSession) => PlayerSession[] | null = () => null;
+  /** Players in the world by name key, so that finding one by name does not scan and normalize every name. */
+  private readonly byName = new Map<string, PlayerSession>();
 
   constructor(private readonly world: World) {}
 
@@ -117,11 +127,14 @@ export class SocialService {
     p.social = emptySocial();
     p.social.friends = new Set(repo.friends(p.characterId).map((f) => f.id));
     p.social.ignored = new Set(repo.ignored(p.characterId).map((f) => f.id));
+    this.byName.set(nameKey(p.name), p);
     this.presence(p, true);
   }
 
   /** A player left the world: friends told. */
   playerLeft(p: PlayerSession): void {
+    const key = nameKey(p.name);
+    if (this.byName.get(key) === p) this.byName.delete(key);
     this.presence(p, false);
   }
 
@@ -132,36 +145,44 @@ export class SocialService {
 
   /**
    * Tells the friends of a player that it comes or goes (an invisible player comes and goes unseen,
-   * and somebody it ignores is never told).
+   * and somebody it ignores is never told). Each of them gets the new line of this friend only, not its
+   * whole list read again from the database.
    */
   private presence(p: PlayerSession, online: boolean, force = false): void {
     if (p.invisible && !force) return;
     for (const id of this.ctx.social.friendOf(p.characterId)) {
       const other = this.world.player(id);
-      if (!other || other === p || this.ignores(p, id)) continue;
+      if (!other || other === p || this.ignores(p, id) || !this.world.isLive(other)) continue;
       other.socket.emit('notify', { key: online ? 'notify.friend_online' : 'notify.friend_offline', params: { name: p.name } });
-      this.pushFriends(other);
+      other.socket.emit('friendPresence', this.friendView(other, p.characterId, p.name, p.level));
     }
+  }
+
+  /**
+   * One line of a player's friends window.
+   * @param viewer - Owner of the window.
+   * @param savedLevel - Level of the friend when it is not in the world.
+   */
+  private friendView(viewer: PlayerSession, id: number, name: string, savedLevel: number | null | undefined): FriendView {
+    const other = this.world.player(id);
+    // A player who ignores this one appears offline to it (nor where it plays).
+    const online = !!other && this.world.isLive(other) && !other.invisible && !this.ignores(other, viewer.characterId);
+    // Anyone may add anyone: where a player is, is only told to those it counts among its own friends.
+    const mutual = online && other!.social.friends.has(viewer.characterId);
+    return {
+      id,
+      name,
+      online,
+      location: mutual ? this.world.mapRuntime(other!.mapId)?.map.displayName || '' : '',
+      level: other?.level ?? savedLevel ?? 1,
+    };
   }
 
   /** The friends window of a player. */
   friendsPayload(p: PlayerSession): FriendsPayload {
     const repo = this.ctx.social;
     return {
-      friends: repo.friends(p.characterId).map((f) => {
-        const other = this.world.player(f.id);
-        // A player who ignores this one appears offline to it (nor where it plays).
-        const online = !!other && this.world.isLive(other) && !other.invisible && !this.ignores(other, p.characterId);
-        // Anyone may add anyone: where a player is, is only told to those it counts among its own friends.
-        const mutual = online && other!.social.friends.has(p.characterId);
-        return {
-          id: f.id,
-          name: f.name,
-          online,
-          location: mutual ? this.world.mapRuntime(other!.mapId)?.map.displayName || '' : '',
-          level: other?.level ?? f.level ?? 1,
-        };
-      }),
+      friends: repo.friends(p.characterId).map((f) => this.friendView(p, f.id, f.name, f.level)),
       ignored: repo.ignored(p.characterId),
     };
   }
@@ -351,9 +372,8 @@ export class SocialService {
    * others see it: an invisible player is not found.
    */
   findOnline(name: string): PlayerSession | undefined {
-    const key = nameKey(name);
-    for (const p of this.world.allPlayers()) if (!p.invisible && this.world.isLive(p) && nameKey(p.name) === key) return p;
-    return undefined;
+    const p = this.byName.get(nameKey(name));
+    return p && !p.invisible && this.world.isLive(p) ? p : undefined;
   }
 
   /**

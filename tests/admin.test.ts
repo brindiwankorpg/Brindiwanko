@@ -43,13 +43,26 @@ interface Account {
 async function account(name: string): Promise<Account> {
   const client = new TestClient(server.url);
   await client.post('/register', { _csrf: await client.csrf('/register'), username: name, email: `${name.toLowerCase()}@example.com`, password: 'secret password', passwordConfirm: 'secret password' });
+  return withApi(client, server.ctx.accounts.findByUsername(name)!.id);
+}
+
+/** The server owner (first account of this server), logged in in a new browser. */
+async function owner(): Promise<Account> {
+  const id = server.ctx.accounts.ownerId();
+  const client = new TestClient(server.url);
+  await client.post('/login', { _csrf: await client.csrf('/login'), username: server.ctx.accounts.findById(id)!.username, password: 'secret password' });
+  return withApi(client, id);
+}
+
+/** An account's browser with the administration API at hand. */
+async function withApi(client: TestClient, id: number): Promise<Account> {
   const csrf = await client.csrf('/characters');
   const api = async <T,>(method: string, path: string, body?: unknown) => {
     const res = await client.request(`/api/admin${path}`, { method, headers: { 'content-type': 'application/json', 'x-csrf-token': csrf }, body: body === undefined ? undefined : JSON.stringify(body) });
     const isJson = res.headers.get('content-type')?.includes('json');
     return { status: res.status, body: (isJson ? await res.json() : await res.arrayBuffer()) as T };
   };
-  return { client, id: server.ctx.accounts.findByUsername(name)!.id, api };
+  return { client, id, api };
 }
 
 interface Player {
@@ -184,7 +197,9 @@ test('a promotion applies at once in game, a demotion too (and frees the editor)
   assert.equal((await member.client.request('/api/editor/bootstrap', { headers: { 'x-csrf-token': csrf } })).status, 200);
   server.ctx.editLocks.acquire(1, member.id, 'Member');
 
-  assert.equal((await boss.api('POST', `/accounts/${member.id}/role`, { role: 'player' })).status, 200);
+  // An administrator is demoted by the server owner only.
+  assert.equal((await boss.api('POST', `/accounts/${member.id}/role`, { role: 'player' })).status, 403);
+  assert.equal((await (await owner()).api('POST', `/accounts/${member.id}/role`, { role: 'player' })).status, 200);
   await until(() => roles.at(-1) === 'player');
   assert.equal(p.session.socket.data.role, 'player');
   assert.equal(server.ctx.editLocks.holder(1), undefined, 'the edit lock is released');
@@ -198,19 +213,22 @@ test('resetting a password logs the account out of every web session', async () 
   const victim = await account('Victim');
   assert.equal((await victim.client.request('/characters')).status, 200);
 
-  const reset = await boss.api<{ password: string }>('POST', `/accounts/${victim.id}/reset-password`);
+  // The administrator confirms with its own password.
+  assert.equal((await boss.api('POST', `/accounts/${victim.id}/reset-password`, { password: 'wrong password' })).status, 403);
+  const reset = await boss.api<{ password: string }>('POST', `/accounts/${victim.id}/reset-password`, { password: 'secret password' });
   assert.equal(reset.status, 200);
   // The old session (maybe a thief's) is gone: the next page asks to log in.
   assert.equal((await victim.client.request('/characters')).status, 303);
 
   // An administrator resetting its own password keeps its current session.
-  assert.equal((await boss.api('POST', `/accounts/${boss.id}/reset-password`)).status, 200);
+  const own = await boss.api<{ password: string }>('POST', `/accounts/${boss.id}/reset-password`, { password: 'secret password' });
+  assert.equal(own.status, 200);
   assert.equal((await boss.client.request('/characters')).status, 200);
 
   // Changing or resetting a password releases editor locks even without an active game socket,
   // and another administrator cannot rename a map locked by someone else (while expanding/reordering still works).
   server.ctx.editLocks.acquire(1, victim.id, 'Victim');
-  assert.equal((await boss.api('POST', `/accounts/${victim.id}/reset-password`)).status, 200);
+  assert.equal((await boss.api('POST', `/accounts/${victim.id}/reset-password`, { password: own.body.password })).status, 200);
   assert.equal(server.ctx.editLocks.holder(1), undefined);
   server.ctx.editLocks.acquire(1, victim.id, 'Victim');
   const bossCsrf = await boss.client.csrf('/characters');
@@ -321,10 +339,14 @@ test('the server owner keeps its role and password whatever another administrato
   const demote = await other.api<{ error: string }>('POST', `/accounts/${ownerId}/role`, { role: 'player' });
   assert.equal(demote.status, 403);
   assert.equal(demote.body.error, 'error.admin.owner');
-  assert.equal((await other.api('POST', `/accounts/${ownerId}/reset-password`)).status, 403);
+  assert.equal((await other.api('POST', `/accounts/${ownerId}/reset-password`, { password: 'secret password' })).status, 403);
   assert.equal(server.ctx.accounts.findById(ownerId)!.role, 'admin');
-  // The other administrators still manage each other.
-  assert.equal((await other.api('POST', `/accounts/${deputy.id}/role`, { role: 'moderator' })).status, 200);
+  // Only the owner manages the other administrators: neither their role nor their password is in reach of another one.
+  const demoteDeputy = await other.api<{ error: string }>('POST', `/accounts/${deputy.id}/role`, { role: 'moderator' });
+  assert.equal(demoteDeputy.status, 403);
+  assert.equal(demoteDeputy.body.error, 'error.admin.rank');
+  assert.equal((await other.api('POST', `/accounts/${deputy.id}/reset-password`, { password: 'secret password' })).status, 403);
+  assert.equal(server.ctx.accounts.findById(deputy.id)!.role, 'admin');
 });
 
 test('closing a server stops every repeating timer it started, the lag monitor of the dashboard included', async () => {

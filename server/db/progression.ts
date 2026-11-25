@@ -16,7 +16,9 @@ import { HOTBAR_SIZE, type HotbarSlot } from '../../shared/combat.js';
 import { PARAMS, type EquipSlot, type ParamName } from '../../shared/database.js';
 import type { SelfSwitch } from '../../shared/events.js';
 import { prepareCached, type Db } from './database.js';
-import { MAX_GOLD } from './inventory.js';
+
+/** Largest experience a character may hold (stored as an integer column; unrelated to the gold cap). */
+export const MAX_EXP = 999_999_999;
 
 /** Largest absolute value of a variable. */
 export const MAX_VARIABLE = 99_999_999;
@@ -275,9 +277,25 @@ export class ProgressionRepository {
   }
 
   /** Equipped items of a character, by slot. */
+  /**
+   * Equipment of a character. It is read at every computation of the parameters of a player (each change of
+   * its bag): it is kept in memory until it changes here or {@link forgetEquipment} is called. Nothing is
+   * kept from inside a transaction, which could still be rolled back.
+   */
   equipment(characterId: number): Map<EquipSlot, { kind: 'weapon' | 'armor'; id: number }> {
-    return new Map(this.stmts.equipment.all(characterId).map((r) => [r.slot, { kind: r.item_kind, id: r.item_id }]));
+    const cached = this.equipmentCache.get(characterId);
+    if (cached) return new Map([...cached].map(([slot, item]) => [slot, { ...item }]));
+    const read = new Map(this.stmts.equipment.all(characterId).map((r) => [r.slot, { kind: r.item_kind, id: r.item_id }] as const));
+    if (!this.db.inTransaction) this.equipmentCache.set(characterId, new Map([...read].map(([slot, item]) => [slot, { ...item }])));
+    return read;
   }
+
+  /** The equipment of these characters changed outside {@link equip} (records deleted...), or they left the game. */
+  forgetEquipment(characterIds: Iterable<number>): void {
+    for (const id of characterIds) this.equipmentCache.delete(id);
+  }
+
+  private readonly equipmentCache = new Map<number, Map<EquipSlot, { kind: 'weapon' | 'armor'; id: number }>>();
 
   /**
    * Equips an owned item in a slot (it leaves the bag; the previous item goes
@@ -288,6 +306,20 @@ export class ProgressionRepository {
    * @returns `null` when done, otherwise the translation key of the refusal.
    */
   equip(
+    characterId: number,
+    slot: EquipSlot,
+    item: { kind: 'weapon' | 'armor'; id: number } | null,
+    room: { bagSize: number; maxOf: (kind: 'weapon' | 'armor', id: number) => number },
+  ): 'error.item.not_owned' | 'error.bag.full' | null {
+    try {
+      return this.equipInTransaction(characterId, slot, item, room);
+    } finally {
+      // Read again next time, whether the change was kept or not.
+      this.equipmentCache.delete(characterId);
+    }
+  }
+
+  private equipInTransaction(
     characterId: number,
     slot: EquipSlot,
     item: { kind: 'weapon' | 'armor'; id: number } | null,
@@ -368,6 +400,6 @@ export class ProgressionRepository {
 
   /** Stores the level and experience of a character. */
   setLevel(characterId: number, level: number, xp: number): void {
-    this.stmts.levelSet.run(level, Math.max(0, Math.min(MAX_GOLD, Math.floor(xp))), characterId);
+    this.stmts.levelSet.run(level, Math.max(0, Math.min(MAX_EXP, Math.floor(xp))), characterId);
   }
 }

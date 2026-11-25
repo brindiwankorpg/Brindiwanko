@@ -60,6 +60,10 @@ async function enter(client: TestClient): Promise<Player> {
   socket.on('chat', (m) => player.chat.push(m));
   socket.on('notify', (n) => player.notes.push(n.key));
   socket.on('friends', (f) => (player.friends = f));
+  // A friend coming or going only sends its own line: it is merged like the client does.
+  socket.on('friendPresence', (f) => {
+    if (player.friends) player.friends = { ...player.friends, friends: player.friends.friends.map((x) => (x.id === f.id ? f : x)) };
+  });
   player.payload = await new Promise<EnterWorldPayload>((resolve, reject) => {
     socket.on('enterWorld', resolve);
     socket.on('connect_error', reject);

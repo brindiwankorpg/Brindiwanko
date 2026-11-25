@@ -64,13 +64,24 @@ test('changing the password needs the current one and logs the other sessions ou
   assert.equal((await login('Alice', 'brand new pass')).status, 303);
 });
 
-test('changing the e-mail address needs the password and a free address', async () => {
+test('changing the e-mail address needs the password and a free address, tells the old one and closes the other sessions', async () => {
   const bob = await register('Bob');
+  const { client: other, status } = await login('Bob', 'secret password');
+  assert.equal(status, 303);
+  assert.equal((await other.request('/account')).status, 200);
   const taken = await bob.post('/account/email', { _csrf: await bob.csrf('/account'), current: 'secret password', email: 'alice@example.com' });
   assert.equal(taken.status, 400);
+  const sentBefore = mailer.outbox.length;
   const ok = await bob.post('/account/email', { _csrf: await bob.csrf('/account'), current: 'secret password', email: 'bob.new@example.com' });
   assert.equal(ok.status, 303);
   assert.equal(server.ctx.accounts.findByUsername('Bob')?.email, 'bob.new@example.com');
+  await new Promise((r) => setImmediate(r));
+  const notice = mailer.outbox.slice(sentBefore);
+  assert.equal(notice.length, 1, 'one e-mail, to the address replaced');
+  assert.equal(notice[0]!.to, 'bob@example.com');
+  // This browser stays logged in; the other one is logged out.
+  assert.equal((await bob.request('/account')).status, 200);
+  assert.equal((await other.request('/account')).status, 303);
 });
 
 test('an account is deleted with its characters, after its name and password', async () => {
@@ -96,6 +107,7 @@ test('an account is deleted with its characters, after its name and password', a
 
 test('a forgotten password is reset with the e-mailed link, once', async () => {
   await register('Dave');
+  const sentBefore = mailer.outbox.length;
   const visitor = new TestClient(server.url);
   const unknown = await visitor.post('/forgot-password', { _csrf: await visitor.csrf('/forgot-password'), identifier: 'nobody@example.com' });
   const known = await visitor.post('/forgot-password', { _csrf: await visitor.csrf('/forgot-password'), identifier: 'dave@example.com' });
@@ -103,7 +115,7 @@ test('a forgotten password is reset with the e-mailed link, once', async () => {
   await new Promise((r) => setImmediate(r));
   const mail = mailer.outbox.find((m) => m.to === 'dave@example.com');
   assert.ok(mail, 'an e-mail was sent to the account');
-  assert.equal(mailer.outbox.length, 1);
+  assert.equal(mailer.outbox.length, sentBefore + 1, 'one e-mail, for the account that exists');
   const token = /token=([A-Za-z0-9_-]+)/.exec(mail.text)?.[1];
   assert.ok(token);
   assert.match(await (await visitor.request(`/reset-password?token=${token}`)).text(), /name="password"/);
@@ -118,7 +130,7 @@ test('a forgotten password is reset with the e-mailed link, once', async () => {
   // A second request right away sends nothing (one e-mail every few minutes per account).
   await visitor.post('/forgot-password', { _csrf: await visitor.csrf('/forgot-password'), identifier: 'Dave' });
   await new Promise((r) => setImmediate(r));
-  assert.equal(mailer.outbox.length, 1);
+  assert.equal(mailer.outbox.length, sentBefore + 1);
 });
 
 test('a forgotten password link used by two requests at once changes the password only once', async () => {

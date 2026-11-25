@@ -241,6 +241,7 @@ export function removeOwnedCopies(ctx: ServerContext, kind: 'item' | 'weapon' | 
     for (const table of ['character_items', 'character_bank', 'character_equipment', 'guild_bank_items']) {
       db.prepare(`DELETE FROM ${table} WHERE item_kind = ? AND item_id = ?`).run(kind, id);
     }
+    ctx.progression.forgetEquipment(characters);
     return { characters, guilds };
   })();
 }

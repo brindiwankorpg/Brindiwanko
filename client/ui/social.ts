@@ -6,7 +6,7 @@
  * window showing an inspected player.
  */
 import { drawCharacterFrame } from '../../shared/art/character.js';
-import type { FriendsPayload, InspectPayload, TradeView } from '../../shared/social.js';
+import type { FriendView, FriendsPayload, InspectPayload, TradeView } from '../../shared/social.js';
 import type { InventoryPayload } from '../../shared/protocol.js';
 import { rasterize } from '../art/render.js';
 import { t, tDynamic } from '../i18n.js';
@@ -35,6 +35,13 @@ export class FriendsWindow extends GameWindow {
 
   set(data: FriendsPayload): void {
     this.data = data;
+    if (this.manager?.isOpen(this)) this.render();
+  }
+
+  /** A friend came, left or changed visibility: its line is replaced (a player not in the list is ignored). */
+  update(friend: FriendView): void {
+    if (!this.data.friends.some((f) => f.id === friend.id)) return;
+    this.data = { ...this.data, friends: this.data.friends.map((f) => (f.id === friend.id ? friend : f)) };
     if (this.manager?.isOpen(this)) this.render();
   }
 

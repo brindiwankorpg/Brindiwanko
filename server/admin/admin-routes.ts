@@ -7,7 +7,8 @@
  * for good, reset passwords, use the game tools (teleport, invisibility, give
  * items and gold, change switches and variables, announcements), download
  * or restore database backups, and set the daily automatic backups. Nobody but the server owner (the first
- * account) may change the owner's role or password.
+ * account) may change the owner's role or password, nor the role or the password of another administrator;
+ * a password reset also asks for the caller's own password.
  * Every action is checked here and written to the administrator log.
  * Writes need the `X-CSRF-Token` header.
  */
@@ -114,7 +115,7 @@ export function adminRouter(ctx: ServerContext): Router {
   };
   /** Name of a declared switch or variable (numbered from 1 in the order of the System tab). */
   const declaredName = (key: 'switches' | 'variables', id: unknown): string | undefined =>
-    typeof id === 'number' ? ctx.settings.get(key, DEFAULT_SETTINGS[key])[id - 1]?.name || undefined : undefined;
+    typeof id === 'number' ? ctx.settings.peek(key, DEFAULT_SETTINGS[key])[id - 1]?.name || undefined : undefined;
   interface LogLookups {
     mapsById: Map<number, string>;
     accountsById: Map<number, { id: number; username: string }>;
@@ -202,6 +203,13 @@ export function adminRouter(ctx: ServerContext): Router {
   };
   /** The server owner's role and password are out of reach of the other administrators. */
   const ownerProtected = (res: Response, id: number) => id === ctx.accounts.ownerId() && id !== me(res).id;
+  /**
+   * The role and the password of an administrator are only changed by itself or by the server owner (same rank
+   * rule as the sanctions): an administrator session taken over must not turn another administrator account into
+   * a second way in, nor strip the other administrators of their rights.
+   */
+  const adminProtected = (res: Response, target: { id: number; role: string }) =>
+    target.role === 'admin' && target.id !== me(res).id && me(res).id !== ctx.accounts.ownerId();
 
   router.get('/accounts', (req, res) => {
     // Moderators do not search in the e-mail addresses they cannot see (an address could be guessed piece by piece).
@@ -222,9 +230,11 @@ export function adminRouter(ctx: ServerContext): Router {
   router.post('/accounts/:id/role', adminOnly, (req, res) => {
     const id = Number(req.params.id);
     const role = (req.body as { role?: unknown }).role;
-    if (!isRole(role) || !ctx.admin.account(id)) return fail(res, 400, 'error.admin.invalid');
+    const target = ctx.admin.account(id);
+    if (!isRole(role) || !target) return fail(res, 400, 'error.admin.invalid');
     if (id === me(res).id) return fail(res, 400, 'error.admin.self');
     if (ownerProtected(res, id)) return fail(res, 403, 'error.admin.owner');
+    if (adminProtected(res, target)) return fail(res, 403, 'error.admin.rank');
     ctx.admin.setRole(id, role as AccountRole);
     world.setAccountRole(id, role as AccountRole);
     log(res, 'role', `account:${id}`, { role });
@@ -260,11 +270,19 @@ export function adminRouter(ctx: ServerContext): Router {
     reply(res, moderation.kick(actor(res), Number(req.params.id), text((req.body as { reason?: unknown }).reason, MAX_REASON_LENGTH)));
   });
 
-  /** Gives the account a new random password, shown once to the administrator. */
+  /**
+   * Gives the account a new random password, shown once to the administrator. The administrator types its own
+   * password again: a stolen session cookie alone does not hand out the password of another account.
+   */
   router.post('/accounts/:id/reset-password', adminOnly, async (req, res) => {
     const id = Number(req.params.id);
-    if (!ctx.admin.account(id)) return fail(res, 404, 'error.admin.not_found');
+    const target = ctx.admin.account(id);
+    if (!target) return fail(res, 404, 'error.admin.not_found');
     if (ownerProtected(res, id)) return fail(res, 403, 'error.admin.owner');
+    if (adminProtected(res, target)) return fail(res, 403, 'error.admin.rank');
+    const typed = (req.body as { password?: unknown }).password;
+    const refused = await ctx.auth.verifyPassword(me(res).id, typeof typed === 'string' ? typed : '');
+    if (refused) return fail(res, refused.errorKey === 'error.auth.too_many_attempts' ? 429 : 403, refused.errorKey, refused.params);
     const password = randomBytes(9).toString('base64url');
     ctx.admin.setPasswordHash(id, await bcrypt.hash(password, ctx.config.production ? 11 : 4));
     // Whoever knew the old password is logged out of the site too (the caller keeps its own session).
@@ -392,9 +410,17 @@ export function adminRouter(ctx: ServerContext): Router {
     const body = req.body as { characterId?: unknown; switchId?: unknown; switchValue?: unknown; variableId?: unknown; variableValue?: unknown };
     const p = resolveTarget(res, body.characterId);
     if (!p) return;
-    if (isInt(body.switchId, 1, 9999) && typeof body.switchValue === 'boolean') world.setSwitch(p, body.switchId, body.switchValue);
-    if (isInt(body.variableId, 1, 9999) && isInt(body.variableValue, -99_999_999, 99_999_999)) world.setVariable(p, body.variableId, body.variableValue);
-    log(res, 'progress', `character:${p.characterId}`, body as Record<string, unknown>);
+    // Only what was checked and applied reaches the log, not whatever else the request carried.
+    const applied: Record<string, number | boolean> = {};
+    if (isInt(body.switchId, 1, 9999) && typeof body.switchValue === 'boolean') {
+      world.setSwitch(p, body.switchId, body.switchValue);
+      Object.assign(applied, { switchId: body.switchId, switchValue: body.switchValue });
+    }
+    if (isInt(body.variableId, 1, 9999) && isInt(body.variableValue, -99_999_999, 99_999_999)) {
+      world.setVariable(p, body.variableId, body.variableValue);
+      Object.assign(applied, { variableId: body.variableId, variableValue: body.variableValue });
+    }
+    log(res, 'progress', `character:${p.characterId}`, applied);
     res.json({ ok: true, switches: [...p.progress.switches], variables: Object.fromEntries(p.progress.variables) });
   });
 

@@ -9,6 +9,7 @@
  * served from the game's own origin.
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync, unlinkSync, renameSync, rmSync } from 'node:fs';
+import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { crc32 } from 'node:zlib';
 import { IMAGE_KINDS, RESOURCE_KINDS, type ResourceKind } from '../../shared/resource-formats.js';
@@ -235,16 +236,19 @@ export function isCompleteImage(data: Buffer, type: UploadType): boolean {
   return true;
 }
 
-/** Result of storing an upload. */
-export type StoreResult = { ok: true; id: string } | { ok: false; errorKey: string; params?: Record<string, number> };
+/** Result of storing an upload: the resource id, and the file written (with its kind) for a scan of that file alone. */
+export type StoreResult = { ok: true; id: string; kind: ResourceKind; file: string } | { ok: false; errorKey: string; params?: Record<string, number> };
+
+/** Where an accepted upload goes. */
+type UploadPlan = { ok: true; kind: ResourceKind; folder: string; clean: string; type: UploadType };
 
 /**
- * Validates and writes an uploaded file.
+ * Checks an uploaded file (kind, size, type, picture size, completeness, name) and tells where it goes.
  * @param kind - Resource folder.
  * @param name - Proposed name.
  * @param data - Content.
  */
-export function storeUpload(kind: string, name: string, data: Buffer): StoreResult {
+function planUpload(kind: string, name: string, data: Buffer): UploadPlan | Extract<StoreResult, { ok: false }> {
   if (!RESOURCE_KINDS.includes(kind as ResourceKind)) return { ok: false, errorKey: 'error.resources.invalid_kind' };
   if (data.length === 0 || data.length > MAX_UPLOAD_BYTES) return { ok: false, errorKey: 'error.resources.too_large' };
   const type = sniffType(data);
@@ -258,7 +262,19 @@ export function storeUpload(kind: string, name: string, data: Buffer): StoreResu
   if (!isCompleteImage(data, type)) return { ok: false, errorKey: 'error.resources.damaged_image' };
   const clean = sanitizeName(name);
   if (!clean) return { ok: false, errorKey: 'error.resources.invalid_name' };
-  const folder = uploadFolder(kind as ResourceKind);
+  return { ok: true, kind: kind as ResourceKind, folder: uploadFolder(kind as ResourceKind), clean, type };
+}
+
+/**
+ * Validates and writes an uploaded file (project imports, which write many files in one go).
+ * @param kind - Resource folder.
+ * @param name - Proposed name.
+ * @param data - Content.
+ */
+export function storeUpload(kind: string, name: string, data: Buffer): StoreResult {
+  const plan = planUpload(kind, name, data);
+  if (!plan.ok) return plan;
+  const { folder, clean, type } = plan;
   mkdirSync(folder, { recursive: true });
   // Written aside first, then put in place in one step: the current file stays as long as the new one is
   // not whole on disk (a full disk keeps the working picture).
@@ -276,7 +292,29 @@ export function storeUpload(kind: string, name: string, data: Buffer): StoreResu
     const other = join(folder, `${clean}.${ext}`);
     if (ext !== type && existsSync(other)) unlinkSync(other);
   }
-  return { ok: true, id: `${kind}/${clean}` };
+  return { ok: true, id: `${plan.kind}/${clean}`, kind: plan.kind, file: target };
+}
+
+/**
+ * Same as {@link storeUpload}, with the disk written off the game loop (an upload from the editor of the
+ * administrators, up to 15 MB, while the game runs).
+ */
+export async function storeUploadAsync(kind: string, name: string, data: Buffer): Promise<StoreResult> {
+  const plan = planUpload(kind, name, data);
+  if (!plan.ok) return plan;
+  const { folder, clean, type } = plan;
+  await mkdir(folder, { recursive: true });
+  const target = join(folder, `${clean}.${type}`);
+  const part = `${target}.${process.pid}.part`;
+  try {
+    await writeFile(part, data);
+    await rename(part, target);
+  } catch (err) {
+    await rm(part, { force: true });
+    throw err;
+  }
+  await Promise.all(UPLOAD_EXTENSIONS.filter((ext) => ext !== type).map((ext) => rm(join(folder, `${clean}.${ext}`), { force: true })));
+  return { ok: true, id: `${plan.kind}/${clean}`, kind: plan.kind, file: target };
 }
 
 const UPLOAD_EXTENSIONS: readonly UploadType[] = ['png', 'jpg', 'webp', 'svg', 'ogg', 'm4a', 'mp3', 'wav'];

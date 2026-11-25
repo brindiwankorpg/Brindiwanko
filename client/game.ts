@@ -783,6 +783,7 @@ export class Game implements MenuHost {
       this.friendNames = data.friends.map((f) => f.name);
       this.menus.friends.set(data);
     });
+    this.socket.on('friendPresence', (friend) => this.menus.friends.update(friend));
     this.socket.on('emote', ({ id, balloon }) => {
       this.sceneChanges.apply(() => {
         const who = this.scene.combatant({ kind: 'player', id }, this.character.id);
@@ -791,12 +792,12 @@ export class Game implements MenuHost {
     });
     this.socket.on('tradeRequest', ({ id, name }) => {
       this.menus.choice.ask(t('trade.title'), t('trade.request', { name }), [
-        { label: t('trade.accept'), icon: 'check', onSelect: () => this.socket.emit('tradeRespond', true) },
-        { label: t('trade.decline'), icon: 'close', onSelect: () => this.socket.emit('tradeRespond', false) },
+        // Each answer names the player it is for: a newer request that came meanwhile is not answered by mistake.
+        { label: t('trade.accept'), icon: 'check', onSelect: () => this.socket.emit('tradeRespond', true, id) },
+        { label: t('trade.decline'), icon: 'close', onSelect: () => this.socket.emit('tradeRespond', false, id) },
         // Closing the window (cross, Escape) declines: the other player is not left waiting.
-      ], () => this.socket.emit('tradeRespond', false));
+      ], () => this.socket.emit('tradeRespond', false, id));
       this.windows.open(this.menus.choice);
-      void id;
     });
     this.socket.on('party', (view) => {
       this.menus.party.set(view);

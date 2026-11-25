@@ -1504,6 +1504,7 @@
   "maxRaidSize": 20,
   "instanceIdleMinutes": 5,
   "guildCreationCost": 1000,
+  "guildMaxMembers": 100,
   "elements": [
    "Aucun",
    "Physique",

@@ -12,6 +12,7 @@ import { config } from './config.js';
 import { closeContext, createContext } from './context.js';
 import { chooseContentLanguage } from './first-run.js';
 import { createSocketServer } from './net/socket.js';
+import { sandboxNetworkIsolated } from './events/sandbox.js';
 import { backupScheduleOf, DEFAULT_BACKUP_SCHEDULE } from '../shared/settings.js';
 import { scheduleBackups } from './db/backups.js';
 import { backupsDirOf, PATHS } from './paths.js';
@@ -35,6 +36,18 @@ if (config.production && !config.publicUrl) {
   console.warn('[brindiwanko] production mode without PUBLIC_URL: the game socket checks the origin against the Host header only, and no "forgotten password" e-mail can be sent (set PUBLIC_URL=https://your.domain)');
 } else if (config.smtpUrl && !config.publicUrl) {
   console.warn('[brindiwanko] SMTP_URL without PUBLIC_URL: "forgotten password" e-mails are only sent from pages opened on this machine (set PUBLIC_URL)');
+}
+if (!sandboxNetworkIsolated()) {
+  console.warn(
+    config.sandboxWithoutNetworkIsolation
+      ? `[brindiwanko] Node.js ${process.version} cannot close the network of the script sandbox: event scripts run anyway (SANDBOX_WITHOUT_NETWORK_ISOLATION=1)`
+      : `[brindiwanko] Node.js ${process.version} cannot close the network of the script sandbox: event scripts are refused (use a Node.js with --allow-net, or set SANDBOX_WITHOUT_NETWORK_ISOLATION=1)`,
+  );
+}
+if (!config.production && config.publicUrl) {
+  console.warn(
+    `[brindiwanko] PUBLIC_URL is set (${config.publicUrl}) but NODE_ENV is not "production": cookies are not Secure${config.smtpUrl ? '' : ' and, without SMTP_URL, "forgotten password" links are written in this log'} (set NODE_ENV=production on a public server)`,
+  );
 }
 
 httpServer.listen(config.port, config.host, () => {

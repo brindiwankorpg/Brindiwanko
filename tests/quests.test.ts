@@ -241,7 +241,7 @@ test('a quest built through the editor: kill objective, prerequisite level, rewa
   const map = body.map;
   const id = map.events.length;
   map.events.push({ id, name: 'Chasseur', note: '', x: 5, y: 20, pages: [createPage({ image: { tileId: 0, characterName: 'People1', characterIndex: 0, direction: 2, pattern: 1 }, list: [...textCommands(['Les slimes envahissent les champs !']), { code: MmoCmd.StartQuest, indent: 0, parameters: [questId] }, { code: Cmd.End, indent: 0, parameters: [] }] })] });
-  assert.equal((await admin.api('PUT', '/maps/1', { map })).status, 200);
+  assert.equal((await admin.api('PUT', '/maps/1', { map, baseVersion: server.ctx.maps.revision(1) })).status, 200);
 
   const finn = await newPlayer('Finn');
   await until(() => markerOf(finn, id) === Marker.Available);

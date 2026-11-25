@@ -22,6 +22,10 @@
  *   default 10 in production, unlimited otherwise; 0 = unlimited)
  * - `IMPORTS_PER_15_MIN` (project imports one account may start per 15 minutes;
  *   default 3 in production, unlimited otherwise; 0 = unlimited)
+ * - `SOCKET_CONNECTIONS_PER_MIN` (game connections one account may open per minute, one client address
+ *   three times as many; default 12 in production, unlimited otherwise; 0 = unlimited)
+ * - `SANDBOX_WITHOUT_NETWORK_ISOLATION` (set to `1` to run event scripts on a Node.js whose permission
+ *   model cannot close the network of the script sandbox; otherwise scripts are refused there)
  * - `CONTENT_LANGUAGE` (`en` or `fr`: language of the demo content of a brand-new database,
  *   instead of asking in the terminal; without a terminal the system language is used)
  * - `PUBLIC_URL` (public address of the game, e.g. `https://jeu.example.org`:
@@ -89,6 +93,10 @@ export const config = Object.freeze({
   registrationsPerHour: intFromEnv('REGISTRATIONS_PER_HOUR', production ? 10 : 0, 0, 1_000_000),
   /** Project imports (up to 200 MB each) one account may start per 15 minutes (0 = unlimited). */
   importsPer15Min: intFromEnv('IMPORTS_PER_15_MIN', production ? 3 : 0, 0, 1_000_000),
+  /** Game connections (socket handshakes) one account may open per minute; one address may open three times as many (0 = unlimited). */
+  socketConnectionsPerMin: intFromEnv('SOCKET_CONNECTIONS_PER_MIN', production ? 12 : 0, 0, 1_000_000),
+  /** Event scripts run even where the network of their sandbox cannot be closed (the operator isolates the server). */
+  sandboxWithoutNetworkIsolation: boolFromEnv('SANDBOX_WITHOUT_NETWORK_ISOLATION'),
   maxCharactersPerAccount: intFromEnv('MAX_CHARACTERS', 4, 1, 100),
   /** Mail server sending the "forgotten password" e-mails (`undefined`: no e-mail is sent). */
   smtpUrl: process.env.SMTP_URL || undefined,

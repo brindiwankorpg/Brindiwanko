@@ -82,6 +82,7 @@ export function normalizeSystem(raw: Record<string, unknown>, current: SystemSet
     maxRaidSize: int(raw.maxRaidSize, current.maxRaidSize, 2, 40),
     instanceIdleMinutes: int(raw.instanceIdleMinutes, current.instanceIdleMinutes, 1, 1440),
     guildCreationCost: int(raw.guildCreationCost, current.guildCreationCost, 0, 99_999_999),
+    guildMaxMembers: int(raw.guildMaxMembers, current.guildMaxMembers, 2, 1000),
     elements: names(raw.elements, current.elements),
     weaponTypes: names(raw.weaponTypes, current.weaponTypes),
     armorTypes: names(raw.armorTypes, current.armorTypes),
@@ -195,6 +196,11 @@ export function databaseRouter(ctx: ServerContext): Router {
     const id = Number(req.params.id);
     if (!isType(type)) {
       fail(res, 404, 'error.db.unknown_type');
+      return;
+    }
+    // Same bounds as a save: a fractional or huge number would raise the last id of the type for nothing.
+    if (!Number.isInteger(id) || id < 1 || id > 9999) {
+      fail(res, 400, 'error.http.bad_request');
       return;
     }
     if (type === 'class') {

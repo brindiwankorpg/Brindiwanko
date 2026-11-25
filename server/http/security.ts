@@ -16,8 +16,9 @@ import type { RequestHandler } from 'express';
 export const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "script-src 'self'",
-  // Interface code sets styles through the CSSOM; a few templates use style attributes.
-  "style-src 'self' 'unsafe-inline'",
+  // Styles come from the site's own sheets; scripts set the rest through the CSSOM (not blocked by this policy).
+  // No style attribute nor <style> element written in a page is applied.
+  "style-src 'self'",
   "img-src 'self' data: blob:",
   "media-src 'self' data: blob:",
   "font-src 'self' data:",

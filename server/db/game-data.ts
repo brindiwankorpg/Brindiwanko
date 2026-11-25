@@ -83,9 +83,17 @@ export class GameDataRepository {
     this.tentative.clear();
   }
 
-  /** All records of a type, ordered by id. */
+  /** All records of a type, ordered by id (a new array: the caller may sort or filter it). */
   list<T extends GameDataType>(type: T): GameDataTypes[T][] {
     return [...this.load(type).values()];
+  }
+
+  /**
+   * All records of a type, ordered by id, without a copy: for a walk that only reads them and writes no
+   * record of the type meanwhile (checked for each player many times a second).
+   */
+  values<T extends GameDataType>(type: T): IterableIterator<GameDataTypes[T]> {
+    return this.load(type).values();
   }
 
   /** One record, or `undefined`. */

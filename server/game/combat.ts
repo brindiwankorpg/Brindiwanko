@@ -29,6 +29,7 @@ import { REGION_LAYER, deltaX, deltaY, isValidPosition, stepCell, tileAt, wrapCe
 import { canMove, isPassable } from '../../shared/passability.js';
 import { DEFAULT_SETTINGS, type Direction, type StartPosition } from '../../shared/settings.js';
 import { Priority } from '../../shared/events.js';
+import { sanitizeHotbar } from '../db/progression.js';
 import { stepMs } from './events.js';
 import { attackElement, elementRate, enemyStats, playerStats, stateRate, traitRate, traitSum, type ActiveStates, type BattlerStats } from './stats.js';
 import { mapRoom, sameZone, type PlayerSession, type World } from './world.js';
@@ -118,6 +119,8 @@ export interface Monster {
   phases?: Map<number, number>;
   /** Cell under which the occupancy index of its map holds it (unset: not in it). */
   cell?: number;
+  /** Battle parameters last computed, with what they were computed from (see `monsterStats`). */
+  statsCache?: { def: EnemyData; key: string; stats: BattlerStats };
 }
 
 /** Combat state of one map. */
@@ -172,6 +175,11 @@ class MapCombat {
   }
 
   /** Tells whether a living monster stands on a cell. */
+  /** Living monster standing on a cell, if any. */
+  monsterAt(x: number, y: number): Monster | undefined {
+    return this.occupancy.get(y * this.map.width + x);
+  }
+
   occupied(x: number, y: number): boolean {
     const m = this.occupancy.get(y * this.map.width + x);
     return !!m && !m.dead && m.x === x && m.y === y;
@@ -344,9 +352,18 @@ export class CombatSystem {
     return this.maps.get(mapRoom(mapId, instance))?.monsters.get(id);
   }
 
+  /**
+   * Battle parameters of a monster. They only depend on its enemy record, its states (and their records) and
+   * its rage: they are computed again when one of those changes, not at every decision of its AI. The object
+   * is shared: callers read it, like the parameters of the players.
+   */
   private monsterStats(m: Monster): BattlerStats {
+    const key = `${this.ctx.gameData.generation('state')}|${m.enraged ? 1 : 0}|${[...m.states.keys()].join(',')}`;
+    const cached = m.statsCache;
+    if (cached && cached.def === m.def && cached.key === key) return cached.stats;
     const stats = enemyStats(this.ctx, m.def, m.states);
     if (m.enraged) stats.params = { ...stats.params, atk: Math.floor(stats.params.atk * 1.5), mat: Math.floor(stats.params.mat * 1.5) };
+    m.statsCache = { def: m.def, key, stats };
     return stats;
   }
 
@@ -414,7 +431,7 @@ export class CombatSystem {
       }
       if (summoned > 0) for (const p of this.world.playersOn(mc.mapId, mc.instance)) p.socket.emit('notify', { key: 'notify.boss_adds', params: { name: m.def.name } });
     } else if (phase.mechanic === 'zone') {
-      const players = this.world.playersOn(mc.mapId, mc.instance).filter((p) => !p.combat.dead && !p.invisible && !this.protectedFromMonsters(p));
+      const players = this.world.playersOn(mc.mapId, mc.instance).filter((p) => !p.combat.dead && !p.invisible && !this.protectedOnArrival(p));
       const target = players[Math.floor(Math.random() * players.length)];
       if (target) this.strike(mc, target.x, target.y, phase.radius, phase.damage);
     }
@@ -480,7 +497,7 @@ export class CombatSystem {
         const views: DamageView[] = [];
         for (const p of this.world.playersOn(mc.mapId, mc.instance)) {
           // Like the monsters' own attacks: nothing for a player still loading the map, nor for an invisible one.
-          if (p.combat.dead || p.invisible || this.protectedFromMonsters(p) || distance(mc.map, p.x, p.y, x, y) > radius) continue;
+          if (p.combat.dead || p.invisible || this.protectedOnArrival(p) || distance(mc.map, p.x, p.y, x, y) > radius) continue;
           const target: Combatant = { kind: 'player', p };
           this.applyVitals(target, 'hp_damage', damage, null);
           views.push({ target: this.actor(target), amount: damage, kind: 'hp_damage', critical: false, hp: p.hp, maxHp: this.stats(p).params.mhp });
@@ -564,7 +581,7 @@ export class CombatSystem {
   /** Skills, hotbar and running cooldowns of a player. */
   skillsPayload(p: PlayerSession): SkillsPayload {
     const now = Date.now();
-    const types = this.ctx.settings.get('skillTypes', DEFAULT_SETTINGS.skillTypes);
+    const types = this.ctx.settings.peek('skillTypes', DEFAULT_SETTINGS.skillTypes);
     const skills: SkillView[] = this.knownSkills(p).map((s) => ({
       id: s.id, name: s.name, description: s.description, icon: s.icon, typeName: s.skillType > 0 ? (types[s.skillType] ?? '') : '', mpCost: s.mpCost, cooldown: s.cooldown, range: s.range,
     }));
@@ -631,10 +648,12 @@ export class CombatSystem {
     this.carried.set(p.characterId, { until: now + CARRY_COMBAT_MS, cooldowns, globalReadyAt: c.globalReadyAt, states, stateSteps: [...c.stateSteps], lastHurt: c.lastHurt, respawnAt });
   }
 
-  /** Stores a new hotbar sent by the player. */
+  /** Stores a new hotbar sent by the player (nothing is written when it is the one already stored). */
   setHotbar(p: PlayerSession, slots: HotbarSlot[]): void {
-    this.ctx.progression.setHotbar(p.characterId, slots);
-    p.combat.hotbar = this.ctx.progression.hotbar(p.characterId);
+    const hotbar = sanitizeHotbar(slots);
+    if (JSON.stringify(hotbar) === JSON.stringify(p.combat.hotbar)) return;
+    this.ctx.progression.setHotbar(p.characterId, hotbar);
+    p.combat.hotbar = hotbar;
   }
 
   /** The player's level changed: new skills are announced and placed on the hotbar. */
@@ -691,9 +710,13 @@ export class CombatSystem {
    */
   private targetsAt(mc: MapCombat, user: Combatant, x: number, y: number): Combatant[] {
     const out: Combatant[] = [];
-    if (user.kind === 'player') for (const m of mc.monsters.values()) if (!m.dead && m.mode !== 'return' && m.x === x && m.y === y && !this.bossWaiting(mc, m, user.p)) out.push({ kind: 'monster', m, map: mc });
+    if (user.kind === 'player') {
+      // At most one living monster stands on a cell: the occupancy index finds it without walking the map's monsters.
+      const m = mc.monsterAt(x, y);
+      if (m && !m.dead && m.mode !== 'return' && !this.bossWaiting(mc, m, user.p)) out.push({ kind: 'monster', m, map: mc });
+    }
     if (user.kind === 'player' ? mc.map.mmo.pvp : true) {
-      for (const p of this.world.playersOn(mc.mapId, mc.instance)) {
+      for (const p of this.world.zoneMembers(mc.mapId, mc.instance)) {
         if (p.x !== x || p.y !== y || p.combat.dead || p.invisible || p.editing || (user.kind === 'player' && user.p === p)) continue;
         // On a PvP map, party members and guild mates are allies (as for heals): attacks pass them by.
         if (user.kind === 'player' && this.isAlly(mc, user.p, p)) continue;
@@ -781,8 +804,9 @@ export class CombatSystem {
     const hpKind = kind === 'hp_damage' || kind === 'hp_recover';
     if (target.kind === 'player') {
       const p = target.p;
-      // Monsters (area attacks included) cannot hurt a player who is still loading the map.
-      if (sign < 0 && source?.kind === 'monster' && this.protectedFromMonsters(p)) return;
+      // Monsters (area attacks included) and other players cannot hurt a player who is still loading the map:
+      // no kill on arrival on a PvP map either. The protection ends as soon as the player attacks.
+      if (sign < 0 && source && (source.kind === 'monster' || source.p !== p) && this.protectedOnArrival(p)) return;
       if (hpKind) p.hp = Math.max(0, Math.min(max.mhp, p.hp + sign * amount));
       else p.mp = Math.max(0, Math.min(max.mmp, p.mp + sign * amount));
       p.socket.emit('playerUpdate', { hp: p.hp, mp: p.mp });
@@ -1020,14 +1044,14 @@ export class CombatSystem {
     }
     if (p.mp < skill.mpCost) {
       // Named as in the game (System terms), not as in the interface translations.
-      p.socket.emit('notify', { key: 'error.combat.not_enough_mp', params: { term: this.ctx.settings.get('terms', DEFAULT_SETTINGS.terms).mp } });
+      p.socket.emit('notify', { key: 'error.combat.not_enough_mp', params: { term: this.ctx.settings.peek('terms', DEFAULT_SETTINGS.terms).mp } });
       return;
     }
     // A skill may need a kind of weapon in hand (an arrow volley needs a bow).
     if (skill.requiredWeaponType > 0) {
       const held = this.ctx.progression.equipment(p.characterId).get('weapon');
       if ((held ? this.ctx.gameData.get('weapon', held.id)?.weaponType : undefined) !== skill.requiredWeaponType) {
-        const type = this.ctx.settings.get('weaponTypes', DEFAULT_SETTINGS.weaponTypes)[skill.requiredWeaponType] ?? `#${skill.requiredWeaponType}`;
+        const type = this.ctx.settings.peek('weaponTypes', DEFAULT_SETTINGS.weaponTypes)[skill.requiredWeaponType] ?? `#${skill.requiredWeaponType}`;
         p.socket.emit('notify', { key: 'error.combat.weapon_required', params: { type } });
         return;
       }
@@ -1313,7 +1337,8 @@ export class CombatSystem {
       if (m.mode === 'flee' && !this.nearRegion(mc, region, x, y, REGION_CHASE_MARGIN)) return false;
     }
     if (mc.occupied(x, y)) return false;
-    return !this.world.playersOn(mc.mapId, mc.instance).some((p) => p.x === x && p.y === y);
+    for (const p of this.world.zoneMembers(mc.mapId, mc.instance)) if (p.x === x && p.y === y) return false;
+    return true;
   }
 
   private stepMonster(mc: MapCombat, m: Monster, d: Direction): boolean {
@@ -1341,15 +1366,15 @@ export class CombatSystem {
     for (const d of order) if (this.stepMonster(mc, m, d)) return;
   }
 
-  /** Tells whether a player just arrived (login, new map) and is left alone by monsters. */
-  private protectedFromMonsters(p: PlayerSession): boolean {
+  /** Tells whether a player just arrived (login, new map) or edits the map, and is left alone by monsters and other players. */
+  private protectedOnArrival(p: PlayerSession): boolean {
     return p.editing === true || Date.now() < p.combat.protectedUntil;
   }
 
   /** The player a monster chases, if still valid. */
   private target(mc: MapCombat, m: Monster): PlayerSession | undefined {
     const p = m.targetId ? this.world.player(m.targetId) : undefined;
-    return p && sameZone(p, mc) && !p.combat.dead && !p.invisible && !this.protectedFromMonsters(p) && this.world.isLive(p) ? p : undefined;
+    return p && sameZone(p, mc) && !p.combat.dead && !p.invisible && !this.protectedOnArrival(p) && this.world.isLive(p) ? p : undefined;
   }
 
   /** Nearest player within the aggro radius (players in a dialogue, or invisible, are left alone). */
@@ -1357,8 +1382,8 @@ export class CombatSystem {
     const zoneRegion = mc.hasRegionZone(m) ? mc.spawnRegion(m) : 0;
     let best: PlayerSession | undefined;
     let bestDistance = m.def.aggroRadius + 1;
-    for (const p of this.world.playersOn(mc.mapId, mc.instance)) {
-      if (p.combat.dead || p.busy || p.invisible || this.protectedFromMonsters(p)) continue;
+    for (const p of this.world.zoneMembers(mc.mapId, mc.instance)) {
+      if (p.combat.dead || p.busy || p.invisible || this.protectedOnArrival(p)) continue;
       if (zoneRegion > 0 && !this.nearRegion(mc, zoneRegion, p.x, p.y, 1)) continue;
       const d = distance(mc.map, p.x, p.y, m.x, m.y);
       if (d < bestDistance) {

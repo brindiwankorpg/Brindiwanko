@@ -57,6 +57,8 @@ export interface SystemSettings {
   instanceIdleMinutes: number;
   /** Gold spent to found a guild. */
   guildCreationCost: number;
+  /** Largest number of members of a guild (a larger guild keeps its members but takes no new one). */
+  guildMaxMembers: number;
   /** Element names; index 0 is "no element". */
   elements: string[];
   weaponTypes: string[];
@@ -89,6 +91,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   maxRaidSize: 20,
   instanceIdleMinutes: 5,
   guildCreationCost: 1000,
+  guildMaxMembers: 100,
   elements: ['Aucun', 'Physique', 'Feu', 'Glace', 'Foudre', 'Eau', 'Terre', 'Vent', 'Lumière', 'Ténèbres'],
   weaponTypes: ['Aucun', 'Épée', 'Hache', 'Lance', 'Arc', 'Bâton', 'Dague', 'Masse'],
   armorTypes: ['Aucun', 'Tissu', 'Cuir', 'Métal', 'Bouclier', 'Accessoire'],
@@ -110,7 +113,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
 
 /** Keys of the settings editable in the System tab. */
 export const SYSTEM_SETTING_KEYS = [
-  'gameTitle', 'startPosition', 'currencyName', 'maxLevel', 'maxPartySize', 'maxRaidSize', 'instanceIdleMinutes', 'guildCreationCost',
+  'gameTitle', 'startPosition', 'currencyName', 'maxLevel', 'maxPartySize', 'maxRaidSize', 'instanceIdleMinutes', 'guildCreationCost', 'guildMaxMembers',
   'elements', 'weaponTypes', 'armorTypes', 'skillTypes', 'startingGold', 'statPointsPerLevel', 'sellRate', 'bagSize', 'terms', 'switches', 'variables',
 ] as const;
 

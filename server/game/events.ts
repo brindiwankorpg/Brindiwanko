@@ -8,7 +8,7 @@
  * seen by that player only, while switches and variables declared global
  * affect everybody.
  */
-import { EQUIP_SLOTS, expForLevel, paramAt } from '../../shared/database.js';
+import { EQUIP_SLOTS, expForLevel, paramAt, type CommonEventData } from '../../shared/database.js';
 import { QuestStatus, RouteCmd, Trigger, questStatusMatches, type EventCommand, type EventConditions, type MoveRoute, type SelfSwitch } from '../../shared/events.js';
 import type { EffectPayload, EventUpdate, MessagePayload } from '../../shared/protocol.js';
 import { DEFAULT_SETTINGS, type Direction } from '../../shared/settings.js';
@@ -17,7 +17,7 @@ import { terrainTagAt } from '../../shared/passability.js';
 import { selfSwitchKey } from '../db/progression.js';
 import { runCommands, type CharacterRef, type InterpreterHost } from '../events/interpreter.js';
 import { evaluateScript, runScript, type ScriptState } from '../events/sandbox.js';
-import { MapRuntime, type EventInstance } from './map-runtime.js';
+import { MapRuntime, type EventInstance, type EventSet } from './map-runtime.js';
 import { experienceRange } from './player-info.js';
 import type { PlayerSession, World } from './world.js';
 
@@ -120,6 +120,10 @@ export class EventRunner {
   private readonly autorunTimers = new Set<number>();
   /** Active move route on each event copy or player session. */
   private readonly activeRoutes = new WeakMap<EventInstance | PlayerSession, ActiveRoute>();
+  /** Event copies with an active move route, per character (an event that never moves by itself may be moved by one). */
+  private readonly routedEvents = new Map<number, Set<EventInstance>>();
+  /** Copies with a page that moves by itself, per set of copies (a player gets a new set at each map entry or reload). */
+  private readonly movers = new WeakMap<EventSet, EventInstance[]>();
   /** Earliest time a player's next route step may start. */
   private readonly playerNextMoveAt = new Map<number, number>();
   /** Resolvers of map-bound sleeps and prompts, woken up when a player's map changes or reloads. */
@@ -171,14 +175,26 @@ export class EventRunner {
       const page = MapRuntime.page(e)!;
       void this.parallel(p, key, () => (p.events.get(e.def.id) === e && MapRuntime.page(e) === page ? page.list : null), e);
     }
-    for (const ce of this.ctx.gameData.list('commonEvent')) {
+    for (const ce of this.ctx.gameData.values('commonEvent')) {
       const key = `c${ce.id}`;
       if (running.has(key) || !this.commonList(p, ce.id, 'parallel')) continue;
       void this.parallel(p, key, () => this.commonList(p, ce.id, 'parallel'), null);
     }
     if (p.busy || this.autorunTimers.has(p.characterId)) return;
-    const auto = [...p.events.values()].find((e) => MapRuntime.page(e)?.trigger === Trigger.Autorun);
-    const common = auto ? null : this.ctx.gameData.list('commonEvent').find((ce) => this.commonList(p, ce.id, 'autorun'));
+    let auto: EventInstance | undefined;
+    for (const e of p.events.values()) {
+      if (MapRuntime.page(e)?.trigger !== Trigger.Autorun) continue;
+      auto = e;
+      break;
+    }
+    let common: CommonEventData | null = null;
+    if (!auto) {
+      for (const ce of this.ctx.gameData.values('commonEvent')) {
+        if (!this.commonList(p, ce.id, 'autorun')) continue;
+        common = ce;
+        break;
+      }
+    }
     if (!auto && !common) return;
     // An automatic event that stays active re-runs; space the runs so a
     // forgotten switch cannot spin the server.
@@ -203,6 +219,7 @@ export class EventRunner {
   /** Forgets what is kept for a player who left the game. */
   forget(characterId: number): void {
     this.resetMap(characterId);
+    this.routedEvents.delete(characterId);
   }
 
   /**
@@ -790,8 +807,18 @@ export class EventRunner {
     const token = (current?.token ?? 0) + 1;
     const entry: ActiveRoute = { key, token, promise: Promise.resolve() };
     this.activeRoutes.set(holder, entry);
+    if (target !== 'player') {
+      let routed = this.routedEvents.get(p.characterId);
+      if (!routed) this.routedEvents.set(p.characterId, (routed = new Set()));
+      routed.add(target);
+    }
     entry.promise = this.runRoute(p, gen, target, route, () => this.activeRoutes.get(holder)?.token === token, freezing).finally(() => {
-      if (this.activeRoutes.get(holder)?.token === token) this.activeRoutes.delete(holder);
+      if (this.activeRoutes.get(holder)?.token !== token) return;
+      this.activeRoutes.delete(holder);
+      if (target === 'player') return;
+      const routed = this.routedEvents.get(p.characterId);
+      routed?.delete(target);
+      if (routed?.size === 0) this.routedEvents.delete(p.characterId);
     });
     return entry.promise;
   }
@@ -871,40 +898,61 @@ export class EventRunner {
     }
   }
 
-  /** Autonomous movement of events (random, towards the player, custom route), for each player. */
+  /**
+   * Autonomous movement of events (random, towards the player, custom route), for each player. Only the events
+   * that can move are looked at: those with a page that moves by itself (known per map) and those a move route
+   * is moving, not every event of the map 10 times a second for each player.
+   */
   moveEvents(players: Iterable<PlayerSession>): void {
     const now = Date.now();
     for (const p of players) {
       if (!p.socket.connected) continue;
-      for (const e of p.events.values()) {
-        const page = MapRuntime.page(e);
-        if (page && (page.moveType !== 0 || this.activeRoutes.has(e)) && page.trigger === Trigger.EventTouch) this.touchPlayer(p, e);
-        if (!page || page.moveType === 0 || e.locked || this.activeRoutes.has(e) || now < e.nextMoveAt) continue;
-        const actor = this.eventActor(p, e);
-        const pause = (5 - page.moveFrequency) * 500;
-        let ms = 0;
-        if (page.moveType === 1) {
-          ms = this.routeCommand(p, actor, RouteCmd.MoveRandom, []);
-          ms = Math.max(ms, 0) + pause * (0.5 + Math.random());
-        } else if (page.moveType === 2) {
-          const map = this.world.mapRuntime(p.mapId)?.map;
-          const near = map ? Math.abs(deltaX(map, e.x, p.x)) + Math.abs(deltaY(map, e.y, p.y)) <= 1 : false;
-          ms = near ? 0 : this.routeCommand(p, actor, Math.random() < 0.75 ? RouteCmd.MoveToward : RouteCmd.MoveRandom, []);
-          ms = Math.max(ms, 0) + pause;
-        } else {
-          const list = page.moveRoute.list.filter((c) => c && Number.isInteger(c.code) && c.code !== RouteCmd.End);
-          if (list.length === 0 || (e.routeIndex >= list.length && !page.moveRoute.repeat)) {
-            e.nextMoveAt = Number.MAX_SAFE_INTEGER;
-            continue;
-          }
-          if (e.routeIndex >= list.length) e.routeIndex = 0;
-          const cmd = list[e.routeIndex]!;
-          ms = this.routeCommand(p, actor, cmd.code, cmd.parameters ?? []);
-          if (ms >= 0 || page.moveRoute.skippable) e.routeIndex++;
-          ms = ms < 0 ? 250 : ms + (cmd.code <= RouteCmd.MoveBackward ? pause : 0);
-        }
-        e.nextMoveAt = now + Math.max(ms, 50);
-      }
+      const movers = this.moversOf(p.events);
+      for (const e of movers) this.moveEvent(p, e, now);
+      const routed = this.routedEvents.get(p.characterId);
+      if (!routed) continue;
+      for (const e of [...routed]) if (p.events.get(e.def.id) === e && !movers.includes(e)) this.moveEvent(p, e, now);
     }
+  }
+
+  /** The copies of a set with at least one page that moves by itself (the others only move through move routes). */
+  private moversOf(events: EventSet): EventInstance[] {
+    let list = this.movers.get(events);
+    if (!list) {
+      list = [...events.values()].filter((e) => e.def.pages.some((page) => page.moveType !== 0));
+      this.movers.set(events, list);
+    }
+    return list;
+  }
+
+  /** One step of the autonomous movement of an event copy, when it is due (and the contact of a moving "event touch"). */
+  private moveEvent(p: PlayerSession, e: EventInstance, now: number): void {
+    const page = MapRuntime.page(e);
+    if (page && (page.moveType !== 0 || this.activeRoutes.has(e)) && page.trigger === Trigger.EventTouch) this.touchPlayer(p, e);
+    if (!page || page.moveType === 0 || e.locked || this.activeRoutes.has(e) || now < e.nextMoveAt) return;
+    const actor = this.eventActor(p, e);
+    const pause = (5 - page.moveFrequency) * 500;
+    let ms = 0;
+    if (page.moveType === 1) {
+      ms = this.routeCommand(p, actor, RouteCmd.MoveRandom, []);
+      ms = Math.max(ms, 0) + pause * (0.5 + Math.random());
+    } else if (page.moveType === 2) {
+      const map = this.world.mapRuntime(p.mapId)?.map;
+      const near = map ? Math.abs(deltaX(map, e.x, p.x)) + Math.abs(deltaY(map, e.y, p.y)) <= 1 : false;
+      ms = near ? 0 : this.routeCommand(p, actor, Math.random() < 0.75 ? RouteCmd.MoveToward : RouteCmd.MoveRandom, []);
+      ms = Math.max(ms, 0) + pause;
+    } else {
+      const list = page.moveRoute.list.filter((c) => c && Number.isInteger(c.code) && c.code !== RouteCmd.End);
+      if (list.length === 0 || (e.routeIndex >= list.length && !page.moveRoute.repeat)) {
+        e.nextMoveAt = Number.MAX_SAFE_INTEGER;
+        return;
+      }
+      if (e.routeIndex >= list.length) e.routeIndex = 0;
+      const cmd = list[e.routeIndex]!;
+      ms = this.routeCommand(p, actor, cmd.code, cmd.parameters ?? []);
+      if (ms >= 0 || page.moveRoute.skippable) e.routeIndex++;
+      ms = ms < 0 ? 250 : ms + (cmd.code <= RouteCmd.MoveBackward ? pause : 0);
+    }
+    e.nextMoveAt = now + Math.max(ms, 50);
   }
 }

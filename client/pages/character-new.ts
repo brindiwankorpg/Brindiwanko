@@ -11,6 +11,10 @@ import { CharacterPreview, rasterize } from '../art/render.js';
 const form = document.getElementById('create-form') as HTMLFormElement;
 const canvas = document.getElementById('preview') as HTMLCanvasElement;
 
+// The colour of each swatch comes in a data attribute and is set through the CSSOM: the Content Security
+// Policy of the site refuses style attributes written in the page.
+for (const swatch of form.querySelectorAll<HTMLElement>('[data-swatch]')) swatch.style.setProperty('--swatch', swatch.dataset.swatch ?? '');
+
 function selectedClass(): HTMLInputElement | null {
   return form.querySelector<HTMLInputElement>('input[name="classId"]:checked');
 }

@@ -14,7 +14,7 @@
  */
 import type { IncomingMessage, Server as HttpServer } from 'node:http';
 import type { Session, SessionData } from 'express-session';
-import { Server } from 'socket.io';
+import { Server, type Socket } from 'socket.io';
 import {
   PROTOCOL_VERSION,
   type ClientToServerEvents,
@@ -24,11 +24,21 @@ import {
 } from '../../shared/protocol.js';
 import { banNotice, isBanned } from '../auth/service.js';
 import type { ServerContext } from '../context.js';
+import type { Character } from '../db/characters.js';
+import { addressKey } from '../http/address.js';
+import { SlidingWindowLimiter } from '../http/rate-limit.js';
 import { RateLimiter } from './rate-limit.js';
 import { isDirection, isIntIn } from './validate.js';
 
 /** Typed socket.io server used across the engine. */
 export type GameServer = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
+/** Typed server-side socket. */
+type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
+
+/** Window of the handshake limits. */
+const HANDSHAKE_WINDOW_MS = 60_000;
+/** One client address (IPv6: one /64) may open this many times the connections of one account: a household behind one address still fits. */
+const HANDSHAKES_ADDRESS_FACTOR = 3;
 
 /**
  * Tells whether a handshake comes from the game's own origin. Requests without
@@ -117,36 +127,94 @@ export function createSocketServer(httpServer: HttpServer, ctx: ServerContext): 
   });
   ctx.world.attach(io);
 
-  io.use((socket, next) => {
+  // Every accepted handshake puts a character in the world and takes it out again (two writes to the
+  // connection log, a save): an account or an address reconnecting in a loop is held back here.
+  const handshakesByAccount = new SlidingWindowLimiter(ctx.config.socketConnectionsPerMin, HANDSHAKE_WINDOW_MS);
+  const handshakesByAddress = new SlidingWindowLimiter(ctx.config.socketConnectionsPerMin * HANDSHAKES_ADDRESS_FACTOR, HANDSHAKE_WINDOW_MS);
+
+  /**
+   * Checks the account and the character of a handshake, and stores them on the socket.
+   * @returns The error refusing the handshake, or `null` when it is accepted.
+   */
+  const authorizeHandshake = (socket: GameSocket): Error | null => {
     const req = socket.request as SessionRequest;
     const accountId = req.session?.accountId;
     const account = accountId === undefined ? undefined : ctx.accounts.findById(accountId);
-    if (!account) {
-      next(new Error('error.auth.not_authenticated'));
-      return;
-    }
+    if (!account) return new Error('error.auth.not_authenticated');
     if (isBanned(account)) {
       const notice = banNotice(account);
       // The reason and the end date travel in `data`, so the page can tell them.
-      next(Object.assign(new Error(notice.key), { data: notice.params }));
-      return;
+      return Object.assign(new Error(notice.key), { data: notice.params });
     }
     const requestedId = Number((socket.handshake.auth as { characterId?: unknown } | undefined)?.characterId);
-    if (Number.isInteger(requestedId) && requestedId > 0 && req.session?.characterId !== requestedId) {
-      next(new Error('error.character.not_selected'));
-      return;
-    }
+    if (Number.isInteger(requestedId) && requestedId > 0 && req.session?.characterId !== requestedId) return new Error('error.character.not_selected');
     const character = ctx.characterService.owned(account.id, req.session?.characterId);
-    if (!character) {
-      next(new Error('error.character.not_selected'));
-      return;
-    }
+    if (!character) return new Error('error.character.not_selected');
+    const accountKey = String(account.id);
+    const addressBucket = addressKey(clientAddress(socket.request, ctx.config.trustProxy));
+    if (handshakesByAccount.retryAfter(accountKey) > 0 || handshakesByAddress.retryAfter(addressBucket) > 0) return new Error('error.net.too_many_connections');
+    handshakesByAccount.record(accountKey);
+    handshakesByAddress.record(addressBucket);
     socket.data.accountId = account.id;
     socket.data.username = account.username;
     socket.data.role = account.role;
     socket.data.characterId = character.id;
-    next();
+    return null;
+  };
+
+  io.use((socket, next) => {
+    // socket.io runs this middleware inside a promise: a database error thrown here would only be an unhandled
+    // rejection, and the client would wait for its connection timeout without ever hearing why.
+    let refusal: Error | null;
+    try {
+      refusal = authorizeHandshake(socket);
+    } catch (err) {
+      console.error('[brindiwanko] socket handshake failed', err);
+      refusal = new Error('error.http.server');
+    }
+    if (refusal) next(refusal);
+    else next();
   });
+
+  /**
+   * Puts the character of an accepted socket in the world and sends it what it needs to start.
+   * @returns The character, or `undefined` when there is no map to enter (the socket is then closed).
+   */
+  const enterWorld = (socket: GameSocket, ip: string): Character | undefined => {
+    socket.emit('welcome', { protocol: PROTOCOL_VERSION, serverTime: Date.now() });
+    const character = ctx.characters.findById(socket.data.characterId);
+    const payload = character ? ctx.world.join(socket, character) : null;
+    if (!character || !payload) {
+      socket.emit('errorMessage', { key: 'error.net.no_map' });
+      socket.disconnect(true);
+      return undefined;
+    }
+    ctx.characters.touchPlayed(character.id);
+    ctx.admin.logConnection(socket.data.accountId, character.id, 'login', ip);
+    socket.emit('enterWorld', payload);
+    const joined = ctx.world.player(character.id);
+    if (joined) {
+      ctx.world.pushInventory(joined);
+      ctx.world.afterEnter(joined);
+    }
+    return character;
+  };
+
+  /**
+   * Entering the world failed half-way: the session this socket may already have in the world is taken
+   * out (so no player is left half-joined), and only this socket is closed.
+   */
+  const abortEntry = (socket: GameSocket, err: unknown): void => {
+    const characterId = socket.data.characterId;
+    console.error(`[brindiwanko] character #${characterId} could not enter the world`, err);
+    try {
+      if (ctx.world.player(characterId)?.socket.id === socket.id) ctx.world.leave(characterId);
+    } catch (leaveErr) {
+      console.error(`[brindiwanko] character #${characterId} could not be taken out of the world`, leaveErr);
+    }
+    socket.emit('errorMessage', { key: 'error.http.server' });
+    socket.disconnect(true);
+  };
 
   io.on('connection', (socket) => {
     // socket.io calls handlers outside any try: an exception (or a rejected promise) in one
@@ -181,23 +249,19 @@ export function createSocketServer(httpServer: HttpServer, ctx: ServerContext): 
       // Warn on the first dropped event of a burst, then stay quiet.
       if (limiter.droppedCount === 1) socket.emit('errorMessage', { key: 'error.net.rate_limited' });
     });
-    socket.emit('welcome', { protocol: PROTOCOL_VERSION, serverTime: Date.now() });
-    const character = ctx.characters.findById(socket.data.characterId);
-    const payload = character ? ctx.world.join(socket, character) : null;
-    if (!character || !payload) {
-      socket.emit('errorMessage', { key: 'error.net.no_map' });
-      socket.disconnect(true);
+    const ip = clientAddress(socket.request, ctx.config.trustProxy);
+    // socket.io runs this handler from a `process.nextTick`: an exception escaping it would stop the
+    // whole server. Entering writes to the database (play date, connection log, the session it replaces):
+    // when one of those writes fails, only this player is turned away.
+    let entered: Character | undefined;
+    try {
+      entered = enterWorld(socket, ip);
+    } catch (err) {
+      abortEntry(socket, err);
       return;
     }
-    ctx.characters.touchPlayed(character.id);
-    const ip = clientAddress(socket.request, ctx.config.trustProxy);
-    ctx.admin.logConnection(socket.data.accountId, character.id, 'login', ip);
-    socket.emit('enterWorld', payload);
-    const joined = ctx.world.player(character.id);
-    if (joined) {
-      ctx.world.pushInventory(joined);
-      ctx.world.afterEnter(joined);
-    }
+    if (!entered) return;
+    const character = entered;
 
     /** The session of this socket, if it is still the active one for the character. */
     const session = () => {
@@ -312,9 +376,9 @@ export function createSocketServer(httpServer: HttpServer, ctx: ServerContext): 
       const p = session();
       if (p && isIntIn(id, 1, Number.MAX_SAFE_INTEGER)) ctx.world.trade.request(p, id);
     });
-    socket.on('tradeRespond', (accept) => {
+    socket.on('tradeRespond', (accept, requesterId) => {
       const p = session();
-      if (p && typeof accept === 'boolean') ctx.world.trade.respond(p, accept);
+      if (p && typeof accept === 'boolean' && isIntIn(requesterId, 1, Number.MAX_SAFE_INTEGER)) ctx.world.trade.respond(p, accept, requesterId);
     });
     socket.on('tradeOffer', (offer) => {
       const p = session();
@@ -368,10 +432,11 @@ export function createSocketServer(httpServer: HttpServer, ctx: ServerContext): 
       if (p && Array.isArray(slots) && slots.length <= 32) ctx.world.combat.setHotbar(p, slots);
     });
     socket.on('disconnect', () => {
-      ctx.admin.logConnection(socket.data.accountId, character.id, 'logout', ip);
+      // The player leaves the world first: a connection log that cannot be written must not keep it there.
       if (session()) ctx.world.leave(character.id);
       // An administrator leaving the game also leaves the editor.
       if (socket.data.role === 'admin') ctx.editLocks.releaseAll(socket.data.accountId);
+      ctx.admin.logConnection(socket.data.accountId, character.id, 'logout', ip);
     });
   });
 

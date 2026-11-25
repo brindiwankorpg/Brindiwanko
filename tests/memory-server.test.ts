@@ -12,7 +12,7 @@ test('leaving without running parallel events releases the character registry', 
   let live: PlayerSession | undefined;
   const runner = new EventRunner({
     isLive: (p: PlayerSession) => live === p,
-    ctx: { gameData: { list: () => [] } },
+    ctx: { gameData: { list: () => [], values: () => [].values() } },
   } as unknown as World);
   const state = runner as unknown as { parallels: Map<number, Set<string>> };
   for (let id = 1; id <= 1000; id++) {
@@ -29,7 +29,7 @@ test('an old parallel run cannot remove the registry of a reconnected character'
   let live: PlayerSession | undefined;
   const runner = new EventRunner({
     isLive: (p: PlayerSession) => live === p,
-    ctx: { gameData: { list: () => [common], get: () => common } },
+    ctx: { gameData: { list: () => [common], values: () => [common].values(), get: () => common } },
   } as unknown as World);
   const state = runner as unknown as { parallels: Map<number, Set<string>> };
   const first = { characterId: 1, events: new Map(), busy: false, mapGen: 0 } as PlayerSession;

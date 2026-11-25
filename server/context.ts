@@ -32,7 +32,7 @@ import type { Locale } from '../shared/i18n.js';
 import { DEFAULT_SETTINGS } from '../shared/settings.js';
 import { randomBytes } from 'node:crypto';
 import { join } from 'node:path';
-import { stopSandbox } from './events/sandbox.js';
+import { allowSandboxWithoutNetworkIsolation, stopSandbox } from './events/sandbox.js';
 import { createSessionMiddleware } from './http/session.js';
 import { createMailer, type Mailer } from './mail.js';
 import { PATHS } from './paths.js';
@@ -91,6 +91,7 @@ export interface ContextOptions {
  * @returns A fully initialised context.
  */
 export function createContext(config: Config, options: ContextOptions = {}): ServerContext {
+  allowSandboxWithoutNetworkIsolation(config.sandboxWithoutNetworkIsolation);
   // A restoration waiting for this database (panel or `npm run restore`) is applied before it is opened.
   const restored = applyPendingRestore(config.dbPath, PATHS.uploads);
   if (restored) console.log('[brindiwanko] database restored from a backup');
@@ -183,11 +184,16 @@ function assemble(db: Db, config: Config, options: ContextOptions): ServerContex
   );
 }
 
+/** Contexts already closed: a shutdown may reach {@link closeContext} by two paths (server closed, time-out). */
+const closedContexts = new WeakSet<ServerContext>();
+
 /**
- * Releases the resources held by a context (timers, database handle).
+ * Releases the resources held by a context (timers, database handle). A second call does nothing.
  * @param ctx - Context to close.
  */
 export function closeContext(ctx: ServerContext): void {
+  if (closedContexts.has(ctx)) return;
+  closedContexts.add(ctx);
   ctx.stopping = true;
   ctx.world.close();
   ctx.sessionStore.close();

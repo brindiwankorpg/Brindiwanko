@@ -330,6 +330,9 @@ Toutes les variables d'environnement sont optionnelles :
 | `CONTENT_LANGUAGE` | prompt terminal | `fr` ou `en` pour générer le monde de démonstration sans saisie interactive. |
 | `REGISTRATIONS_PER_HOUR` | `10` *(prod)* | Limite d'inscriptions par heure et par IP (`0` = illimité). |
 | `IMPORTS_PER_15_MIN` | `3` *(prod)* | Limite d'imports de projet (200 Mo max) par compte / 15 min (`0` = illimité). |
+| `SOCKET_CONNECTIONS_PER_MIN` | `12` *(prod)* | Connexions au jeu par compte et par minute ; une même IP (ou /64 IPv6) en a trois fois plus (`0` = illimité). |
+| `SANDBOX_WITHOUT_NETWORK_ISOLATION` | — | `1` : exécute les scripts d'événements même sur un Node.js qui ne peut pas couper le réseau de leur bac à sable (sans `--allow-net`). Sinon, les scripts y sont refusés. |
+| `UV_THREADPOOL_SIZE` | `4` | Threads de Node.js (mots de passe, compression, fichiers) ; la moitié au plus hache des mots de passe en même temps. `8` conseillé sur un serveur public (à fixer dans l'environnement du processus, avant le démarrage de Node.js). |
 | `MAX_CHARACTERS` | `4` | Nombre maximum de personnages par compte. |
 | `SMTP_URL` / `MAIL_FROM` | — | Relais SMTP sortant et expéditeur pour la réinitialisation de mot de passe. |
 
@@ -976,6 +979,9 @@ All environment variables are optional:
 | `CONTENT_LANGUAGE` | terminal prompt | `en` or `fr` to seed the starter world non-interactively. |
 | `REGISTRATIONS_PER_HOUR` | `10` *(prod)* | Account registration rate limit per IP per hour (`0` = unlimited). |
 | `IMPORTS_PER_15_MIN` | `3` *(prod)* | Project import limit (up to 200 MB each) per account per 15 min (`0` = unlimited). |
+| `SOCKET_CONNECTIONS_PER_MIN` | `12` *(prod)* | Game connections per account per minute; one IP (or IPv6 /64) gets three times as many (`0` = unlimited). |
+| `SANDBOX_WITHOUT_NETWORK_ISOLATION` | — | `1`: run event scripts even on a Node.js that cannot cut their sandbox off the network (no `--allow-net`). Otherwise scripts are refused there. |
+| `UV_THREADPOOL_SIZE` | `4` | Node.js threads (password hashes, compression, files); at most half of them hash passwords at once. `8` advised on a public server (set it in the process environment, before Node.js starts). |
 | `MAX_CHARACTERS` | `4` | Maximum characters per account. |
 | `SMTP_URL` / `MAIL_FROM` | — | Outbound SMTP URI and sender address for password reset emails. |
 

@@ -11,7 +11,7 @@ import type { CharacterAppearance } from './art/character.js';
 import type { ActionView, DamageView, HotbarSlot, MonsterView, SkillsPayload } from './combat.js';
 import type { BankPayload, SheetPayload, ShopPayload } from './character.js';
 import type { EquipSlot, ParamName, ParamValues } from './database.js';
-import type { ChatMessage, FriendsPayload, InspectPayload, TradeView, WritableChannel } from './social.js';
+import type { ChatMessage, FriendView, FriendsPayload, InspectPayload, TradeView, WritableChannel } from './social.js';
 import type { Emblem, GuildDirectoryPage, GuildView, PartyView } from './guild.js';
 import type { TilesetData } from './database.js';
 import type { EventView, WeatherType } from './events.js';
@@ -20,7 +20,7 @@ import type { QuestJournalPayload } from './quests.js';
 import type { Direction } from './settings.js';
 
 /** Version of the wire protocol. Bumped whenever an event payload changes shape. */
-export const PROTOCOL_VERSION = 3;
+export const PROTOCOL_VERSION = 4;
 
 /** Events emitted by the server and received by the client. */
 export interface ServerToClientEvents {
@@ -114,8 +114,10 @@ export interface ServerToClientEvents {
   windowsClosed: () => void;
   /** A chat message (or a system message). */
   chat: (message: ChatMessage) => void;
-  /** Friends and ignored players (after every change, and when a friend comes or goes). */
+  /** Friends and ignored players (when the window opens and after every change of the lists). */
   friends: (payload: FriendsPayload) => void;
+  /** A friend came, left, or became visible or invisible: its new line in the friends window. */
+  friendPresence: (friend: FriendView) => void;
   /** Another player shows an emotion balloon. */
   emote: (payload: { id: number; balloon: number }) => void;
   /** Level, class, guild and equipment of an inspected player. */
@@ -196,7 +198,11 @@ export interface ClientToServerEvents {
   tradeRequest: (characterId: number) => void;
   /** Gives up a quest in progress (its progress is lost; it can be started again). */
   questAbandon: (questId: number) => void;
-  tradeRespond: (accept: boolean) => void;
+  /**
+   * Answers a trade request; `requesterId` names the player the answer is for (a newer request that arrived
+   * meanwhile is not answered by mistake).
+   */
+  tradeRespond: (accept: boolean, requesterId: number) => void;
   /** Replaces the player's offer. */
   tradeOffer: (offer: { items: { kind: 'item' | 'weapon' | 'armor'; id: number; quantity: number }[]; gold: number }) => void;
   tradeLock: () => void;

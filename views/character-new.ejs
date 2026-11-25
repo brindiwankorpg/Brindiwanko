@@ -57,7 +57,7 @@
           <div class="option-row" role="radiogroup" aria-labelledby="look-skin">
             <span id="look-skin"><%= t('character_new.skin') %></span>
             <% palettes.skin.forEach((color, i) => { %>
-              <label class="swatch" style="--swatch: <%= color %>" title="<%= t('character_new.skin') %> <%= i + 1 %>">
+              <label class="swatch" data-swatch="<%= color %>" title="<%= t('character_new.skin') %> <%= i + 1 %>">
                 <input type="radio" name="skin" value="<%= i %>" aria-label="<%= t('character_new.skin') %> <%= i + 1 %>" <%= (values.skin ?? 0) === i ? 'checked' : '' %>>
               </label>
             <% }) %>
@@ -75,7 +75,7 @@
           <div class="option-row" role="radiogroup" aria-labelledby="look-hair-color">
             <span id="look-hair-color"><%= t('character_new.hair_color') %></span>
             <% palettes.hair.forEach((color, i) => { %>
-              <label class="swatch" style="--swatch: <%= color %>" title="<%= t('character_new.hair_color') %> <%= i + 1 %>">
+              <label class="swatch" data-swatch="<%= color %>" title="<%= t('character_new.hair_color') %> <%= i + 1 %>">
                 <input type="radio" name="hairColor" value="<%= i %>" aria-label="<%= t('character_new.hair_color') %> <%= i + 1 %>" <%= (values.hairColor ?? 1) === i ? 'checked' : '' %>>
               </label>
             <% }) %>
@@ -83,7 +83,7 @@
           <div class="option-row" role="radiogroup" aria-labelledby="look-outfit-color">
             <span id="look-outfit-color"><%= t('character_new.outfit_color') %></span>
             <% palettes.outfit.forEach((color, i) => { %>
-              <label class="swatch" style="--swatch: <%= color %>" title="<%= t('character_new.outfit_color') %> <%= i + 1 %>">
+              <label class="swatch" data-swatch="<%= color %>" title="<%= t('character_new.outfit_color') %> <%= i + 1 %>">
                 <input type="radio" name="outfitColor" value="<%= i %>" aria-label="<%= t('character_new.outfit_color') %> <%= i + 1 %>" <%= (values.outfitColor ?? 0) === i ? 'checked' : '' %>>
               </label>
             <% }) %>

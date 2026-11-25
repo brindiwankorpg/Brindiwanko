@@ -69,8 +69,8 @@ export class CharacterSheet {
       allocated: p.allocated,
       freePoints: freePoints(p.level, this.setting('statPointsPerLevel'), p.allocated),
       equipment,
-      weaponTypes: this.ctx.settings.get('weaponTypes', DEFAULT_SETTINGS.weaponTypes),
-      armorTypes: this.ctx.settings.get('armorTypes', DEFAULT_SETTINGS.armorTypes),
+      weaponTypes: this.ctx.settings.peek('weaponTypes', DEFAULT_SETTINGS.weaponTypes),
+      armorTypes: this.ctx.settings.peek('armorTypes', DEFAULT_SETTINGS.armorTypes),
       allowedWeaponTypes: cls?.weaponTypes ?? [],
       allowedArmorTypes: cls?.armorTypes ?? [],
     };

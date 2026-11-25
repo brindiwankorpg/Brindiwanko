@@ -12,6 +12,15 @@ import { safeJsonParse, type Db } from './database.js';
 const CACHE_MISS = Symbol('missing');
 const settingsCaches = new WeakMap<Db, Map<string, unknown>>();
 
+/** Freezes a parsed JSON value and everything inside it (the cached values are shared by {@link SettingsRepository.peek}). */
+function deepFreeze<V>(value: V): V {
+  if (value !== null && typeof value === 'object' && !Object.isFrozen(value)) {
+    Object.freeze(value);
+    for (const inner of Object.values(value)) deepFreeze(inner);
+  }
+  return value;
+}
+
 /** Typed access to `system_settings` and `server_secrets`. */
 export class SettingsRepository {
   private readonly getStmt: Statement<[string], string>;
@@ -54,8 +63,26 @@ export class SettingsRepository {
     }
     const parsed = safeJsonParse<T | typeof CACHE_MISS>(raw, CACHE_MISS);
     if (parsed === CACHE_MISS) return fallback;
-    if (!this.db.inTransaction) this.cache.set(key, parsed);
-    return clone(parsed);
+    if (!this.db.inTransaction) this.cache.set(key, deepFreeze(structuredClone(parsed)));
+    return parsed;
+  }
+
+  /**
+   * Reads a setting without copying it, for code that only reads it (payloads sent at every change, names
+   * looked up in a loop). The value is the cached one, frozen: changing it throws instead of altering what
+   * every later reader gets. Use {@link get} for a copy to change.
+   * @param key - Setting key.
+   * @param fallback - Value returned when the key is absent.
+   */
+  peek<T>(key: string, fallback: T): T {
+    if (!this.db.inTransaction && this.cache.has(key)) {
+      const hit = this.cache.get(key);
+      return hit === CACHE_MISS ? fallback : (hit as T);
+    }
+    const value = this.get(key, fallback);
+    if (this.db.inTransaction || !this.cache.has(key)) return value;
+    const hit = this.cache.get(key);
+    return hit === CACHE_MISS ? fallback : (hit as T);
   }
 
   /**
@@ -67,7 +94,7 @@ export class SettingsRepository {
     const json = JSON.stringify(value);
     this.setStmt.run(key, json);
     if (this.db.inTransaction) this.cache.delete(key);
-    else this.cache.set(key, JSON.parse(json));
+    else this.cache.set(key, deepFreeze(JSON.parse(json)));
   }
 
   /** Tells whether a setting exists. */

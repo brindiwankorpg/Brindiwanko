@@ -11,6 +11,7 @@ import { PERMANENT } from '../db/admin.js';
 import { DuplicateAccountError, SetupCodeError, type Account, type AccountRepository } from '../db/accounts.js';
 import { addressKey } from '../http/address.js';
 import { createDeviceToken, verifyDeviceToken } from './device.js';
+import { defaultHashGate, HASH_BUSY, type HashGate } from './hash-gate.js';
 import { LoginThrottle } from './throttle.js';
 
 /**
@@ -55,6 +56,7 @@ export class AuthService {
    * @param throttle - Brute-force limiter.
    * @param setupCode - Code required to register the first (administrator) account; `null` = not required.
    * @param deviceSecret - Secret signing the device cookies (see `device.ts`).
+   * @param hashGate - Limit of the hashes running at once (see `hash-gate.ts`).
    */
   constructor(
     private readonly accounts: AccountRepository,
@@ -62,9 +64,20 @@ export class AuthService {
     readonly throttle = new LoginThrottle(),
     private readonly setupCode: string | null = null,
     private readonly deviceSecret = randomBytes(32).toString('base64url'),
+    readonly hashGate: HashGate = defaultHashGate(),
   ) {
     // Computed asynchronously (off the event loop) with the same cost as real hashes, so timing stays equal.
     this.dummyHash = bcrypt.hash('brindiwanko-dummy-password', bcryptRounds);
+  }
+
+  /** Compares a password with a hash through the gate ({@link HASH_BUSY}: too many hashes wait already). */
+  private compare(password: string, hash: string | Promise<string>): Promise<boolean | typeof HASH_BUSY> {
+    return this.hashGate.run(async () => bcrypt.compare(password.slice(0, 256), await hash));
+  }
+
+  /** Hashes a new password through the gate ({@link HASH_BUSY}: too many hashes wait already). */
+  private hash(password: string): Promise<string | typeof HASH_BUSY> {
+    return this.hashGate.run(() => bcrypt.hash(password, this.bcryptRounds));
   }
 
   /** Tells whether the next registration needs the setup code (no account yet, code configured). */
@@ -94,7 +107,8 @@ export class AuthService {
     // Cheap pre-checks so a taken name or address does not cost a hash; `create` re-checks atomically.
     if (this.accounts.findByUsername(clean.username)) return { ok: false, errorKey: 'error.auth.username_taken' };
     if (this.accounts.findByEmail(clean.email)) return { ok: false, errorKey: 'error.auth.email_taken' };
-    const passwordHash = await bcrypt.hash(clean.password, this.bcryptRounds);
+    const passwordHash = await this.hash(clean.password);
+    if (passwordHash === HASH_BUSY) return BUSY;
     try {
       const account = this.accounts.create({ username: clean.username, email: clean.email, passwordHash, locale }, mayBeFirst);
       // Registering opens a session: it counts as the first login.
@@ -135,12 +149,14 @@ export class AuthService {
       return { ok: false, errorKey: 'error.auth.too_many_attempts', params: { seconds: Math.ceil(attempt.locked / 1000) } };
     }
     // Always run one hash comparison so response time is the same whether the account exists or not.
-    let valid: boolean;
+    let valid: boolean | typeof HASH_BUSY;
     try {
-      valid = await bcrypt.compare(password.slice(0, 256), account?.passwordHash ?? (await this.dummyHash));
+      valid = await this.compare(password, account?.passwordHash ?? this.dummyHash);
     } finally {
       attempt.end();
     }
+    // Turned away before any comparison: neither a failure nor a success.
+    if (valid === HASH_BUSY) return BUSY;
     if (!account || !valid) {
       this.throttle.fail(...keys);
       return { ok: false, errorKey: 'error.auth.invalid_credentials' };
@@ -168,12 +184,13 @@ export class AuthService {
     const key = `confirm:${account.id}`;
     const attempt = this.throttle.begin(key);
     if (attempt.locked > 0) return { ok: false, errorKey: 'error.auth.too_many_attempts', params: { seconds: Math.ceil(attempt.locked / 1000) } };
-    let valid: boolean;
+    let valid: boolean | typeof HASH_BUSY;
     try {
-      valid = await bcrypt.compare(password.slice(0, 256), account.passwordHash);
+      valid = await this.compare(password, account.passwordHash);
     } finally {
       attempt.end();
     }
+    if (valid === HASH_BUSY) return BUSY;
     if (!valid) {
       this.throttle.fail(key);
       return { ok: false, errorKey: 'error.account.wrong_password' };
@@ -209,7 +226,9 @@ export class AuthService {
   }
 
   private async setPassword(account: Account, password: string): Promise<AuthResult> {
-    this.accounts.setPasswordHash(account.id, await bcrypt.hash(password, this.bcryptRounds));
+    const hash = await this.hash(password);
+    if (hash === HASH_BUSY) return BUSY;
+    this.accounts.setPasswordHash(account.id, hash);
     const updated = this.accounts.findById(account.id);
     if (!updated) return { ok: false, errorKey: 'error.auth.not_authenticated' };
     return { ok: true, account: updated, deviceToken: createDeviceToken(this.deviceSecret, updated.username, updated.passwordHash) };
@@ -251,24 +270,29 @@ export class AuthService {
 
   // --- Forgotten password -----------------------------------------------------------
 
-  /** When the last link was sent to each account (one e-mail every few minutes at most). */
-  private readonly resetSentAt = new Map<number, number>();
+  /**
+   * When the links of the last day were sent to each account: one e-mail every few minutes at most, and a few a
+   * day, however many addresses ask (nobody can fill an inbox with them).
+   */
+  private readonly resetsSent = new Map<number, number[]>();
 
   /**
    * Prepares a "forgotten password" link for the account named by a user name
    * or an e-mail address.
    * @returns The account and the secret token to put in the link, or `null`
-   *   when no account matches or a link was sent a short while ago (the caller
-   *   answers the same way in every case, so nobody learns whether an account exists).
+   *   when no account matches, a link was sent a short while ago or the account
+   *   received its links of the day (the caller answers the same way in every
+   *   case, so nobody learns whether an account exists).
    */
   createPasswordReset(identifier: string, now = Date.now()): { account: Account; token: string } | null {
     const name = identifier.trim();
     if (!name || name.length > 254) return null;
     const account = name.includes('@') ? this.accounts.findByEmail(name) : this.accounts.findByUsername(name);
     if (!account) return null;
-    if (now - (this.resetSentAt.get(account.id) ?? 0) < RESET_RESEND_MS) return null;
-    this.resetSentAt.set(account.id, now);
-    for (const [id, at] of this.resetSentAt) if (now - at >= RESET_RESEND_MS) this.resetSentAt.delete(id);
+    for (const [id, times] of this.resetsSent) if (times.every((at) => now - at >= RESET_MAIL_WINDOW_MS)) this.resetsSent.delete(id);
+    const sent = (this.resetsSent.get(account.id) ?? []).filter((at) => now - at < RESET_MAIL_WINDOW_MS);
+    if (sent.length >= RESET_MAILS_PER_DAY || now - (sent.at(-1) ?? 0) < RESET_RESEND_MS) return null;
+    this.resetsSent.set(account.id, [...sent, now]);
     const token = randomBytes(32).toString('base64url');
     this.accounts.addPasswordReset(account.id, hashResetToken(token), now + RESET_TOKEN_MS);
     return { account, token };
@@ -286,7 +310,8 @@ export class AuthService {
     if (invalid) return { ok: false, errorKey: invalid };
     // The link is checked again, and used, only once the (slow) hash is ready: another request with the same
     // link may have used it meanwhile.
-    const hash = await bcrypt.hash(password, this.bcryptRounds);
+    const hash = await this.hash(password);
+    if (hash === HASH_BUSY) return BUSY;
     const account = this.accounts.resetPasswordWithLink(hashResetToken(token), hash);
     if (!account) return { ok: false, errorKey: 'error.account.reset_invalid' };
     return { ok: true, account, deviceToken: createDeviceToken(this.deviceSecret, account.username, account.passwordHash) };
@@ -297,6 +322,12 @@ export class AuthService {
 export const RESET_TOKEN_MS = 60 * 60 * 1000;
 /** Shortest delay between two "forgotten password" e-mails to one account. */
 export const RESET_RESEND_MS = 2 * 60 * 1000;
+/** "Forgotten password" e-mails one account may receive per day, whoever asks for them. */
+export const RESET_MAILS_PER_DAY = 5;
+/** Window of {@link RESET_MAILS_PER_DAY}. */
+const RESET_MAIL_WINDOW_MS = 24 * 60 * 60 * 1000;
+/** Answer when too many password hashes wait already: the visitor tries again in a moment. */
+const BUSY = { ok: false, errorKey: 'error.auth.busy' } as const satisfies AuthResult;
 /** Shape of a link token (32 random bytes in base64url). */
 const RESET_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 

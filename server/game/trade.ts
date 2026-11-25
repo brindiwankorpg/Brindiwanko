@@ -91,11 +91,16 @@ export class TradeService {
     p.socket.emit('notify', { key: 'notify.trade_requested', params: { name: target.name } });
   }
 
-  /** Answers a pending request. */
-  respond(p: PlayerSession, accept: boolean): void {
+  /**
+   * Answers a pending request.
+   * @param requesterId - Player the answer is meant for: an answer to a request replaced since by another
+   *   player's is ignored, and the newer request stays pending.
+   */
+  respond(p: PlayerSession, accept: boolean, requesterId: number): void {
     const req = this.requests.get(p.characterId);
+    if (req?.from !== requesterId) return;
     this.requests.delete(p.characterId);
-    if (!req || Date.now() - req.at > REQUEST_MS) return;
+    if (Date.now() - req.at > REQUEST_MS) return;
     const from = this.world.player(req.from);
     if (!from) return;
     if (!accept) {

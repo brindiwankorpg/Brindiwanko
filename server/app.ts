@@ -228,7 +228,12 @@ export function createApp(ctx: ServerContext): Express {
 
   app.use(characterRouter(ctx));
 
-  app.use((_req, res) => {
+  app.use((req, res) => {
+    // An unknown API path answers in JSON like the rest of the API (the panels read `error`).
+    if (req.path.startsWith('/api/')) {
+      res.status(404).json({ error: 'error.http.not_found' });
+      return;
+    }
     res.status(404).render('error', { code: 404, messageKey: 'error.http.not_found' });
   });
 

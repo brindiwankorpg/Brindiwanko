@@ -359,7 +359,7 @@ test('an item created in the editor is immediately usable in game (chest → bag
     id: village.events.length, name: 'Coffre', note: '', x: 18, y: 12,
     pages: [createPage({ priorityType: Priority.Same, trigger: Trigger.Action, list: [{ code: Cmd.ChangeItems, indent: 0, parameters: [id, 0, 0, 2] }, { code: Cmd.ChangeGold, indent: 0, parameters: [0, 0, 15] }, { code: 0, indent: 0, parameters: [] }] })],
   });
-  assert.equal((await admin.api('PUT', '/maps/1', { map: village })).status, 200);
+  assert.equal((await admin.api('PUT', '/maps/1', { map: village, baseVersion: server.ctx.maps.revision(1) })).status, 200);
 
   const { socket, payload, inventories } = await enter(admin.client, 'Healer');
   await wait(100);

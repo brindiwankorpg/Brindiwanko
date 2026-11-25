@@ -103,10 +103,26 @@ export function accountRouter(ctx: ServerContext): Router {
   });
 
   router.post('/account/email', requireAuth, verifyCsrf, async (req, res) => {
-    const result = await ctx.auth.changeEmail(currentAccount(res)!.id, field(req, 'current'), field(req, 'email'));
+    const id = currentAccount(res)!.id;
+    // The address being replaced, read before the change.
+    const before = ctx.accounts.findById(id);
+    const result = await ctx.auth.changeEmail(id, field(req, 'current'), field(req, 'email'));
     if (!result.ok) {
       renderAccount(res, result.errorKey === 'error.auth.too_many_attempts' ? 429 : 400, { form: 'email', key: result.errorKey, params: result.params });
       return;
+    }
+    if (before && result.account.email !== before.email) {
+      // Whoever else is logged in to the site with this account is logged out (this browser stays). The links
+      // of "forgotten password" already sent stay valid: they went to the old address, the owner's.
+      ctx.sessionStore.destroyAccountSessions(before.id, req.sessionID);
+      // The old address hears of the change: if the owner did not make it, it learns that its password is known.
+      if (ctx.mailer.enabled) {
+        const t = translatorFor(isLocale(result.account.locale) ? result.account.locale : (res.locals.locale ?? DEFAULT_LOCALE));
+        const game = ctx.settings.get('gameTitle', 'Brindiwanko');
+        void ctx.mailer
+          .send({ to: before.email, subject: t('account.email_changed_mail.subject', { game }), text: t('account.email_changed_mail.body', { name: before.username, game }) })
+          .catch((err: unknown) => console.error('[brindiwanko] the "e-mail address changed" e-mail could not be sent', err));
+      }
     }
     res.redirect(303, '/account?done=email');
   });
