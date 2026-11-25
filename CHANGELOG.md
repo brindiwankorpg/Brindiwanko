@@ -2,161 +2,236 @@
 
 <div align="center">
 
-  <img src="assets/img/system/AppIcon-512.png" alt="Logo Brindiwanko" width="96" />
+<img src="assets/img/system/AppIcon-512.png" alt="Logo Brindiwanko" width="110" />
 
-  # 📜 Journal des modifications
+# 📜 Journal des modifications
 
-  **Suivi des versions, correctifs et évolutions de Brindiwanko**
+#### Toutes les évolutions de Brindiwanko, version après version
 
-  [![Version](https://img.shields.io/badge/version-1.0.0--beta.1-2563eb?style=for-the-badge)](package.json)
-  [![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/fr/1.1.0/)
-  [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/lang/fr/)
-  [![Tests](https://img.shields.io/badge/tests-354%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
-  [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0.0--beta.1-2563eb?style=for-the-badge)](package.json)
+[![Tests](https://img.shields.io/badge/tests-354%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+[![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/fr/1.1.0/)
+[![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/lang/fr/)
+[![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
 
-  <br />
+**🇫🇷 Français** &nbsp;·&nbsp; [🇬🇧 English version](#en-top)
 
-  **🇫🇷 Français** &nbsp;·&nbsp; [🇬🇧 Switch to English](#en-top)
-
-  <br />
-
-  [🚧 Non publié (25/11/2026)](#fr-unreleased) •
-  [🧪 1.0.0-beta.1 (11/11/2026)](#fr-beta-1) •
-  [📖 Guide README](README.md)
+<table>
+  <tr>
+    <td align="center" width="200"><a href="#fr-unreleased"><b>🚧 Non publié</b></a><br /><sub>25/11/2026 · 2 lots</sub></td>
+    <td align="center" width="200"><a href="#fr-beta-1"><b>🧪 1.0.0-beta.1</b></a><br /><sub>11/11/2026 · première bêta</sub></td>
+    <td align="center" width="200"><a href="README.md"><b>📖 README</b></a><br /><sub>Installation & guide</sub></td>
+  </tr>
+</table>
 
 </div>
+
+> [!NOTE]
+> Ce journal suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le [versionnage sémantique](https://semver.org/lang/fr/). Les niveaux `P1` (prioritaire) et `P2` (à corriger) renvoient aux audits de code.
 
 ---
 
-> Toutes les évolutions notables de **Brindiwanko** sont consignées ici selon le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le [versionnage sémantique](https://semver.org/lang/fr/).
-
 <a id="fr-unreleased"></a>
 
-## 🚧 Non publié — 25/11/2026
+## 🚧 Non publié
 
-> [!TIP]
-> **Lot de stabilisation AppSec, Performance & Bêta UX :** résolution des deux priorités `P1` sur la restauration à chaud et la boucle `20 Hz`, accompagnée de `22` améliorations `P2` *(sécurité, concurrence, SQLite, client, réseau, documentation)* et de la mise à jour de `nodemailer`.
+<div align="center">
 
-> [!IMPORTANT]
-> **Contre-expertise de l'audit 360° (25/11/2026) :** correction de l'unique `P1` restant *(arrêt du serveur sur une écriture SQLite refusée à la connexion d'un joueur)* et des `P2` validés ; suite portée à `354` tests. **Changements incompatibles :** protocole Socket.io `v4` *(clients rechargés automatiquement)*, schéma de `001_init.sql` modifié *(une base existante est à recréer)* et réinitialisation d'un mot de passe depuis le panneau admin confirmée par le mot de passe de l'appelant.
+| 🔴 `P1` corrigés | 🧪 Tests | 💥 Ruptures | 🆕 Réglages | 📦 Lots |
+| :---: | :---: | :---: | :---: | :---: |
+| **3** | **354** ✅ | **3** | **5** | **2** |
 
-### 🛠️ Contre-expertise de l'audit 360°
+</div>
 
-| Domaine | Évolution apportée | Fichiers concernés |
-| :--- | :--- | :--- |
-| **Connexion Socket.io (`P1`)** | Entrée dans le monde isolée (`enterWorld` / `abortEntry`) : une écriture SQLite refusée ne coupe que le socket concerné au lieu d'arrêter le serveur ; erreur de `io.use` renvoyée au client (`error.http.server`) ; à la déconnexion, le joueur quitte le monde avant l'écriture du journal ; plafond de connexions par compte et par IP (`SOCKET_CONNECTIONS_PER_MIN`). | `server/net/socket.ts`, `server/config.ts` |
-| **Sauvegardes du monde** | `leave()` nettoie la mémoire même si la sauvegarde échoue, `kickAccount()` déconnecte dans un `finally`, `savedAt` n'avance qu'après une écriture réussie, fermeture idempotente du monde et du contexte. | `server/game/world.ts`, `server/context.ts` |
-| **Administration** | Rôle et mot de passe d'un admin modifiables par le seul propriétaire ; réinitialisation confirmée par le mot de passe de l'appelant ; journal `progress` limité aux champs appliqués ; identifiants de `DELETE /db` bornés à `1..9999` ; `baseVersion` obligatoire à l'enregistrement d'une carte ; réponses `404` en JSON sous `/api/`. | `server/admin/admin-routes.ts`, `server/admin/database-routes.ts`, `server/admin/editor-routes.ts`, `server/app.ts`, `client/pages/admin.ts` |
-| **Comptes & e-mails** | Avis à l'ancienne adresse et fermeture des autres sessions au changement d'e-mail ; `5` e-mails de réinitialisation par jour et par compte ; confirmation d'adresse par lien *(indicative, avec `SMTP_URL`)* affichée sur le compte et dans le panneau admin ; file bornée devant bcrypt (`503` quand elle est pleine) ; avertissement si `PUBLIC_URL` est défini sans `NODE_ENV=production`. | `server/auth/service.ts`, `server/auth/hash-gate.ts`, `server/auth/account-routes.ts`, `server/db/accounts.ts`, `views/account.ejs`, `server/index.ts` |
-| **Sécurité web & bac à sable** | CSP sans `'unsafe-inline'` *(nuanciers via `data-swatch`)* ; scripts d'évènements refusés sur un Node.js sans `--allow-net`, sauf `SANDBOX_WITHOUT_NETWORK_ISOLATION=1` ; `1000` évaluations en attente au plus ; restauration écrite sur disque au fil de l'eau et verrou commun entre import et restauration. | `server/http/security.ts`, `views/character-new.ejs`, `server/events/sandbox.ts`, `server/admin/heavy-jobs.ts`, `server/admin/admin-routes.ts` |
-| **Gameplay & éditeur** | Protection d'arrivée étendue au PvP ; plus de rafale de pas après une téléportation ; `turn()` bloqué par `cannot_move` ; repli de `evacuateMap` sur le départ de la classe ; délai `instanceLockMinutes` contre la remise à zéro des donjons ; plafond `guildMaxMembers` ; réponse d'échange liée au demandeur ; rafraîchissements globaux regroupés par tick ; alerte avant d'enregistrer une carte dont des instances sont occupées. | `server/game/combat.ts`, `server/game/world.ts`, `server/game/instances.ts`, `server/game/guild.ts`, `server/game/trade.ts`, `client/editor/editor.ts`, `shared/settings.ts` |
-| **Textes & noms** | Message du jour et noms de rangs de guilde nettoyés comme le chat ; alphabets arménien et cherokee ajoutés aux homoglyphes ; remplacements `\P` / `\G` insensibles aux motifs `$&`. | `server/game/guild.ts`, `server/game/social.ts`, `shared/names.ts`, `server/events/interpreter.ts` |
-| **Performance** | Présence en guilde et des amis sans N+1 (`friendPresence`) ; index des membres en ligne et des noms ; caches des tags de guilde, des stats de monstres, de l'équipement et des commandes de quête par page ; journal de quêtes reconstruit sur empreinte ; réglages gelés lus sans copie (`peek`) ; itérations sans copie (`zoneMembers`, `gameData.values`) ; seuls les évènements mobiles parcourus ; upload asynchrone. | `server/game/*.ts`, `server/db/*.ts`, `server/resources/*.ts` |
-| **Typage & tests (`354`)** | `noUncheckedIndexedAccess` activé partout ; `12` tests de régression ; tests mis à jour pour les nouvelles règles ; correction `Tomas` ➔ `Thomas` restante dans les tests et `demo/data`. | `tsconfig.json`, `tests/avalanche-fixes.test.ts`, `tests/*.test.ts`, `demo/data/*.json` |
+> [!WARNING]
+> **À lire avant de mettre à jour**
+> - 🔌 **Protocole Socket.io `v4`** : les pages de jeu ouvertes se rechargent d'elles-mêmes.
+> - 🗄️ **Schéma `001_init.sql` modifié** : une base créée avant ce lot est à recréer, et ses sauvegardes ne se restaurent plus.
+> - 🔑 **Réinitialisation de mot de passe depuis le panneau admin** : l'administrateur qui la lance doit saisir son propre mot de passe.
 
-### 📸 Documentation & Captures d'écran
+### 🆕 Nouveaux réglages
 
-| Domaine | Évolution apportée | Fichiers concernés |
-| :--- | :--- | :--- |
-| **Captures d'écran PC & Mobile** | Ajout de 28 captures d'écran en anglais (`14` PC `1920×1080` + `14` Mobile Pixel 8 `412×915 @ 2.625x` / `1082×2402`) avec joystick tactile visible, dialogue PNJ complet et vues de l'éditeur de map (`08`–`09`), couvrant l'authentification, les personnages, le jeu, la base de données et les éditeurs d'évènements dans les sections française et anglaise. | `README.md`, `docs/screenshots/pc/`, `docs/screenshots/mobile/` |
+| Réglage | Où | Par défaut | Rôle |
+| :--- | :--- | :---: | :--- |
+| `SOCKET_CONNECTIONS_PER_MIN` | Variable d'environnement | `12` *(prod)* | Connexions au jeu par compte et par minute, trois fois plus par IP. |
+| `SANDBOX_WITHOUT_NETWORK_ISOLATION` | Variable d'environnement | — | `1` : exécute les scripts même sur un Node.js sans `--allow-net`. |
+| `UV_THREADPOOL_SIZE` | Variable d'environnement | `4` | Threads de Node.js ; `8` conseillé sur un serveur public. |
+| `guildMaxMembers` | Réglages système | `100` | Taille maximale d'une guilde. |
+| `instanceLockMinutes` | Réglages système | `5` | Délai avant de rouvrir une copie d'un même donjon. |
 
-### 🔒 Sécurité & Durcissement
+<a id="fr-lot-2"></a>
 
-| Domaine | Évolution apportée | Fichiers concernés |
-| :--- | :--- | :--- |
-| **Restauration admin (`P1`)** | Vérification du mot de passe (`x-confirm-password`) et prise du verrou `restoring` dans `try/finally` **avant** `express.raw` (`500 Mo` max), empêchant toute allocation mémoire sur session volée. | `server/admin/admin-routes.ts` |
-| **Archives ZIP** | Contrôle strict `data.length === size` après décompression deflate et rejet en `O(n log n)` des plages `localOffset` chevauchantes. | `server/importers/zip.ts` |
-| **Téléversements SVG** | Dimensions numériques (`width`/`height`) obligatoires dans `storeUpload` ; décodage des échappements CSS hexadécimaux avant filtrage `url()`/`@import` et plafond à `32` balises `<use>` dans `isSafeSvg`. | `server/resources/uploads.ts` |
-| **Sandbox & monde** | Bornage des IDs switches/variables à `1..9999` (`isOp`, `setSwitch`, `setVariable`) et validation `Number.isSafeInteger` sur les opérations scriptées. | `server/events/sandbox.ts`, `server/game/world.ts` |
-| **Verrous d'édition** | Libération immédiate via `editLocks.releaseAll(id)` sur changement ou réinitialisation de mot de passe ; verrou sur `PATCH /api/editor/maps/:id/info` restreint à `name` et `parentId` *(sans bloquer `expanded` ni `order`)*. | `server/auth/account-routes.ts`, `server/admin/admin-routes.ts`, `server/admin/editor-routes.ts` |
-| **Handshakes & i18n** | Rejet dans `isSameOrigin` des requêtes Socket.io ayant `Sec-Fetch-Site` cross-site même sans `Origin` ; garde `Object.hasOwn` dans `lookup()`. | `server/net/socket.ts`, `shared/i18n.ts` |
-| **Contre-expertise V2** | Garde anti-cycle `parentId` (`PATCH /maps/:id/info` & `importProject`), `readZip` en 2 passes, durcissement `isSafeSvg`/`svgSize`, sandbox isolée (`64 KiB` IPC), verrou `/import` avant `express.raw`, `isSameOrigin` (`.at(-1)` + `X-Forwarded-Proto`), cookie CSRF `__Host-` + HMAC, `originFromEnv` + CSP `connect-src 'self'`, `POST /lang/:locale` protégé par CSRF et `intFromEnv` strict. | `server/admin/editor-routes.ts`, `server/importers/zip.ts`, `server/resources/uploads.ts`, `server/events/sandbox.ts`, `server/http/csrf.ts`, `server/http/security.ts`, `server/config.ts`, `server/app.ts` |
+### 🛠️ Lot 2 — Contre-expertise de l'audit 360° &nbsp;<sub>25/11/2026</sub>
 
-### ⚡ Performance & Architecture
+> Correction de l'unique `P1` restant et des `P2` validés par la contre-expertise.
 
-| Domaine | Évolution apportée | Fichiers concernés |
-| :--- | :--- | :--- |
-| **Restauration asynchrone (`P1`)** | Passage de `prepareRestore` en `async` en réutilisant le Worker existant `inspectBackup` (`PRAGMA quick_check`) et `fs.promises.cp` pour ne plus bloquer l'Event Loop `20 Hz`. | `server/db/backups.ts`, `server/restore.ts`, `server/admin/admin-routes.ts` |
-| **Index & requêtes SQLite (`001_init.sql`)** | Ajout de `11` index secondaires consolidés dans `001_init.sql` (`admin_log(target)`, `character_self_switches(map_id)`, `characters(class_id)`, `characters(respawn_map)`, `character_skills(skill_id)`, `character_quests(quest_id)`, `character_items(item_kind, item_id)`, `character_equipment(item_kind, item_id)`, `character_bank(item_kind, item_id)`, `guild_bank_items(item_kind, item_id)`, `character_raid_lockouts(raid_id)`), cache transaction-safe dans `SettingsRepository` (`WeakMap` par `Db`), suppression des requêtes N+1 dans `GuildRepository.directory` et scan brut `MapRepository.rawIncludes` sans `JSON.parse`/`JSON.stringify`. | `server/db/migrations/001_init.sql`, `server/db/settings.ts`, `server/db/guilds.ts`, `server/db/maps.ts`, `server/admin/editor-routes.ts` |
-| **Cycle de vie client** | Suivi des écouteurs globaux par `AbortController`, arrêt du `requestAnimationFrame`, du timer de repli `50 ms` et du callback de langue via `destroy()` à la déconnexion ou au logout. | `client/game.ts`, `client/ui/chat.ts`, `client/ui/windows.ts`, `client/main.ts` |
-| **Factorisation & CI** | Extraction de `field(req, name)`, parsing booléen strict `boolFromEnv` pour `TRUST_PROXY` (`1`/`true`/`0`/`false`, échec au démarrage sinon) et validation des placeholders `{{...}}` ainsi que des clés `t('...')` dans `views/**/*.ejs`. | `server/http/form.ts`, `server/config.ts`, `scripts/i18n-check.ts` |
+#### 🔌 Connexion & robustesse du serveur
 
-### 🌐 Serveur, Réseau & Robustesse
+- **Plus d'arrêt du serveur à la connexion (`P1`)** — une écriture SQLite refusée pendant l'entrée d'un joueur ne coupe plus que son socket.
+- **Handshake** — une erreur dans `io.use` est renvoyée au client (`error.http.server`) au lieu de le laisser attendre.
+- **Déconnexion** — le joueur quitte le monde avant l'écriture du journal de connexion.
+- **Reconnexions en boucle** — plafond par compte et par IP (`SOCKET_CONNECTIONS_PER_MIN`).
+- **Sauvegardes** — `leave()` nettoie la mémoire même si la sauvegarde échoue, `kickAccount()` déconnecte toujours, `savedAt` n'avance qu'après une écriture réussie et l'arrêt peut être demandé deux fois sans effet.
 
-| Domaine | Évolution apportée | Fichiers concernés |
-| :--- | :--- | :--- |
-| **Événements & reconnexions** | Garde `p.busy` dans `runCommon()`, re-vérification `isLive && !dead` après les attentes de `inn()`, flush immédiat de la progression en `finally` de `run()`/`runCommon()` et contrôle du `characterId` via `handshake.auth` au reconnect. | `server/game/events.ts`, `client/main.ts`, `server/net/socket.ts` |
-| **WebSocket & proxy** | Activation de `tryAllTransports: true` côté client pour garantir le repli HTTP `polling`, tolérance `X-Forwarded-Host` vide / `:80`/`:443` dans `isSameOrigin()` et logs de diagnostic sur `allowRequest` / `connection_error`. | `client/main.ts`, `server/net/socket.ts` |
-| **Comptes & tableau de bord** | Helper `safeJsonParse` sur les colonnes JSON SQLite, suppression des assertions `!` après `bcrypt` et dans `renderAccount`, transaction atomique dans `deleteAccount` *(notifications de guilde après commit)*, échantillonnage CPU dans `World.lagMonitor` et suffixe aléatoire sur `/api/admin/backup`. | `server/db/database.ts`, `server/auth/service.ts`, `server/auth/account-routes.ts`, `server/game/guild.ts`, `server/game/world.ts`, `server/admin/admin-routes.ts` |
+<sub>📁 `server/net/socket.ts` · `server/game/world.ts` · `server/context.ts` · `server/config.ts`</sub>
 
-### 🎮 Gameplay, Client & Éditeur
+#### 🔐 Administration, comptes & e-mails
 
-<details open>
-<summary>Voir le détail des améliorations en jeu et dans l'éditeur</summary>
+- **Entre administrateurs** — seul le propriétaire change le rôle ou le mot de passe d'un autre admin ; toute réinitialisation est confirmée par le mot de passe de l'appelant.
+- **Changement d'e-mail** — l'ancienne adresse est prévenue et les autres sessions sont fermées.
+- **Confirmation d'adresse** — lien envoyé à l'inscription et à chaque changement *(avec `SMTP_URL`)*, statut affiché sur le compte et dans le panneau ; purement indicative.
+- **Anti-spam** — `5` e-mails de réinitialisation par jour et par compte.
+- **bcrypt** — file d'attente bornée (`503` quand elle est pleine) pour garder des threads libres.
+- **API** — journal `progress` limité aux champs appliqués, identifiants de `DELETE /db` bornés à `1..9999`, `baseVersion` obligatoire pour enregistrer une carte, réponses `404` en JSON sous `/api/`.
+- **Configuration** — avertissement si `PUBLIC_URL` est défini sans `NODE_ENV=production`.
 
-| Domaine | Évolution apportée | Fichiers concernés |
-| :--- | :--- | :--- |
-| **Combat & IA des régions** | Confinement des monstres à leur région en mode `idle` *(et en fuite sur zones multi-cases)*, aggro à `1` case des bordures peintes et retour au point d'origine au-delà de `2` cases hors zone *(les marqueurs de boss à une case restent libres dans leur salle)*. | `server/game/combat.ts` |
-| **Focus & réactivité** | Cliquer sur la carte retire le focus du champ de chat ou du HUD pour rendre aussitôt la main au clavier ; buffer d'entrée de `150 ms` sur `action` (`Espace`, `Entrée`, `Z`, tactile `A`) pressée juste avant la fin d'un pas. | `client/game.ts`, `client/engine/player-controller.ts` |
-| **Dialogues & mode tactile** | Masquage des barres du bas, du chat et des contrôles tactiles sous `body.dialogue-active` ; suivi dynamique de `(hover: none)` et `resize` sans rechargement de page. | `client/game.ts`, `client/styles/game.css`, `client/ui/mobile.ts`, `client/ui/windows.ts` |
-| **Ergonomie de l'éditeur** | Mémoire de sélection et de défilement par onglet dans la palette *(réinitialisée uniquement si les planches changent)* et ancrage des boutons `+ Ajouter` avec focus automatique sur la ligne créée. | `client/editor/palette.ts`, `client/editor/database-editor.ts`, `client/styles/editor.css` |
-| **Correctifs V2, Démo & Tests (`342`)** | `useItem` sous GCD/étourdissement, AoE toroïdale dédupliquée et plafond `MAX_BOSS_ADDS = 24`, `emote()`/`/r` respectant sourdine/invisibilité/ignorés, `CharacterSheet` (`openWindow`, `buy`, `reloadMap`) + `inn()` après fondu, `bootToken` client, correction `Tomas` ➔ `Thomas` (`Maison de Thomas`) et `12` tests de régression V2. | `server/game/combat.ts`, `server/game/world.ts`, `server/game/social.ts`, `server/game/character-sheet.ts`, `client/main.ts`, `server/db/demo-map.ts`, `server/db/seed.ts`, `tests/hardening-v2.test.ts` |
+<sub>📁 `server/admin/*.ts` · `server/auth/*.ts` · `server/db/accounts.ts` · `server/app.ts` · `views/account.ejs` · `client/pages/admin.ts`</sub>
+
+#### 🛡️ Sécurité web & bac à sable
+
+- **CSP** — plus de `'unsafe-inline'` : les couleurs des nuanciers passent par `data-swatch`.
+- **Scripts d'évènements** — refusés sur un Node.js sans `--allow-net`, sauf `SANDBOX_WITHOUT_NETWORK_ISOLATION=1` ; `1000` évaluations en attente au plus.
+- **Restauration & import** — la sauvegarde est écrite sur disque au fil de l'eau, et un seul import ou une seule restauration tourne à la fois.
+
+<sub>📁 `server/http/security.ts` · `views/character-new.ejs` · `server/events/sandbox.ts` · `server/admin/heavy-jobs.ts`</sub>
+
+#### 🎮 Gameplay & éditeur
+
+- **PvP** — la protection d'arrivée vaut aussi contre les autres joueurs.
+- **Déplacements** — plus de rafale de pas offerte après une téléportation ; `turn()` bloqué par `cannot_move`.
+- **Cartes supprimées** — `evacuateMap` se replie sur le départ de la classe, puis déconnecte proprement.
+- **Donjons** — délai `instanceLockMinutes` : changer de groupe ne remet plus le donjon à zéro.
+- **Guildes & échanges** — plafond `guildMaxMembers` ; une réponse d'échange désigne le demandeur.
+- **Interrupteurs globaux** — les rafraîchissements de tous les joueurs sont regroupés par tick.
+- **Éditeur** — alerte avant d'enregistrer une carte dont des instances sont occupées.
+
+<sub>📁 `server/game/*.ts` · `client/editor/editor.ts` · `shared/settings.ts`</sub>
+
+#### 💬 Textes & noms
+
+- Message du jour et noms de rangs de guilde nettoyés comme le chat.
+- Alphabets arménien et cherokee ajoutés aux lettres trompeuses des noms.
+- Codes `\P` et `\G` insensibles aux motifs `$&`.
+
+<sub>📁 `server/game/guild.ts` · `server/game/social.ts` · `shared/names.ts` · `server/events/interpreter.ts`</sub>
+
+#### ⚡ Performance
+
+- **Moins de requêtes** — présence en guilde et des amis sans N+1 (`friendPresence`), index des membres en ligne et des noms.
+- **Caches** — tags de guilde, stats des monstres, équipement, commandes de quête par page ; journal de quêtes reconstruit seulement s'il change.
+- **Moins de copies** — réglages gelés lus sans copie (`peek`), itérations directes (`zoneMembers`, `gameData.values`), seuls les évènements mobiles parcourus.
+- **Uploads** — écriture asynchrone, seule la ressource ajoutée est réindexée.
+
+<sub>📁 `server/game/*.ts` · `server/db/*.ts` · `server/resources/*.ts`</sub>
+
+#### 🧪 Typage & tests
+
+- `noUncheckedIndexedAccess` activé sur tout le projet.
+- `12` tests de régression dédiés, suite portée à **354** tests.
+- Dernier `Tomas` ➔ `Thomas` corrigé dans les tests et `demo/data`.
+
+<sub>📁 `tsconfig.json` · `tests/avalanche-fixes.test.ts` · `tests/*.test.ts` · `demo/data/*.json`</sub>
+
+<a id="fr-lot-1"></a>
+
+<details>
+<summary><b>🧱 Lot 1 — Stabilisation AppSec, performance & UX bêta</b> &nbsp;<sub>20/11/2026 · 2 <code>P1</code> + 22 <code>P2</code> · cliquer pour déplier</sub></summary>
+
+<br />
+
+#### 🔒 Sécurité & durcissement
+
+- **Restauration admin (`P1`)** — mot de passe vérifié et verrou pris **avant** de lire le fichier (`500 Mo` max) : aucune allocation sur une session volée.
+- **Archives ZIP** — taille exacte vérifiée après décompression, plages `localOffset` chevauchantes rejetées.
+- **SVG téléversés** — dimensions numériques obligatoires, échappements CSS décodés avant le filtrage `url()` / `@import`, `32` balises `<use>` au plus.
+- **Bac à sable & monde** — identifiants d'interrupteurs et de variables bornés à `1..9999`, `Number.isSafeInteger` sur les opérations scriptées.
+- **Verrous d'édition** — libérés dès un changement ou une réinitialisation de mot de passe ; le verrou de `PATCH /maps/:id/info` ne bloque que `name` et `parentId`.
+- **Handshakes & i18n** — requêtes `Sec-Fetch-Site` intersites refusées même sans `Origin` ; garde `Object.hasOwn` dans `lookup()`.
+- **Contre-expertise V2** — garde anti-cycle de `parentId`, `readZip` en deux passes, sandbox isolée (`64 KiB` d'IPC), cookie CSRF `__Host-` signé, CSP `connect-src 'self'`, `POST /lang/:locale` protégé, `intFromEnv` strict.
+
+<sub>📁 `server/admin/*.ts` · `server/importers/zip.ts` · `server/resources/uploads.ts` · `server/events/sandbox.ts` · `server/http/*.ts` · `shared/i18n.ts`</sub>
+
+#### ⚡ Performance & architecture
+
+- **Restauration asynchrone (`P1`)** — `prepareRestore` passe par le Worker `inspectBackup` et `fs.promises.cp` : la boucle `20 Hz` n'est plus bloquée.
+- **SQLite** — `11` index secondaires dans `001_init.sql`, cache de réglages sûr en transaction, annuaire des guildes sans N+1, recherche brute dans les cartes sans `JSON.parse`.
+- **Cycle de vie client** — écouteurs, `requestAnimationFrame`, minuteur de repli et rappel de langue libérés par `destroy()`.
+- **Outils & CI** — `field(req, name)` partagé, `boolFromEnv` strict pour `TRUST_PROXY`, placeholders et clés `t('...')` des vues vérifiés.
+
+<sub>📁 `server/db/*.ts` · `server/restore.ts` · `client/game.ts` · `client/main.ts` · `scripts/i18n-check.ts`</sub>
+
+#### 🌐 Serveur & réseau
+
+- **Évènements & reconnexions** — garde `p.busy` dans `runCommon()`, état revérifié après `inn()`, progression enregistrée en `finally`, `characterId` vérifié à la reconnexion.
+- **WebSocket & proxy** — repli `polling` réel (`tryAllTransports`), `X-Forwarded-Host` vide ou `:80` / `:443` toléré, journaux de diagnostic.
+- **Comptes & tableau de bord** — `safeJsonParse` sur les colonnes JSON, suppression de compte atomique, mesure du CPU, noms aléatoires des sauvegardes temporaires.
+
+<sub>📁 `server/game/events.ts` · `server/net/socket.ts` · `server/auth/*.ts` · `server/game/world.ts` · `client/main.ts`</sub>
+
+#### 🎮 Gameplay, client & éditeur
+
+- **IA des régions** — monstres confinés à leur région, aggro à `1` case des bordures, retour au départ au-delà de `2` cases.
+- **Réactivité** — un clic sur la carte rend la main au clavier ; mémoire de `150 ms` pour l'action pressée juste avant la fin d'un pas.
+- **Dialogues & tactile** — barres, chat et commandes tactiles masqués pendant un dialogue ; mode tactile suivi sans recharger la page.
+- **Éditeur** — sélection et défilement mémorisés par onglet de palette ; boutons `+ Ajouter` fixes avec focus sur la ligne créée.
+- **Correctifs V2 & démo** — `useItem` sous recharge globale, AoE dédoublonnée, `MAX_BOSS_ADDS = 24`, `emote()` et `/r` respectueux des sourdines, `bootToken` client, `12` tests de régression *(342 tests à cette date)*.
+
+<sub>📁 `server/game/combat.ts` · `client/game.ts` · `client/engine/player-controller.ts` · `client/editor/*.ts` · `tests/hardening-v2.test.ts`</sub>
+
+#### 📦 Dépendances & documentation
+
+- **`nodemailer`** `10.5.0` → `10.6.0`, lockfile resynchronisé pour `npm ci`.
+- **Guides d'installation** — démarrage local PC / Mac / Linux (archive `.zip` ou `git clone`) et guide VPS pas à pas (`nvm`, `pm2`, Nginx, Certbot, dépannage `WebSocket 400`).
+- **Captures d'écran** — `28` captures *(14 PC `1920×1080`, 14 mobile `412×915`)* : connexion, personnages, jeu, base de données, éditeurs.
+- **Présentation** — ligne **Mobile & Bilingue** clarifiée dans les tableaux de fonctionnalités.
+
+<sub>📁 `package.json` · `README.md` · `docs/screenshots/`</sub>
 
 </details>
 
-### 📦 Dépendances & Documentation
-
-| Domaine | Évolution apportée | Fichiers concernés |
-| :--- | :--- | :--- |
-| **Dépendances** | Mise à jour de `nodemailer` (`10.5.0` → `10.6.0`) et resynchronisation du lockfile pour `npm ci`. | `package.json`, `package-lock.json` |
-| **Guides d'installation** | Refonte bilingue du démarrage local PC/Mac/Linux *(téléchargement Node.js 24/26, archive `.zip` directe sans prérequis Git + option `git clone`)* et du guide VPS Linux débutant *(`Debian/Ubuntu`, `4 Go RAM`, `>= 2 vCore`, `nvm` + note avancée `apt`, DNS `A`, `pm2` sans `sudo` avec `nvm` vs `sudo` sous `apt`, Nginx, Certbot HTTPS et dépannage `WebSocket 400`)*. | `README.md`, `CHANGELOG.md` |
-| **Présentation bilingue** | Formulation clarifiée de la ligne **Mobile & Bilingue** dans les tableaux de fonctionnalités FR/EN *(adaptation automatique mobile/PC, logiciel et contenu disponibles en français et en anglais)*. | `README.md`, `CHANGELOG.md` |
-
-<div align="right">
-
-[⬆️ Haut de page (FR)](#fr-top)
-
-</div>
+<p align="right"><a href="#fr-top">⬆️ Haut de page</a></p>
 
 ---
 
 <a id="fr-beta-1"></a>
 
-## 🧪 1.0.0-beta.1 — 11/11/2026
+## 🧪 1.0.0-beta.1 &nbsp;<sub>11/11/2026</sub>
 
-> Première bêta de **Brindiwanko 1.0** : moteur de MMORPG 2D pour navigateur avec éditeur de monde temps réel intégré, fonctionnant dans un seul processus Node.js (`>= 24`, `26 LTS` recommandé) adossé à SQLite et livré avec un monde de démonstration jouable.
+> Première bêta de **Brindiwanko 1.0** : un moteur de MMORPG 2D pour navigateur avec éditeur de monde en temps réel, dans un seul processus Node.js (`>= 24`, `26 LTS` conseillé) adossé à SQLite, livré avec un monde de démonstration jouable.
 
-### ✨ Fonctionnalités intégrées
+### ✨ Ce que contient la bêta
 
-| Domaine | Capacités principales |
-| :--- | :--- |
-| 🗺️ **Éditeur de cartes** | Barre de menus et d'icônes, palette de tuiles A à E, couches automatiques, autotiles, ombres dynamiques, régions, passabilité manuelle, cartes en boucle toroïdale, historique des versions, bouton *« Tester la carte »*. |
-| 🧩 **Événements** | Multi-pages, conditions d'activation, déclencheurs variés, éditeur visuel de commandes, cinématiques (fondus, teintes d'écran, flashs, tremblements, images, météo, défilement de caméra, minuteurs). |
-| 🎵 **Musique & Audio** | Musiques et ambiances dédiées par carte, jingles de victoire, commandes d'événement audio (lecture, fondu, mémorisation, reprise). |
-| 📜 **Quêtes** | Étapes séquentielles, objectifs multiples (dialoguer, éliminer des cibles, collecter des objets, atteindre une zone), récompenses, chapitres, indicateurs visuels `!` et `?`. |
-| ⚔️ **Système de Combat** | Action en temps réel directement sur la carte, compétences, altérations d'état, affinités élémentaires, coups critiques, IA des monstres, tables de butin. |
-| 🎒 **Gestion Personnage** | Caractéristiques, points d'attributs à répartir, inventaire en grille, équipements, marchands, auberges de repos, coffres de banque. |
-| 💬 **Vie Sociale** | Canaux publics, messagerie privée instantanée, liste d'amis, liste d'ignorés, échanges sécurisés entre joueurs, émoticônes. |
-| 🛡️ **Groupes & Guildes** | Partage dynamique d'expérience et d'or, hiérarchie de rangs et permissions, coffre de guilde partagé, journal d'activité, blason généré. |
-| 🏰 **Donjons & Raids** | Instances indépendantes par groupe, boss à phases scénarisées, verrous hebdomadaires (lockouts), attribution du butin aux dés. |
-| 👑 **Administration** | Tableau de bord temps réel, panel de sanctions, outils d'animation en jeu, journaux d'audit détaillés, sauvegardes à chaud et restauration. |
-| 📱 **Compatibilité Mobile** | Joystick virtuel tactile, boutons d'action et d'annulation dédiés, compétences en arc de cercle, mode plein écran, installation en PWA. |
-| 🌍 **Bilingue natif** | Interface utilisateur, mécaniques de jeu et éditeur intégralement traduits en **français** et en **anglais**. |
+| | Domaine | Capacités |
+| :---: | :--- | :--- |
+| 🗺️ | **Éditeur de cartes** | Palettes A à E, couches automatiques, autotiles, ombres, régions, passabilité manuelle, cartes en boucle, historique des versions, bouton *« Tester la carte »*. |
+| 🧩 | **Évènements** | Multi-pages, conditions, déclencheurs, éditeur visuel de commandes, cinématiques (fondus, teintes, flashs, tremblements, images, météo, caméra, minuteurs). |
+| 🎵 | **Audio** | Musiques et ambiances par carte, jingles de victoire, commandes audio (lecture, fondu, mémorisation, reprise). |
+| 📜 | **Quêtes** | Étapes, objectifs (parler, vaincre, collecter, atteindre), récompenses, chapitres, marqueurs `!` et `?`. |
+| ⚔️ | **Combat** | Temps réel sur la carte, compétences, altérations, éléments, critiques, IA des monstres, butins. |
+| 🎒 | **Personnage** | Caractéristiques, points à répartir, inventaire en grille, équipement, marchands, auberges, banque. |
+| 💬 | **Vie sociale** | Canaux publics, messages privés, amis, ignorés, échanges sécurisés, émoticônes. |
+| 🛡️ | **Groupes & guildes** | Partage d'XP et d'or, rangs et permissions, coffre de guilde, journal, blason. |
+| 🏰 | **Donjons & raids** | Instances par groupe, boss à phases, verrous hebdomadaires, butin aux dés. |
+| 👑 | **Administration** | Tableau de bord en direct, sanctions, outils d'animation, journaux d'audit, sauvegardes et restauration. |
+| 📱 | **Mobile** | Joystick tactile, boutons Action et Annuler, compétences en arc, plein écran, installation PWA. |
+| 🌍 | **Bilingue** | Jeu, systèmes et éditeur entièrement en **français** et en **anglais**. |
 
-### 🔒 Sécurité & 🗄️ Base de données
+### 🔒 Sécurité & base de données
 
-- **Confirmation sur restauration par upload :** restaurer un fichier de sauvegarde téléversé depuis `/admin` redemande le mot de passe administrateur via un champ unifié sous l'avertissement de restauration.
+- **Restauration par fichier confirmée** — restaurer une sauvegarde téléversée depuis `/admin` redemande le mot de passe administrateur.
 
 > [!IMPORTANT]
-> **Rupture de schéma (`001_init.sql`) :** le schéma repart d'une migration initiale unique équivalente aux `22` migrations précédentes. Les bases et sauvegardes `0.x` ne sont **pas compatibles** : repartez d'une base neuve.
+> **Rupture de schéma (`001_init.sql`)** : le schéma repart d'une migration initiale unique, équivalente aux `22` migrations précédentes. Les bases et sauvegardes `0.x` ne sont **pas compatibles** : repartez d'une base neuve.
 
 ---
 
 <div align="center">
 
-📄 Sous licence **[Apache 2.0](LICENSE)** &nbsp;·&nbsp; [⬆️ Haut de page (FR)](#fr-top) &nbsp;·&nbsp; [🇬🇧 English Changelog](#en-top)
+📄 Sous licence **[Apache 2.0](LICENSE)** &nbsp;·&nbsp; [⬆️ Haut de page](#fr-top) &nbsp;·&nbsp; [🇬🇧 English changelog](#en-top)
 
 </div>
+
+<br />
 
 ---
 
@@ -166,158 +241,231 @@
 
 <div align="center">
 
-  <img src="assets/img/system/AppIcon-512.png" alt="Brindiwanko Logo" width="96" />
+<img src="assets/img/system/AppIcon-512.png" alt="Brindiwanko logo" width="110" />
 
-  # 📜 Changelog (English)
+# 📜 Changelog
 
-  **Release notes, fixes, and improvements for Brindiwanko**
+#### Every change to Brindiwanko, release after release
 
-  [![Version](https://img.shields.io/badge/version-1.0.0--beta.1-2563eb?style=for-the-badge)](package.json)
-  [![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/en/1.1.0/)
-  [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/)
-  [![Tests](https://img.shields.io/badge/tests-354%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
-  [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0.0--beta.1-2563eb?style=for-the-badge)](package.json)
+[![Tests](https://img.shields.io/badge/tests-354%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+[![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/en/1.1.0/)
+[![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/)
+[![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
 
-  <br />
+[🇫🇷 Version française](#fr-top) &nbsp;·&nbsp; **🇬🇧 English**
 
-  [🇫🇷 Lire en Français](#fr-top) &nbsp;·&nbsp; **🇬🇧 English**
-
-  <br />
-
-  [🚧 Unreleased (2026-11-25)](#en-unreleased) •
-  [🧪 1.0.0-beta.1 (2026-11-11)](#en-beta-1) •
-  [📖 README](README.md#en-top)
+<table>
+  <tr>
+    <td align="center" width="200"><a href="#en-unreleased"><b>🚧 Unreleased</b></a><br /><sub>2026-11-25 · 2 batches</sub></td>
+    <td align="center" width="200"><a href="#en-beta-1"><b>🧪 1.0.0-beta.1</b></a><br /><sub>2026-11-11 · first beta</sub></td>
+    <td align="center" width="200"><a href="README.md#en-top"><b>📖 README</b></a><br /><sub>Setup & guide</sub></td>
+  </tr>
+</table>
 
 </div>
+
+> [!NOTE]
+> This changelog follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/). `P1` (urgent) and `P2` (to fix) refer to the code audits.
 
 ---
 
-> All notable changes to **Brindiwanko** are documented in this file based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
-
 <a id="en-unreleased"></a>
 
-## 🚧 Unreleased — 2026-11-25
+## 🚧 Unreleased
 
-> [!TIP]
-> **AppSec, Performance & Beta UX stabilization:** resolves both `P1` operational issues (restore request ordering & async restore prep) alongside `22` `P2` improvements across security, concurrency, SQLite performance, client lifecycle, networking, and setup docs, plus the `nodemailer` dependency bump.
+<div align="center">
 
-> [!IMPORTANT]
-> **Second opinion on the 360° audit (2026-11-25):** fixes the only remaining `P1` *(server stopping on a refused SQLite write while a player connects)* and the confirmed `P2` items; the suite now has `354` tests. **Breaking changes:** Socket.io protocol `v4` *(clients reload automatically)*, `001_init.sql` schema changed *(an existing database must be recreated)*, and admin password resets now require the caller's password.
+| 🔴 `P1` fixed | 🧪 Tests | 💥 Breaking | 🆕 Settings | 📦 Batches |
+| :---: | :---: | :---: | :---: | :---: |
+| **3** | **354** ✅ | **3** | **5** | **2** |
 
-### 🛠️ Second Opinion on the 360° Audit
+</div>
 
-| Area | Change | Files |
-| :--- | :--- | :--- |
-| **Socket.io connection (`P1`)** | World entry isolated (`enterWorld` / `abortEntry`): a refused SQLite write closes only that socket instead of stopping the server; `io.use` errors reach the client (`error.http.server`); on disconnect the player leaves the world before the log is written; per-account and per-IP connection cap (`SOCKET_CONNECTIONS_PER_MIN`). | `server/net/socket.ts`, `server/config.ts` |
-| **World saves** | `leave()` cleans memory even when the save fails, `kickAccount()` disconnects in a `finally`, `savedAt` only moves after a successful write, idempotent world and context shutdown. | `server/game/world.ts`, `server/context.ts` |
-| **Administration** | Only the owner changes another admin's role or password; resets confirmed by the caller's password; `progress` log limited to applied fields; `DELETE /db` ids bounded to `1..9999`; `baseVersion` required to save a map; JSON `404` under `/api/`. | `server/admin/admin-routes.ts`, `server/admin/database-routes.ts`, `server/admin/editor-routes.ts`, `server/app.ts`, `client/pages/admin.ts` |
-| **Accounts & e-mails** | Old address notified and other sessions closed on e-mail change; `5` reset e-mails per account per day; address confirmation link *(informational, with `SMTP_URL`)* shown on the account page and in the admin panel; bounded queue in front of bcrypt (`503` when full); warning when `PUBLIC_URL` is set without `NODE_ENV=production`. | `server/auth/service.ts`, `server/auth/hash-gate.ts`, `server/auth/account-routes.ts`, `server/db/accounts.ts`, `views/account.ejs`, `server/index.ts` |
-| **Web security & sandbox** | CSP without `'unsafe-inline'` *(swatches through `data-swatch`)*; event scripts refused on a Node.js without `--allow-net` unless `SANDBOX_WITHOUT_NETWORK_ISOLATION=1`; at most `1000` pending evaluations; restores streamed to disk and a shared import/restore lock. | `server/http/security.ts`, `views/character-new.ejs`, `server/events/sandbox.ts`, `server/admin/heavy-jobs.ts`, `server/admin/admin-routes.ts` |
-| **Gameplay & editor** | Arrival protection extended to PvP; no step burst after teleports; `turn()` blocked by `cannot_move`; `evacuateMap` falls back to the class start; `instanceLockMinutes` delay against dungeon resets; `guildMaxMembers` cap; trade answers bound to the requester; global refreshes batched per tick; warning before saving a map with occupied instances. | `server/game/combat.ts`, `server/game/world.ts`, `server/game/instances.ts`, `server/game/guild.ts`, `server/game/trade.ts`, `client/editor/editor.ts`, `shared/settings.ts` |
-| **Texts & names** | Guild message of the day and rank names cleaned like the chat; Armenian and Cherokee added to look-alike alphabets; `\P` / `\G` replacements immune to `$&` patterns. | `server/game/guild.ts`, `server/game/social.ts`, `shared/names.ts`, `server/events/interpreter.ts` |
-| **Performance** | Guild and friend presence without N+1 (`friendPresence`); online member and name indexes; caches for guild tags, monster stats, equipment and per-page quest commands; quest journal rebuilt on fingerprint change; frozen settings read without copies (`peek`); copy-free iteration (`zoneMembers`, `gameData.values`); only moving events walked; async uploads. | `server/game/*.ts`, `server/db/*.ts`, `server/resources/*.ts` |
-| **Typing & tests (`354`)** | `noUncheckedIndexedAccess` enabled everywhere; `12` regression tests; tests updated for the new rules; remaining `Tomas` ➔ `Thomas` fix in tests and `demo/data`. | `tsconfig.json`, `tests/avalanche-fixes.test.ts`, `tests/*.test.ts`, `demo/data/*.json` |
+> [!WARNING]
+> **Read before updating**
+> - 🔌 **Socket.io protocol `v4`**: open game pages reload by themselves.
+> - 🗄️ **`001_init.sql` schema changed**: a database created before this batch must be recreated, and its backups can no longer be restored.
+> - 🔑 **Password resets from the admin panel**: the administrator starting one must type their own password.
 
-### 📸 Documentation & Screenshots
+### 🆕 New settings
 
-| Area | Change | Files |
-| :--- | :--- | :--- |
-| **Desktop & Mobile Screenshots** | Added 28 English screenshots (`14` Desktop `1920×1080` + `14` Mobile Pixel 8 `412×915 @ 2.625x` / `1082×2402`) with touch joystick visible, full NPC dialogue, and fixed map editor views (`08`–`09`), covering authentication, characters, in-game views, database, and event editors across both French and English sections. | `README.md`, `docs/screenshots/pc/`, `docs/screenshots/mobile/` |
+| Setting | Where | Default | Purpose |
+| :--- | :--- | :---: | :--- |
+| `SOCKET_CONNECTIONS_PER_MIN` | Environment variable | `12` *(prod)* | Game connections per account per minute, three times as many per IP. |
+| `SANDBOX_WITHOUT_NETWORK_ISOLATION` | Environment variable | — | `1`: run scripts even on a Node.js without `--allow-net`. |
+| `UV_THREADPOOL_SIZE` | Environment variable | `4` | Node.js threads; `8` advised on a public server. |
+| `guildMaxMembers` | System settings | `100` | Largest guild size. |
+| `instanceLockMinutes` | System settings | `5` | Wait before reopening a copy of the same dungeon. |
 
-### 🔒 Security & Hardening
+<a id="en-batch-2"></a>
 
-| Area | Change | Files |
-| :--- | :--- | :--- |
-| **Admin restore ordering (`P1`)** | Verify `x-confirm-password` and acquire the `restoring` lock inside `try/finally` **before** invoking `express.raw` (`500 MB` limit), preventing unconfirmed body allocations on stolen sessions. | `server/admin/admin-routes.ts` |
-| **ZIP archive validation** | Verify exact `data.length === size` after deflate decompression and reject overlapping `localOffset` ranges in `O(n log n)`. | `server/importers/zip.ts` |
-| **SVG upload hardening** | Require explicit numeric `width`/`height` dimensions in `storeUpload`; decode CSS hex escapes before `url()`/`@import` checks and cap `<use>` elements at `32` in `isSafeSvg`. | `server/resources/uploads.ts` |
-| **Sandbox & world bounds** | Clamp switch/variable IDs to integer `1..9999` (`isOp`, `setSwitch`, `setVariable`) and require `Number.isSafeInteger` for sandbox script variables. | `server/events/sandbox.ts`, `server/game/world.ts` |
-| **Edit locks & passwords** | Call `editLocks.releaseAll(id)` immediately on password changes/resets; enforce edit locks on `PATCH /api/editor/maps/:id/info` for `name` and `parentId` only *(never blocking `expanded` or `order`)*. | `server/auth/account-routes.ts`, `server/admin/admin-routes.ts`, `server/admin/editor-routes.ts` |
-| **Handshakes & i18n lookup** | Reject cross-site `Sec-Fetch-Site` Socket.io handshakes even without `Origin`; guard `lookup()` dictionary traversal with `Object.hasOwn`. | `server/net/socket.ts`, `shared/i18n.ts` |
-| **V2 Counter-Audit Hardening** | `parentId` cycle guard (`PATCH /maps/:id/info` & `importProject`), 2-pass `readZip`, `isSafeSvg`/`svgSize` hardening, sandbox variable isolation (`64 KiB` IPC cap), `/import` lock before `express.raw`, `isSameOrigin` (`.at(-1)` + `X-Forwarded-Proto`), `__Host-` HMAC anonymous CSRF cookie, `originFromEnv` + `connect-src 'self'`, CSRF-protected `POST /lang/:locale`, and strict `intFromEnv`. | `server/admin/editor-routes.ts`, `server/importers/zip.ts`, `server/resources/uploads.ts`, `server/events/sandbox.ts`, `server/http/csrf.ts`, `server/http/security.ts`, `server/config.ts`, `server/app.ts` |
+### 🛠️ Batch 2 — Second opinion on the 360° audit &nbsp;<sub>2026-11-25</sub>
 
-### ⚡ Performance & Architecture
+> Fixes the only remaining `P1` and the `P2` items confirmed by the second opinion.
 
-| Area | Change | Files |
-| :--- | :--- | :--- |
-| **Non-blocking restore prep (`P1`)** | Converted `prepareRestore` to `async` reusing the `inspectBackup` Worker (`PRAGMA quick_check`) and `fs.promises.cp` instead of synchronous `backupProblem` and `cpSync` on the `20 Hz` game loop. | `server/db/backups.ts`, `server/restore.ts`, `server/admin/admin-routes.ts` |
-| **SQLite indexes & queries (`001_init.sql`)** | Consolidated `11` secondary indexes into `001_init.sql` (`admin_log(target)`, `character_self_switches(map_id)`, `characters(class_id)`, `characters(respawn_map)`, `character_skills(skill_id)`, `character_quests(quest_id)`, `character_items(item_kind, item_id)`, `character_equipment(item_kind, item_id)`, `character_bank(item_kind, item_id)`, `guild_bank_items(item_kind, item_id)`, `character_raid_lockouts(raid_id)`), transaction-safe per-`Db` `WeakMap` cache in `SettingsRepository`, unified SQL query eliminating N+1 lookups in `GuildRepository.directory`, and `MapRepository.rawIncludes` avoiding `JSON.parse`/`JSON.stringify` round-trips. | `server/db/migrations/001_init.sql`, `server/db/settings.ts`, `server/db/guilds.ts`, `server/db/maps.ts`, `server/admin/editor-routes.ts` |
-| **Client lifecycle cleanup** | Wired `AbortController` listeners, `requestAnimationFrame`, the `50 ms` stall fallback interval, and locale callbacks into `destroy()` on logout or server disconnect. | `client/game.ts`, `client/ui/chat.ts`, `client/ui/windows.ts`, `client/main.ts` |
-| **Shared helpers & CI checks** | Extracted shared `field(req, name)`, added strict `boolFromEnv` parsing (`1`/`true`/`0`/`false`, throwing on unknown values) for `TRUST_PROXY`, and extended `i18n-check` to validate `{{...}}` placeholders and static `t('...')` keys in `views/**/*.ejs`. | `server/http/form.ts`, `server/config.ts`, `scripts/i18n-check.ts` |
+#### 🔌 Connection & server resilience
 
-### 🌐 Server, Networking & Resilience
+- **No more server stop on connection (`P1`)** — a refused SQLite write while a player enters now closes only that player's socket.
+- **Handshake** — an error in `io.use` reaches the client (`error.http.server`) instead of leaving it waiting.
+- **Disconnection** — the player leaves the world before the connection log is written.
+- **Reconnect loops** — per-account and per-IP cap (`SOCKET_CONNECTIONS_PER_MIN`).
+- **Saves** — `leave()` cleans memory even when the save fails, `kickAccount()` always disconnects, `savedAt` only moves after a successful write, and shutdown can safely run twice.
 
-| Area | Change | Files |
-| :--- | :--- | :--- |
-| **Events & reconnect safety** | Added `p.busy` guard in `runCommon()`, re-checked `isLive && !dead` across `inn()` sleeps, flushed dirty character progression in `finally` of `run()`/`runCommon()`, and validated `characterId` via Socket.io `handshake.auth` on reconnects. | `server/game/events.ts`, `client/main.ts`, `server/net/socket.ts` |
-| **WebSocket fallback & proxy** | Enabled `tryAllTransports: true` so `polling` acts as a real fallback on WebSocket handshake failures, tolerated empty / `:80`/`:443` `X-Forwarded-Host` in `isSameOrigin()`, and added diagnostic logging for `allowRequest` / `connection_error` rejections. | `client/main.ts`, `server/net/socket.ts` |
-| **Accounts & admin dashboard** | Introduced `safeJsonParse` for SQLite JSON columns, replaced `!` non-null assertions in `AuthService` and `renderAccount`, wrapped `deleteAccount` SQLite writes in `ctx.db.transaction(...)` with post-commit guild updates, sampled CPU periodically in `World.lagMonitor`, and randomized temp backup filenames. | `server/db/database.ts`, `server/auth/service.ts`, `server/auth/account-routes.ts`, `server/game/guild.ts`, `server/game/world.ts`, `server/admin/admin-routes.ts` |
+<sub>📁 `server/net/socket.ts` · `server/game/world.ts` · `server/context.ts` · `server/config.ts`</sub>
 
-### 🎮 Gameplay, Client & Editor UX
+#### 🔐 Administration, accounts & e-mails
 
-<details open>
-<summary>View in-game, client control, and editor updates</summary>
+- **Between administrators** — only the owner changes another admin's role or password; every reset is confirmed with the caller's password.
+- **E-mail change** — the old address is notified and the other sessions are closed.
+- **Address confirmation** — link sent at registration and after each change *(with `SMTP_URL`)*, status shown on the account page and in the panel; informational only.
+- **Anti-spam** — `5` password reset e-mails per account per day.
+- **bcrypt** — bounded queue (`503` when full) so threads stay free.
+- **API** — `progress` log limited to applied fields, `DELETE /db` ids bounded to `1..9999`, `baseVersion` required to save a map, JSON `404` under `/api/`.
+- **Configuration** — warning when `PUBLIC_URL` is set without `NODE_ENV=production`.
 
-| Area | Change | Files |
-| :--- | :--- | :--- |
-| **Combat & Region AI** | Confined region-spawned monsters while idle and fleeing on multi-cell zones; restricted aggro spotting to `1` cell from painted region borders and leashed chasing monsters home beyond `2` cells outside *(single-tile boss markers stay unrestricted within their room)*. | `server/game/combat.ts` |
-| **Canvas focus & input buffer** | Clicking the map canvas blurs active non-window inputs *(such as chat)* so keyboard movement resumes right away; a `150 ms` action buffer executes `Space`/`Enter`/`Z`/touch `A` presses made just before step arrival. | `client/game.ts`, `client/engine/player-controller.ts` |
-| **Dialogues & live touch toggle** | Active dialogues toggle `body.dialogue-active` to hide bottom bars, chat, and touch controls cleanly; automatic `touch-mode` follows `(hover: none)` and `resize` events without reloading. | `client/game.ts`, `client/styles/game.css`, `client/ui/mobile.ts`, `client/ui/windows.ts` |
-| **Editor ergonomics** | Tile palettes retain selection and scroll position per tab *(resetting only when tilesets change)*, and database `+ Add` buttons remain sticky with automatic scroll/focus on added rows. | `client/editor/palette.ts`, `client/editor/database-editor.ts`, `client/styles/editor.css` |
-| **V2 Fixes, Demo & Tests (`342`)** | `useItem` GCD & stun checks, deduplicated toroidal AoE & `MAX_BOSS_ADDS = 24`, `emote()`/`/r` mute/invisibility/ignore checks, `CharacterSheet` (`openWindow`, `buy`, `reloadMap`) + `inn()` post-fade charge, client `bootToken`, `Tomas` ➔ `Thomas` (`Thomas's House`) demo fix, and `12` V2 regression tests. | `server/game/combat.ts`, `server/game/world.ts`, `server/game/social.ts`, `server/game/character-sheet.ts`, `client/main.ts`, `server/db/demo-map.ts`, `server/db/seed.ts`, `tests/hardening-v2.test.ts` |
+<sub>📁 `server/admin/*.ts` · `server/auth/*.ts` · `server/db/accounts.ts` · `server/app.ts` · `views/account.ejs` · `client/pages/admin.ts`</sub>
+
+#### 🛡️ Web security & sandbox
+
+- **CSP** — no more `'unsafe-inline'`: swatch colours go through `data-swatch`.
+- **Event scripts** — refused on a Node.js without `--allow-net` unless `SANDBOX_WITHOUT_NETWORK_ISOLATION=1`; at most `1000` pending evaluations.
+- **Restore & import** — backups are streamed to disk, and only one import or restore runs at a time.
+
+<sub>📁 `server/http/security.ts` · `views/character-new.ejs` · `server/events/sandbox.ts` · `server/admin/heavy-jobs.ts`</sub>
+
+#### 🎮 Gameplay & editor
+
+- **PvP** — arrival protection also applies against other players.
+- **Movement** — no step burst after a teleport; `turn()` blocked by `cannot_move`.
+- **Deleted maps** — `evacuateMap` falls back to the class start, then disconnects cleanly.
+- **Dungeons** — `instanceLockMinutes` delay: changing party no longer resets the dungeon.
+- **Guilds & trades** — `guildMaxMembers` cap; a trade answer names the requester.
+- **Global switches** — everyone's refresh is batched per tick.
+- **Editor** — warning before saving a map with occupied instances.
+
+<sub>📁 `server/game/*.ts` · `client/editor/editor.ts` · `shared/settings.ts`</sub>
+
+#### 💬 Texts & names
+
+- Guild message of the day and rank names cleaned like the chat.
+- Armenian and Cherokee added to the look-alike letters of names.
+- `\P` and `\G` codes immune to `$&` patterns.
+
+<sub>📁 `server/game/guild.ts` · `server/game/social.ts` · `shared/names.ts` · `server/events/interpreter.ts`</sub>
+
+#### ⚡ Performance
+
+- **Fewer queries** — guild and friend presence without N+1 (`friendPresence`), online member and name indexes.
+- **Caches** — guild tags, monster stats, equipment, per-page quest commands; quest journal rebuilt only when it changes.
+- **Fewer copies** — frozen settings read without copies (`peek`), direct iteration (`zoneMembers`, `gameData.values`), only moving events walked.
+- **Uploads** — written asynchronously, only the new resource is re-indexed.
+
+<sub>📁 `server/game/*.ts` · `server/db/*.ts` · `server/resources/*.ts`</sub>
+
+#### 🧪 Typing & tests
+
+- `noUncheckedIndexedAccess` enabled across the project.
+- `12` dedicated regression tests, suite now at **354** tests.
+- Last `Tomas` ➔ `Thomas` fixed in tests and `demo/data`.
+
+<sub>📁 `tsconfig.json` · `tests/avalanche-fixes.test.ts` · `tests/*.test.ts` · `demo/data/*.json`</sub>
+
+<a id="en-batch-1"></a>
+
+<details>
+<summary><b>🧱 Batch 1 — AppSec, performance & beta UX stabilization</b> &nbsp;<sub>2026-11-20 · 2 <code>P1</code> + 22 <code>P2</code> · click to expand</sub></summary>
+
+<br />
+
+#### 🔒 Security & hardening
+
+- **Admin restore (`P1`)** — password checked and lock taken **before** the file is read (`500 MB` max): no allocation on a stolen session.
+- **ZIP archives** — exact size checked after decompression, overlapping `localOffset` ranges rejected.
+- **Uploaded SVGs** — numeric dimensions required, CSS escapes decoded before `url()` / `@import` filtering, at most `32` `<use>` elements.
+- **Sandbox & world** — switch and variable ids bounded to `1..9999`, `Number.isSafeInteger` on scripted operations.
+- **Edit locks** — released on any password change or reset; the `PATCH /maps/:id/info` lock only guards `name` and `parentId`.
+- **Handshakes & i18n** — cross-site `Sec-Fetch-Site` requests refused even without `Origin`; `Object.hasOwn` guard in `lookup()`.
+- **V2 counter-audit** — `parentId` cycle guard, two-pass `readZip`, isolated sandbox (`64 KiB` IPC), signed `__Host-` CSRF cookie, CSP `connect-src 'self'`, protected `POST /lang/:locale`, strict `intFromEnv`.
+
+<sub>📁 `server/admin/*.ts` · `server/importers/zip.ts` · `server/resources/uploads.ts` · `server/events/sandbox.ts` · `server/http/*.ts` · `shared/i18n.ts`</sub>
+
+#### ⚡ Performance & architecture
+
+- **Async restore (`P1`)** — `prepareRestore` uses the `inspectBackup` Worker and `fs.promises.cp`: the `20 Hz` loop is no longer blocked.
+- **SQLite** — `11` secondary indexes in `001_init.sql`, transaction-safe settings cache, guild directory without N+1, raw map search without `JSON.parse`.
+- **Client lifecycle** — listeners, `requestAnimationFrame`, fallback timer and locale callback released by `destroy()`.
+- **Tooling & CI** — shared `field(req, name)`, strict `boolFromEnv` for `TRUST_PROXY`, view placeholders and `t('...')` keys checked.
+
+<sub>📁 `server/db/*.ts` · `server/restore.ts` · `client/game.ts` · `client/main.ts` · `scripts/i18n-check.ts`</sub>
+
+#### 🌐 Server & networking
+
+- **Events & reconnects** — `p.busy` guard in `runCommon()`, state re-checked after `inn()`, progression saved in `finally`, `characterId` checked on reconnect.
+- **WebSocket & proxy** — real `polling` fallback (`tryAllTransports`), empty or `:80` / `:443` `X-Forwarded-Host` tolerated, diagnostic logs.
+- **Accounts & dashboard** — `safeJsonParse` on JSON columns, atomic account deletion, CPU sampling, random names for temporary backups.
+
+<sub>📁 `server/game/events.ts` · `server/net/socket.ts` · `server/auth/*.ts` · `server/game/world.ts` · `client/main.ts`</sub>
+
+#### 🎮 Gameplay, client & editor
+
+- **Region AI** — monsters kept in their region, aggro `1` cell from borders, sent home beyond `2` cells.
+- **Responsiveness** — clicking the map gives the keyboard back; a `150 ms` buffer keeps an action pressed just before a step ends.
+- **Dialogues & touch** — bars, chat and touch controls hidden during dialogues; touch mode followed without reloading.
+- **Editor** — selection and scroll remembered per palette tab; sticky `+ Add` buttons with focus on the new row.
+- **V2 fixes & demo** — `useItem` under the global cooldown, deduplicated AoE, `MAX_BOSS_ADDS = 24`, `emote()` and `/r` honouring mutes, client `bootToken`, `12` regression tests *(342 tests at the time)*.
+
+<sub>📁 `server/game/combat.ts` · `client/game.ts` · `client/engine/player-controller.ts` · `client/editor/*.ts` · `tests/hardening-v2.test.ts`</sub>
+
+#### 📦 Dependencies & documentation
+
+- **`nodemailer`** `10.5.0` → `10.6.0`, lockfile resynchronized for `npm ci`.
+- **Setup guides** — local desktop start on PC / Mac / Linux (`.zip` archive or `git clone`) and a step-by-step VPS guide (`nvm`, `pm2`, Nginx, Certbot, `WebSocket 400` troubleshooting).
+- **Screenshots** — `28` captures *(14 desktop `1920×1080`, 14 mobile `412×915`)*: sign-in, characters, game, database, editors.
+- **Overview** — clearer **Mobile & Bilingual** row in the capability tables.
+
+<sub>📁 `package.json` · `README.md` · `docs/screenshots/`</sub>
 
 </details>
 
-### 📦 Dependencies & Documentation
-
-| Area | Change | Files |
-| :--- | :--- | :--- |
-| **Dependencies** | Updated `nodemailer` (`10.5.0` → `10.6.0`) and resynchronized the lockfile for `npm ci`. | `package.json`, `package-lock.json` |
-| **Setup & VPS guides** | Refreshed bilingual local desktop instructions *(Node.js 24/26 download links, direct `.zip` workflow without requiring Git + optional `git clone`)* and beginner step-by-step Linux VPS deployment *(`Debian/Ubuntu`, `4 GB RAM`, `>= 2 vCores`, streamlined `nvm` setup plus advanced `apt` notes, DNS `A` setup, `pm2` `sudo` vs non-`sudo` rules, Nginx, Certbot SSL, and troubleshooting covering `WebSocket 400`)*. | `README.md`, `CHANGELOG.md` |
-| **Bilingual overview** | Refined the **Mobile & Bilingual** row wording across both FR/EN capability tables *(automatic mobile/desktop adaptation, software and content available in English and French)*. | `README.md`, `CHANGELOG.md` |
-
-<div align="right">
-
-[⬆️ Back to Top (EN)](#en-top)
-
-</div>
+<p align="right"><a href="#en-top">⬆️ Back to top</a></p>
 
 ---
 
 <a id="en-beta-1"></a>
 
-## 🧪 1.0.0-beta.1 — 2026-11-11
+## 🧪 1.0.0-beta.1 &nbsp;<sub>2026-11-11</sub>
 
-> First beta of **Brindiwanko 1.0**: a browser-based 2D MMORPG engine with a built-in live world editor running in a single Node.js process (`>= 24`, `26 LTS` recommended) backed by SQLite, bundled with a playable demo world.
+> First beta of **Brindiwanko 1.0**: a browser-based 2D MMORPG engine with a live world editor, in a single Node.js process (`>= 24`, `26 LTS` recommended) backed by SQLite, shipped with a playable demo world.
 
-### ✨ Highlights
+### ✨ What the beta includes
 
-| Area | Capabilities |
-| :--- | :--- |
-| 🗺️ **World Editor** | Menu and toolbar, tile palettes A through E, auto-layering, autotiles, dynamic shadows, region IDs, manual passability overrides, toroidal looping maps, version history, *"Test Map"* instant button. |
-| 🧩 **Event System** | Multi-page conditions, customizable triggers, visual command builder, cutscene sequences (fades, screen tints, flashes, camera shakes, picture displays, weather systems, camera scrolling, timers). |
-| 🎵 **Audio Engine** | Map-specific background music and ambient tracks, victory jingles, audio event actions (play, fade, memorize, resume). |
-| 📜 **Quest System** | Sequential steps, multi-type objectives (talk, defeat mobs, gather items, reach locations), experience & item rewards, story chapters, floating `!` and `?` markers. |
-| ⚔️ **Combat Mechanics** | Fast-paced real-time map battles, custom spells & skills, status conditions, elemental weaknesses, critical strikes, reactive monster AI, configurable drop tables. |
-| 🎒 **Character Systems** | Primary attributes, allocatable stat points, grid inventory, equipment slots, shopkeepers, resting inns, secure bank storage. |
-| 💬 **Social Suite** | Public broadcast channels, instant private whispers, friends list, blacklist/ignore list, secure player-to-player trading, expressive emotes. |
-| 🛡️ **Parties & Guilds** | Shared group XP and gold scaling, custom ranks and fine-grained permissions, shared guild bank, audit log, generated guild crests. |
-| 🏰 **Dungeons & Raids** | Dynamic party-instanced maps, multi-phase scripted raid bosses, weekly lockout timers, transparent dice-roll loot distribution. |
-| 👑 **Administration** | Real-time operations dashboard, moderation tools, in-game gamemaster commands, tamper-evident audit logs, live hot backups and restore. |
-| 📱 **Mobile Ready** | Virtual analog joystick, dedicated Action and Cancel touch buttons, skill arc menu layout, immersive fullscreen mode, installable PWA. |
-| 🌍 **Native Bilingual** | Player client, game systems, and the world editor are fully supported in both **English** and **French**. |
+| | Area | Capabilities |
+| :---: | :--- | :--- |
+| 🗺️ | **World editor** | Palettes A to E, auto-layering, autotiles, shadows, regions, manual passability, looping maps, version history, *"Test Map"* button. |
+| 🧩 | **Events** | Multi-page, conditions, triggers, visual command builder, cutscenes (fades, tints, flashes, shakes, pictures, weather, camera, timers). |
+| 🎵 | **Audio** | Per-map music and ambience, victory jingles, audio commands (play, fade, memorize, resume). |
+| 📜 | **Quests** | Steps, objectives (talk, defeat, collect, reach), rewards, chapters, `!` and `?` markers. |
+| ⚔️ | **Combat** | Real time on the map, skills, states, elements, critical hits, monster AI, loot tables. |
+| 🎒 | **Character** | Attributes, stat points, grid inventory, equipment, shops, inns, bank. |
+| 💬 | **Social** | Public channels, private messages, friends, ignore list, safe trades, emotes. |
+| 🛡️ | **Parties & guilds** | Shared XP and gold, ranks and permissions, guild bank, log, crest. |
+| 🏰 | **Dungeons & raids** | Per-party instances, multi-phase bosses, weekly lockouts, dice-roll loot. |
+| 👑 | **Administration** | Live dashboard, sanctions, game master tools, audit logs, backups and restore. |
+| 📱 | **Mobile** | Touch joystick, Action and Cancel buttons, skill arc, fullscreen, installable PWA. |
+| 🌍 | **Bilingual** | Game, systems and editor fully in **English** and **French**. |
 
-### 🔒 Security & 🗄️ Database
+### 🔒 Security & database
 
-- **Upload restore confirmation:** restoring an uploaded backup file from `/admin` now asks for the administrator password again, sharing a unified confirmation field beneath the restore warning.
+- **Confirmed file restore** — restoring an uploaded backup from `/admin` asks for the administrator password again.
 
 > [!IMPORTANT]
-> **Schema reset (`001_init.sql`):** the schema starts from a single base migration matching the `22` earlier migrations. Databases and backups from `0.x` are **not compatible**: start from a fresh database.
+> **Schema reset (`001_init.sql`)**: the schema starts from a single base migration matching the `22` earlier ones. Databases and backups from `0.x` are **not compatible**: start from a fresh database.
 
 ---
 
 <div align="center">
 
-📄 Released under the **[Apache 2.0 License](LICENSE)** &nbsp;·&nbsp; [⬆️ Back to Top (EN)](#en-top) &nbsp;·&nbsp; [🇫🇷 Journal en Français](#fr-top)
+📄 Released under the **[Apache 2.0 License](LICENSE)** &nbsp;·&nbsp; [⬆️ Back to top](#en-top) &nbsp;·&nbsp; [🇫🇷 Journal en français](#fr-top)
 
 </div>
