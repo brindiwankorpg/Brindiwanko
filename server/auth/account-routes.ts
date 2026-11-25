@@ -12,6 +12,10 @@
  *   requests are limited per address and per account.
  * - `/reset-password?token=…`: sets a new password from that link, then logs
  *   the account out everywhere.
+ * - `/confirm-email?token=…`: confirms the address of an account. The link is
+ *   sent at registration and at each change of address, when a mail server is
+ *   configured; the account page sends it again on request. A confirmed address
+ *   is only shown as such: nothing is refused to an address not confirmed.
  *
  * Forms are plain HTML posts protected by the CSRF token, like the login page.
  */
@@ -24,9 +28,10 @@ import { field } from '../http/form.js';
 import { SlidingWindowLimiter } from '../http/rate-limit.js';
 import { SESSION_COOKIE } from '../http/session.js';
 import { translatorFor } from '../i18n.js';
+import type { Account } from '../db/accounts.js';
 import { DEVICE_COOKIE, DEVICE_MAX_AGE_MS } from './device.js';
 import { currentAccount, requireAuth } from './middleware.js';
-import { RESET_TOKEN_MS } from './service.js';
+import { CONFIRM_TOKEN_MS, RESET_TOKEN_MS } from './service.js';
 
 /** "Forgotten password" requests one address may make per hour. */
 export const RESET_REQUESTS_PER_HOUR = 5;
@@ -42,9 +47,54 @@ export function isLoopbackHost(host: string): boolean {
 }
 
 /** Messages the account page may show after a change (`?done=`). */
-const DONE_KEYS: Record<string, string> = { password: 'account.done.password', email: 'account.done.email' };
+const DONE_KEYS: Record<string, string> = {
+  password: 'account.done.password',
+  email: 'account.done.email',
+  confirm_sent: 'account.done.confirm_sent',
+  email_confirmed: 'account.done.email_confirmed',
+};
 /** Messages the login page may show (`?notice=`). */
-export const LOGIN_NOTICES: Record<string, string> = { reset: 'account.notice.reset', deleted: 'account.notice.deleted' };
+export const LOGIN_NOTICES: Record<string, string> = { reset: 'account.notice.reset', deleted: 'account.notice.deleted', email_confirmed: 'account.done.email_confirmed' };
+
+/**
+ * Address of the game used in the links sent by e-mail: the public one. Without `PUBLIC_URL`, only a development
+ * server reached on this machine may use the address of the request: the `Host` header is chosen by the client,
+ * and a link built from it would send the secret token to whatever site the requester named.
+ */
+export function publicBaseUrl(ctx: ServerContext, req: Request): string | null {
+  if (ctx.config.publicUrl) return ctx.config.publicUrl;
+  const host = req.get('host') ?? '';
+  return !ctx.config.production && isLoopbackHost(host) ? `${req.protocol}://${host}` : null;
+}
+
+/** Tells whether addresses are confirmed on this server: a mail server is configured, and links can be built. */
+export function emailConfirmationAvailable(ctx: ServerContext, req: Request): boolean {
+  return Boolean(ctx.config.smtpUrl) && ctx.mailer.enabled && publicBaseUrl(ctx, req) !== null;
+}
+
+/**
+ * Sends a link confirming the current address of an account, in the background (registration, change of address,
+ * request from the account page).
+ * @param fallbackLocale - Language of the e-mail when the account has none stored.
+ * @returns Whether an e-mail left (not when confirmation is not available here, the address is already
+ *   confirmed, or a link was sent a short while ago).
+ */
+export function sendEmailConfirmation(ctx: ServerContext, req: Request, account: Account, fallbackLocale: Locale): boolean {
+  const base = publicBaseUrl(ctx, req);
+  if (!emailConfirmationAvailable(ctx, req) || base === null) return false;
+  const token = ctx.auth.createEmailConfirmation(account);
+  if (!token) return false;
+  const t = translatorFor(isLocale(account.locale) ? account.locale : fallbackLocale);
+  const game = ctx.settings.get('gameTitle', 'Brindiwanko');
+  void ctx.mailer
+    .send({
+      to: account.email,
+      subject: t('account.confirm_mail.subject', { game }),
+      text: t('account.confirm_mail.body', { name: account.username, game, link: `${base}/confirm-email?token=${token}`, hours: CONFIRM_TOKEN_MS / 3_600_000 }),
+    })
+    .catch((err: unknown) => console.error('[brindiwanko] the e-mail confirming an address could not be sent', err));
+  return true;
+}
 
 /**
  * Creates the router of the account pages.
@@ -67,6 +117,8 @@ export function accountRouter(ctx: ServerContext): Router {
     }
     res.status(status).render('account', {
       details: { username: account.username, email: account.email, role: account.role, createdAt: account.createdAt, lastLogin: account.lastLogin },
+      // Shown when the server confirms addresses (a mail server), or once an address was confirmed.
+      emailStatus: account.emailConfirmedAt ? 'confirmed' : emailConfirmationAvailable(ctx, res.req) ? 'unconfirmed' : null,
       isOwner: account.id === ctx.accounts.ownerId(),
       error,
       doneKey,
@@ -123,8 +175,35 @@ export function accountRouter(ctx: ServerContext): Router {
           .send({ to: before.email, subject: t('account.email_changed_mail.subject', { game }), text: t('account.email_changed_mail.body', { name: before.username, game }) })
           .catch((err: unknown) => console.error('[brindiwanko] the "e-mail address changed" e-mail could not be sent', err));
       }
+      // The new address is not confirmed yet: a link goes to it.
+      sendEmailConfirmation(ctx, req, result.account, res.locals.locale ?? DEFAULT_LOCALE);
     }
     res.redirect(303, '/account?done=email');
+  });
+
+  /** Sends the confirmation link of the account's address again. */
+  router.post('/account/email/confirm', requireAuth, verifyCsrf, (req, res) => {
+    const account = ctx.accounts.findById(currentAccount(res)!.id);
+    if (!account || account.emailConfirmedAt) {
+      res.redirect(303, '/account');
+      return;
+    }
+    if (!sendEmailConfirmation(ctx, req, account, res.locals.locale ?? DEFAULT_LOCALE)) {
+      renderAccount(res, emailConfirmationAvailable(ctx, req) ? 429 : 503, { form: 'email', key: emailConfirmationAvailable(ctx, req) ? 'error.account.too_many_confirmations' : 'error.account.confirm_unavailable' });
+      return;
+    }
+    res.redirect(303, '/account?done=confirm_sent');
+  });
+
+  /** Confirms an address from the link of the e-mail (used once). */
+  router.get('/confirm-email', (req, res) => {
+    const token = typeof req.query.token === 'string' ? req.query.token.slice(0, 100) : '';
+    const account = ctx.auth.confirmEmail(token);
+    if (!account) {
+      res.status(400).render('error', { code: 400, messageKey: 'error.account.confirm_invalid' });
+      return;
+    }
+    res.redirect(303, currentAccount(res)?.id === account.id ? '/account?done=email_confirmed' : '/login?notice=email_confirmed');
   });
 
   router.post('/account/delete', requireAuth, verifyCsrf, async (req, res) => {
@@ -145,16 +224,7 @@ export function accountRouter(ctx: ServerContext): Router {
 
   // --- Forgotten password ------------------------------------------------------------
 
-  /**
-   * Address of the game used in the links: the public one. Without `PUBLIC_URL`, only a development server
-   * reached on this machine may use the address of the request: the `Host` header is chosen by the client,
-   * and a link built from it would send the secret token to whatever site the requester named.
-   */
-  const baseUrl = (req: Request): string | null => {
-    if (ctx.config.publicUrl) return ctx.config.publicUrl;
-    const host = req.get('host') ?? '';
-    return !ctx.config.production && isLoopbackHost(host) ? `${req.protocol}://${host}` : null;
-  };
+  const baseUrl = (req: Request): string | null => publicBaseUrl(ctx, req);
   const available = (req: Request) => ctx.mailer.enabled && baseUrl(req) !== null;
 
   router.get('/forgot-password', (req, res) => {

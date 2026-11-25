@@ -29,6 +29,8 @@ export interface AccountSummary {
   lastLogin: string | null;
   bannedUntil: string | null;
   banReason: string | null;
+  /** When the owner confirmed its e-mail address (`null`: not confirmed). */
+  emailConfirmedAt: string | null;
   mutedUntil: string | null;
   muteReason: string | null;
 }
@@ -41,7 +43,7 @@ export class AdminRepository {
   constructor(private readonly db: Db) {}
 
   private static readonly SUMMARY = `SELECT id, username, email, role, created_at AS createdAt, last_login AS lastLogin, banned_until AS bannedUntil,
-    ban_reason AS banReason, muted_until AS mutedUntil, mute_reason AS muteReason FROM accounts`;
+    ban_reason AS banReason, muted_until AS mutedUntil, mute_reason AS muteReason, email_confirmed_at AS emailConfirmedAt FROM accounts`;
 
   /**
    * Accounts whose name, character name or (when allowed) e-mail address contains `query`.

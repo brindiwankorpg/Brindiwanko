@@ -75,7 +75,9 @@
     "back": "Back to the characters",
     "done": {
       "password": "Password changed. The other devices logged into this account have been logged out.",
-      "email": "E-mail address changed."
+      "email": "E-mail address changed.",
+      "confirm_sent": "A confirmation link was sent to your address.",
+      "email_confirmed": "Your e-mail address is confirmed."
     },
     "notice": {
       "reset": "Your password has been changed: log in with the new one.",
@@ -90,7 +92,11 @@
     "email": {
       "title": "Change the e-mail address",
       "new": "New e-mail address",
-      "submit": "Change the address"
+      "submit": "Change the address",
+      "confirmed": "confirmed",
+      "unconfirmed": "not confirmed",
+      "confirm_hint": "A link to confirm this address was sent to it. Nothing depends on it: it only tells that the address is really yours.",
+      "resend": "Send the confirmation link again"
     },
     "delete": {
       "title": "Delete the account",
@@ -119,6 +125,10 @@
     "email_changed_mail": {
       "subject": "{{game}}: your e-mail address was changed",
       "body": "Hello {{name}},\n\nThe e-mail address of your {{game}} account was just changed: the messages of the game will no longer be sent to this address.\n\nIf you made this change, there is nothing more to do.\nIf you did not, someone knows your password: if a \"forgotten password\" link already reached this address, use it now, and contact the administrators of {{game}}."
+    },
+    "confirm_mail": {
+      "subject": "{{game}}: confirm your e-mail address",
+      "body": "Hello {{name}},\n\nTo confirm that this address belongs to your {{game}} account, open this link (valid for {{hours}} hours):\n\n{{link}}\n\nIf you have no account on {{game}}, ignore this message."
     }
   },
   "error": {
@@ -349,6 +359,9 @@
       "owner_delete": "The account of the server owner (the first account) cannot be deleted.",
       "delete_confirm": "The account name typed does not match.",
       "reset_invalid": "This link no longer works (already used, too old or incomplete). Ask for a new one.",
+      "confirm_invalid": "This confirmation link is invalid, already used or expired (or the address changed since). Ask for a new one from your account page.",
+      "too_many_confirmations": "A confirmation link was sent a moment ago: wait a few minutes before asking again.",
+      "confirm_unavailable": "This server sends no e-mail: addresses cannot be confirmed.",
       "too_many_resets": "Too many requests from this address. Try again in {{minutes}} min.",
       "password_changed": "The password of the account has been changed: log in again.",
       "deleted": "This account has been deleted."
@@ -2686,6 +2699,7 @@
     "log_end": "{{count}} lines: the whole log is shown.",
     "chip_banned": "Banned",
     "chip_muted": "Muted",
+    "chip_email_confirmed": "E-mail confirmed",
     "reason_text": "Reason given (shown to the player)",
     "map_zoom_in": "Zoom in on the map",
     "map_zoom_out": "Zoom out of the map",

@@ -24,6 +24,8 @@ export interface Account {
   lastLogin: string | null;
   bannedUntil: string | null;
   banReason: string | null;
+  /** When the owner confirmed its e-mail address (`null`: not confirmed). */
+  emailConfirmedAt: string | null;
 }
 
 interface AccountRow {
@@ -37,6 +39,7 @@ interface AccountRow {
   last_login: string | null;
   banned_until: string | null;
   ban_reason: string | null;
+  email_confirmed_at: string | null;
 }
 
 function toAccount(row: AccountRow): Account {
@@ -53,6 +56,7 @@ function toAccount(row: AccountRow): Account {
     lastLogin: row.last_login,
     bannedUntil: row.banned_until,
     banReason: row.ban_reason,
+    emailConfirmedAt: row.email_confirmed_at,
   };
 }
 
@@ -190,15 +194,45 @@ export class AccountRepository {
   }
 
   /**
-   * Changes the e-mail address of an account.
+   * Changes the e-mail address of an account. A new address is not confirmed, and the links sent to confirm the
+   * old one stop working.
    * @throws {DuplicateAccountError} If another account uses it.
    */
   setEmail(id: number, email: string): void {
     this.db.transaction(() => {
       const other = this.byEmail.get(email);
       if (other && other.id !== id) throw new DuplicateAccountError('email');
-      this.db.prepare('UPDATE accounts SET email = ? WHERE id = ?').run(email, id);
+      const changed = this.db.prepare('UPDATE accounts SET email = ?, email_confirmed_at = NULL WHERE id = ? AND email <> ?').run(email, id, email).changes > 0;
+      if (changed) this.db.prepare('DELETE FROM email_confirmations WHERE account_id = ?').run(id);
     }).immediate();
+  }
+
+  /**
+   * Stores a link confirming the current address of an account (its hash only). Older links of the account
+   * are dropped: only the last e-mail works.
+   * @param tokenHash - SHA-256 of the token sent by e-mail (hex).
+   * @param expiresAt - Expiry, in milliseconds.
+   */
+  addEmailConfirmation(accountId: number, tokenHash: string, email: string, expiresAt: number): void {
+    this.db.transaction(() => {
+      this.db.prepare('DELETE FROM email_confirmations WHERE account_id = ? OR expires_at < ?').run(accountId, Date.now());
+      this.db.prepare('INSERT INTO email_confirmations (token_hash, account_id, email, expires_at) VALUES (?, ?, ?, ?)').run(tokenHash, accountId, email, expiresAt);
+    })();
+  }
+
+  /**
+   * Uses a confirmation link: in one transaction, the link is consumed (if it is still valid) and the address
+   * marked confirmed, when it is still the account's address.
+   * @returns The account, or `undefined` when the link was unknown, used, expired, or for an address changed since.
+   */
+  confirmEmail(tokenHash: string, now = Date.now()): Account | undefined {
+    const id = this.db.transaction(() => {
+      const link = this.db.prepare<[string, number], { account_id: number; email: string }>('DELETE FROM email_confirmations WHERE token_hash = ? AND expires_at >= ? RETURNING account_id, email').get(tokenHash, now);
+      if (!link) return undefined;
+      const confirmed = this.db.prepare("UPDATE accounts SET email_confirmed_at = datetime('now') WHERE id = ? AND email = ?").run(link.account_id, link.email).changes > 0;
+      return confirmed ? link.account_id : undefined;
+    })();
+    return id === undefined ? undefined : this.findById(id);
   }
 
   /**

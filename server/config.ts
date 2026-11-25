@@ -31,9 +31,11 @@
  * - `PUBLIC_URL` (public address of the game, e.g. `https://jeu.example.org`:
  *   the game socket then only accepts pages of this exact origin; also the address
  *   of the links sent by e-mail)
- * - `SMTP_URL` (mail server used to send the "forgotten password" e-mails, e.g.
+ * - `SMTP_URL` (mail server used to send the "forgotten password" e-mails, the
+ *   notices of a changed address and the links confirming addresses, e.g.
  *   `smtps://user:password@smtp.example.org:465`; without it no e-mail is sent:
- *   in development the link is written in the server log instead)
+ *   in development the "forgotten password" link is written in the server log
+ *   instead, and addresses are not confirmed)
  * - `MAIL_FROM` (sender of those e-mails, e.g. `Brindiwanko <no-reply@example.org>`)
  */
 import { join } from 'node:path';

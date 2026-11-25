@@ -75,7 +75,9 @@
     "back": "Retour aux personnages",
     "done": {
       "password": "Mot de passe changé. Les autres appareils connectés à ce compte ont été déconnectés.",
-      "email": "Adresse e-mail changée."
+      "email": "Adresse e-mail changée.",
+      "confirm_sent": "Un lien de confirmation a été envoyé à votre adresse.",
+      "email_confirmed": "Votre adresse e-mail est confirmée."
     },
     "notice": {
       "reset": "Votre mot de passe a été changé : connectez-vous avec le nouveau.",
@@ -90,7 +92,11 @@
     "email": {
       "title": "Changer l’adresse e-mail",
       "new": "Nouvelle adresse e-mail",
-      "submit": "Changer l’adresse"
+      "submit": "Changer l’adresse",
+      "confirmed": "confirmée",
+      "unconfirmed": "non confirmée",
+      "confirm_hint": "Un lien pour confirmer cette adresse lui a été envoyé. Rien n’en dépend : il indique seulement que l’adresse est bien la vôtre.",
+      "resend": "Renvoyer le lien de confirmation"
     },
     "delete": {
       "title": "Supprimer le compte",
@@ -119,6 +125,10 @@
     "email_changed_mail": {
       "subject": "{{game}} : votre adresse e-mail a été changée",
       "body": "Bonjour {{name}},\n\nL’adresse e-mail de votre compte {{game}} vient d’être changée : les messages du jeu ne seront plus envoyés à cette adresse.\n\nSi c’est vous qui avez fait ce changement, vous n’avez rien d’autre à faire.\nSinon, quelqu’un connaît votre mot de passe : si un lien « mot de passe oublié » est déjà arrivé à cette adresse, utilisez-le tout de suite, et contactez les administrateurs de {{game}}."
+    },
+    "confirm_mail": {
+      "subject": "{{game}} : confirmez votre adresse e-mail",
+      "body": "Bonjour {{name}},\n\nPour confirmer que cette adresse est bien celle de votre compte {{game}}, ouvrez ce lien (valable {{hours}} heures) :\n\n{{link}}\n\nSi vous n’avez pas de compte sur {{game}}, ignorez ce message."
     }
   },
   "error": {
@@ -349,6 +359,9 @@
       "owner_delete": "Le compte du propriétaire du serveur (le premier compte) ne peut pas être supprimé.",
       "delete_confirm": "Le nom de compte tapé ne correspond pas.",
       "reset_invalid": "Ce lien n’est plus valable (déjà utilisé, trop ancien ou incomplet). Demandez-en un nouveau.",
+      "confirm_invalid": "Ce lien de confirmation est invalide, déjà utilisé ou expiré (ou l’adresse a changé depuis). Demandez-en un nouveau depuis la page de votre compte.",
+      "too_many_confirmations": "Un lien de confirmation vient d’être envoyé : patientez quelques minutes avant d’en redemander un.",
+      "confirm_unavailable": "Ce serveur n’envoie pas d’e-mail : les adresses ne peuvent pas être confirmées.",
       "too_many_resets": "Trop de demandes depuis cette adresse. Réessayez dans {{minutes}} min.",
       "password_changed": "Le mot de passe du compte a été changé : reconnectez-vous.",
       "deleted": "Ce compte a été supprimé."
@@ -2686,6 +2699,7 @@
     "log_end": "{{count}} lignes : tout le journal est affiché.",
     "chip_banned": "Banni",
     "chip_muted": "Muet",
+    "chip_email_confirmed": "E-mail confirmé",
     "reason_text": "Motif donné (montré au joueur)",
     "map_zoom_in": "Agrandir la carte",
     "map_zoom_out": "Réduire la carte",

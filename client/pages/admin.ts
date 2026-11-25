@@ -382,6 +382,7 @@ function accounts(openId?: number): void {
               a.role === 'player' ? null : el('span', { className: `role-badge role-${String(a.role)}`, text: tDynamic(`auth.role.${String(a.role)}`) }),
               a.bannedUntil ? el('span', { className: 'admin-chip chip-banned', text: t('admin_panel.chip_banned') }) : null,
               a.mutedUntil ? el('span', { className: 'admin-chip chip-muted', text: t('admin_panel.chip_muted') }) : null,
+              a.emailConfirmedAt ? el('span', { className: 'admin-chip chip-confirmed', text: t('admin_panel.chip_email_confirmed'), title: String(a.emailConfirmedAt) }) : null,
             ]),
             el('span', { className: 'admin-account-mail', text: String(a.email ?? '') }),
           ]),

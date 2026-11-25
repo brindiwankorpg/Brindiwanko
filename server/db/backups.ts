@@ -307,6 +307,8 @@ export function stripSecrets(file: string): void {
       copy.exec('DELETE FROM sessions; DELETE FROM server_secrets;');
       // Pending "forgotten password" links (backups made before they existed have no such table).
       if (copy.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'password_resets'").get()) copy.exec('DELETE FROM password_resets;');
+      // Pending e-mail confirmation links, likewise.
+      if (copy.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'email_confirmations'").get()) copy.exec('DELETE FROM email_confirmations;');
     })();
   } finally {
     copy.close();

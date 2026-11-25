@@ -334,7 +334,7 @@ Toutes les variables d'environnement sont optionnelles :
 | `SANDBOX_WITHOUT_NETWORK_ISOLATION` | — | `1` : exécute les scripts d'événements même sur un Node.js qui ne peut pas couper le réseau de leur bac à sable (sans `--allow-net`). Sinon, les scripts y sont refusés. |
 | `UV_THREADPOOL_SIZE` | `4` | Threads de Node.js (mots de passe, compression, fichiers) ; la moitié au plus hache des mots de passe en même temps. `8` conseillé sur un serveur public (à fixer dans l'environnement du processus, avant le démarrage de Node.js). |
 | `MAX_CHARACTERS` | `4` | Nombre maximum de personnages par compte. |
-| `SMTP_URL` / `MAIL_FROM` | — | Relais SMTP sortant et expéditeur pour la réinitialisation de mot de passe. |
+| `SMTP_URL` / `MAIL_FROM` | — | Relais SMTP sortant et expéditeur pour la réinitialisation de mot de passe, l'avis de changement d'adresse et les liens de confirmation d'adresse (envoyés à l'inscription et à chaque changement ; une adresse non confirmée ne bloque rien). |
 
 ---
 
@@ -983,7 +983,7 @@ All environment variables are optional:
 | `SANDBOX_WITHOUT_NETWORK_ISOLATION` | — | `1`: run event scripts even on a Node.js that cannot cut their sandbox off the network (no `--allow-net`). Otherwise scripts are refused there. |
 | `UV_THREADPOOL_SIZE` | `4` | Node.js threads (password hashes, compression, files); at most half of them hash passwords at once. `8` advised on a public server (set it in the process environment, before Node.js starts). |
 | `MAX_CHARACTERS` | `4` | Maximum characters per account. |
-| `SMTP_URL` / `MAIL_FROM` | — | Outbound SMTP URI and sender address for password reset emails. |
+| `SMTP_URL` / `MAIL_FROM` | — | Outbound SMTP URI and sender address for password reset emails, address-change notices and address confirmation links (sent at registration and after each change; an unconfirmed address blocks nothing). |
 
 ---
 

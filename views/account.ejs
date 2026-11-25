@@ -13,7 +13,11 @@
     <% } %>
     <dl class="account-details">
       <dt><%= t('auth.field.username') %></dt><dd><%= details.username %></dd>
-      <dt><%= t('auth.field.email') %></dt><dd><%= details.email %></dd>
+      <dt><%= t('auth.field.email') %></dt>
+      <dd>
+        <%= details.email %>
+        <% if (emailStatus) { %><span class="email-status email-<%= emailStatus %>">(<%= t('account.email.' + emailStatus) %>)</span><% } %>
+      </dd>
       <dt><%= t('account.role') %></dt><dd><%= t('auth.role.' + details.role) %></dd>
       <dt><%= t('account.created') %></dt><dd><%= String(details.createdAt).slice(0, 10) %></dd>
     </dl>
@@ -56,6 +60,13 @@
         </label>
         <button type="submit" class="button primary"><%= t('account.email.submit') %></button>
       </form>
+      <% if (emailStatus === 'unconfirmed') { %>
+        <form method="post" action="/account/email/confirm" class="stacked-form">
+          <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+          <p class="hint"><%= t('account.email.confirm_hint') %></p>
+          <button type="submit" class="button"><%= t('account.email.resend') %></button>
+        </form>
+      <% } %>
     </section>
 
     <section class="account-section danger-zone" id="delete">

@@ -23,7 +23,7 @@ import { SlidingWindowLimiter } from '../http/rate-limit.js';
 import { SESSION_COOKIE } from '../http/session.js';
 import { setLocaleCookie } from '../i18n.js';
 import { DEVICE_COOKIE, DEVICE_MAX_AGE_MS } from './device.js';
-import { LOGIN_NOTICES } from './account-routes.js';
+import { LOGIN_NOTICES, sendEmailConfirmation } from './account-routes.js';
 import { currentAccount } from './middleware.js';
 
 /** Where players land after logging in. */
@@ -149,6 +149,8 @@ export function authRouter(ctx: ServerContext): Router {
     }
     registrations.record(address);
     if (result.account.role === 'admin') console.log(`[brindiwanko] first account "${result.account.username}" registered as admin`);
+    // A link confirming the address goes to it (when a mail server is configured): the account works without it.
+    sendEmailConfirmation(ctx, req, result.account, locale);
     startSession(req, res, result.account, AFTER_LOGIN_PATH, result.deviceToken, secure);
   });
 

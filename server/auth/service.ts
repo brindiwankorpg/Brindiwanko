@@ -298,6 +298,36 @@ export class AuthService {
     return { account, token };
   }
 
+  // --- E-mail confirmation ------------------------------------------------------------
+
+  /**
+   * Confirmation links of the last day of each account: a few a day per account, and one every few minutes per
+   * address (a new address gets its link at once).
+   */
+  private readonly confirmationsSent = new Map<number, { at: number; email: string }[]>();
+
+  /**
+   * Prepares a link confirming the current address of an account.
+   * @returns The secret token to put in the link, or `null` when the address is already confirmed, a link was
+   *   sent a short while ago, or the account received its links of the day.
+   */
+  createEmailConfirmation(account: Account, now = Date.now()): string | null {
+    if (account.emailConfirmedAt) return null;
+    for (const [id, links] of this.confirmationsSent) if (links.every((l) => now - l.at >= RESET_MAIL_WINDOW_MS)) this.confirmationsSent.delete(id);
+    const sent = (this.confirmationsSent.get(account.id) ?? []).filter((l) => now - l.at < RESET_MAIL_WINDOW_MS);
+    const lastToThisAddress = sent.filter((l) => l.email === account.email).at(-1)?.at ?? 0;
+    if (sent.length >= RESET_MAILS_PER_DAY || now - lastToThisAddress < RESET_RESEND_MS) return null;
+    this.confirmationsSent.set(account.id, [...sent, { at: now, email: account.email }]);
+    const token = randomBytes(32).toString('base64url');
+    this.accounts.addEmailConfirmation(account.id, hashResetToken(token), account.email, now + CONFIRM_TOKEN_MS);
+    return token;
+  }
+
+  /** Uses a confirmation link: the account whose address it confirmed, or `undefined`. */
+  confirmEmail(token: string): Account | undefined {
+    return RESET_TOKEN_PATTERN.test(token) ? this.accounts.confirmEmail(hashResetToken(token)) : undefined;
+  }
+
   /** Account of a "forgotten password" link still valid, or `undefined`. */
   passwordResetAccount(token: string): Account | undefined {
     return RESET_TOKEN_PATTERN.test(token) ? this.accounts.passwordResetAccount(hashResetToken(token)) : undefined;
@@ -320,6 +350,8 @@ export class AuthService {
 
 /** How long a "forgotten password" link works. */
 export const RESET_TOKEN_MS = 60 * 60 * 1000;
+/** How long an e-mail confirmation link works. */
+export const CONFIRM_TOKEN_MS = 48 * 60 * 60 * 1000;
 /** Shortest delay between two "forgotten password" e-mails to one account. */
 export const RESET_RESEND_MS = 2 * 60 * 1000;
 /** "Forgotten password" e-mails one account may receive per day, whoever asks for them. */

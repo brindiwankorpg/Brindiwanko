@@ -3,7 +3,8 @@
  * database write while a player enters or leaves (#01, #02, #03, #31), global switches refreshed once per tick
  * (#04), the limit of game connections (#61), the API answers (#67, #68, #70), the daily limit of "forgotten
  * password" e-mails (#21), the gate in front of bcrypt (#29), names and texts (#44, #45), the settings read
- * without a copy (#58), the equipment kept in memory (#53) and the occupation of a map shown to the editor (#38).
+ * without a copy (#58), the equipment kept in memory (#53), the occupation of a map shown to the editor (#38) and
+ * the confirmation of e-mail addresses (#20).
  */
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
@@ -12,6 +13,7 @@ import { mixesScripts, nameKey } from '../shared/names.js';
 import type { ClientToServerEvents, ServerToClientEvents } from '../shared/protocol.js';
 import { HASH_BUSY, HashGate } from '../server/auth/hash-gate.js';
 import { resolveText } from '../server/events/interpreter.js';
+import { memoryMailer } from '../server/mail.js';
 import type { PlayerSession } from '../server/game/world.js';
 import { startTestServer, TestClient, type TestServer } from './helpers/server.js';
 
@@ -256,4 +258,42 @@ test('#53 the equipment is kept in memory until it changes', async () => {
   progression.equipment(id).clear();
   assert.equal(progression.equipment(id).size, without.size + 1);
   assert.ok(before.size >= 0);
+});
+
+test('#20 an address is confirmed by the link e-mailed at registration, and again after each change', async () => {
+  const mailer = memoryMailer();
+  const mailing = await startTestServer({ smtpUrl: 'smtp://unused.invalid' }, { mailer });
+  try {
+    const client = new TestClient(mailing.url);
+    await client.post('/register', { _csrf: await client.csrf('/register'), username: 'Confirmer', email: 'confirmer@example.com', password: 'secret password', passwordConfirm: 'secret password' });
+    await wait(0);
+    const tokenOf = (to: string) => /\/confirm-email\?token=([A-Za-z0-9_-]+)/.exec(mailer.outbox.filter((m) => m.to === to).at(-1)?.text ?? '')?.[1];
+    const first = tokenOf('confirmer@example.com');
+    assert.ok(first, 'a confirmation link was sent at registration');
+    const account = () => mailing.ctx.accounts.findByUsername('Confirmer')!;
+    assert.equal(account().emailConfirmedAt, null);
+    assert.match(await (await client.request('/account')).text(), /email-unconfirmed/);
+
+    const confirmed = await client.request(`/confirm-email?token=${first}`);
+    assert.equal(confirmed.status, 303);
+    assert.equal(confirmed.headers.get('location'), '/account?done=email_confirmed');
+    assert.ok(account().emailConfirmedAt, 'the address is confirmed');
+    assert.match(await (await client.request('/account')).text(), /email-confirmed/);
+    assert.equal((await new TestClient(mailing.url).request(`/confirm-email?token=${first}`)).status, 400, 'a link works once');
+
+    // A new address is not confirmed: a link goes to it; asking again at once is refused.
+    const changed = await client.post('/account/email', { _csrf: await client.csrf('/account'), current: 'secret password', email: 'confirmer.new@example.com' });
+    assert.equal(changed.status, 303);
+    await wait(0);
+    assert.equal(account().emailConfirmedAt, null);
+    const second = tokenOf('confirmer.new@example.com');
+    assert.ok(second, 'a link was sent to the new address');
+    assert.equal((await client.post('/account/email/confirm', { _csrf: await client.csrf('/account') })).status, 429);
+    // Opened from another browser (not logged in), the link confirms too.
+    const elsewhere = await new TestClient(mailing.url).request(`/confirm-email?token=${second}`);
+    assert.equal(elsewhere.headers.get('location'), '/login?notice=email_confirmed');
+    assert.ok(account().emailConfirmedAt);
+  } finally {
+    await mailing.close();
+  }
 });
