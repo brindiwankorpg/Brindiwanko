@@ -837,6 +837,8 @@ export class MapEditorApp {
   }
 
   private async loadMap(id: number): Promise<void> {
+    // Instances in progress are asked about again for the map opened.
+    this.occupiedSaveAccepted = null;
     try {
       const { info, map, version } = await this.api.get<{ info: MapInfo; map: MapData; version: number }>(`/maps/${id}`);
       let readOnly = false;
@@ -973,6 +975,7 @@ export class MapEditorApp {
    */
   private async save(): Promise<boolean> {
     if (!this.info || !this.map || this.readOnly) return false;
+    if (!(await this.confirmOccupiedSave(this.info.id))) return false;
     const revision = this.revision;
     try {
       const { version } = await this.api.put<{ version: number }>(`/maps/${this.info.id}`, { map: this.map, baseVersion: this.mapVersion });
@@ -993,6 +996,28 @@ export class MapEditorApp {
       else this.showError(err);
       return false;
     }
+  }
+
+  /** Map whose open instances the administrator already agreed to start over (asked once per opened map). */
+  private occupiedSaveAccepted: number | null = null;
+
+  /**
+   * Saving a map starts over the fights of its copies in progress (dungeons, raids): with players in some, the
+   * administrator confirms first. Resolves `false` when it gives up.
+   */
+  private async confirmOccupiedSave(id: number): Promise<boolean> {
+    if (this.occupiedSaveAccepted === id) return true;
+    let occupancy: { players: number; instances: number };
+    try {
+      occupancy = await this.api.get<{ players: number; instances: number }>(`/maps/${id}/occupancy`);
+    } catch {
+      // Not known: the save goes on (and reports its own errors).
+      return true;
+    }
+    if (occupancy.instances === 0) return true;
+    const ok = await confirmDialog({ title: t('editor.occupied_title'), message: t('editor.occupied_confirm', { players: occupancy.players, instances: occupancy.instances }), ok: t('editor.save_anyway'), danger: true });
+    if (ok) this.occupiedSaveAccepted = id;
+    return ok;
   }
 
   /**

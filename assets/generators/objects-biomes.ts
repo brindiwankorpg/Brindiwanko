@@ -429,7 +429,7 @@ export function bananaPlant(): Draw {
       leaf(-7, -2);
       leaf(7, -3);
       leaf(0, -13);
-      for (let i = 0; i < 4; i++) s.fillRect(9 + (i % 2), 15 + i * 2, 3, 2, RAMPS.flowerYellow[2 + (i % 2)]);
+      for (let i = 0; i < 4; i++) s.fillRect(9 + (i % 2), 15 + i * 2, 3, 2, RAMPS.flowerYellow[2 + (i % 2)]!);
     }),
   );
 }
@@ -489,7 +489,7 @@ export function ruinPillar(ramp: Ramp = RAMPS.stoneWarm): Draw {
       s.fillRect(2, 28, 12, 3, ramp[1]);
       s.line(5, 12, 9, 16, ramp[0]);
       foliage(s, 2, 3, 7, 5, RAMPS.jungleLight, 'pillar-moss');
-      for (let y = 8; y < 28; y += 3) s.set(3 + (y % 2), y, RAMPS.jungleLight[1 + (y % 2)]);
+      for (let y = 8; y < 28; y += 3) s.set(3 + (y % 2), y, RAMPS.jungleLight[1 + (y % 2)]!);
     }),
   );
 }
@@ -682,7 +682,7 @@ export function ribcage(): Draw {
 /** Sea shell (passable). */
 export function shell(ramp: Ramp = RAMPS.coral): Draw {
   return sprite(16, 16, (s) => {
-    for (let j = 0; j < 6; j++) s.hline(8 - j, 8 + j, 6 + j, ramp[2 + (j % 2 === 0 ? 1 : 0)]);
+    for (let j = 0; j < 6; j++) s.hline(8 - j, 8 + j, 6 + j, ramp[2 + (j % 2 === 0 ? 1 : 0)]!);
     for (let k = -4; k <= 4; k += 2) s.line(8, 7, 8 + k, 11, ramp[1]);
     s.fillRect(7, 12, 3, 2, ramp[1]);
   });

@@ -55,6 +55,11 @@ export interface SystemSettings {
   maxRaidSize: number;
   /** Minutes an empty instance is kept before being closed. */
   instanceIdleMinutes: number;
+  /**
+   * Minutes during which a character that was in an instance of a dungeon cannot open a new one of the same
+   * map (leaving its party for a fresh copy of the dungeon); 0 = no wait. Raids have their own lockouts.
+   */
+  instanceLockMinutes: number;
   /** Gold spent to found a guild. */
   guildCreationCost: number;
   /** Largest number of members of a guild (a larger guild keeps its members but takes no new one). */
@@ -90,6 +95,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   maxPartySize: 5,
   maxRaidSize: 20,
   instanceIdleMinutes: 5,
+  instanceLockMinutes: 5,
   guildCreationCost: 1000,
   guildMaxMembers: 100,
   elements: ['Aucun', 'Physique', 'Feu', 'Glace', 'Foudre', 'Eau', 'Terre', 'Vent', 'Lumière', 'Ténèbres'],
@@ -113,7 +119,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
 
 /** Keys of the settings editable in the System tab. */
 export const SYSTEM_SETTING_KEYS = [
-  'gameTitle', 'startPosition', 'currencyName', 'maxLevel', 'maxPartySize', 'maxRaidSize', 'instanceIdleMinutes', 'guildCreationCost', 'guildMaxMembers',
+  'gameTitle', 'startPosition', 'currencyName', 'maxLevel', 'maxPartySize', 'maxRaidSize', 'instanceIdleMinutes', 'instanceLockMinutes', 'guildCreationCost', 'guildMaxMembers',
   'elements', 'weaponTypes', 'armorTypes', 'skillTypes', 'startingGold', 'statPointsPerLevel', 'sellRate', 'bagSize', 'terms', 'switches', 'variables',
 ] as const;
 

@@ -13,8 +13,9 @@
  * Writes need the `X-CSRF-Token` header.
  */
 import { randomBytes } from 'node:crypto';
-import { mkdirSync, renameSync, rmSync, statSync } from 'node:fs';
-import { writeFile } from 'node:fs/promises';
+import { createWriteStream, mkdirSync, renameSync, rmSync, statSync } from 'node:fs';
+import { open } from 'node:fs/promises';
+import { pipeline } from 'node:stream/promises';
 import { dirname, join } from 'node:path';
 import os from 'node:os';
 import express, { Router, type Request, type Response } from 'express';
@@ -30,10 +31,25 @@ import { MAX_BAN_MINUTES, MAX_MUTE_MINUTES, MAX_REASON_LENGTH, Moderation, type 
 import { backupsDirOf, dataDirOf, restorePathOf } from '../paths.js';
 import { backupTime, inspectBackup, listBackups, prepareRestore, SQLITE_HEADER, stripSecrets, uploadsRestorePathOf } from '../db/backups.js';
 import { BACKUP_KEEP_CHOICES, backupScheduleOf, DEFAULT_BACKUP_SCHEDULE, DEFAULT_SETTINGS } from '../../shared/settings.js';
+import { endHeavyJob, heavyJobBusyKey, startHeavyJob } from './heavy-jobs.js';
 
 const isInt = (v: unknown, min: number, max: number): v is number => Number.isInteger(v) && (v as number) >= min && (v as number) <= max;
 /** Largest backup accepted by a restoration (the reverse proxy must let it through: see the README). */
 export const MAX_RESTORE_BYTES = '500mb';
+/** {@link MAX_RESTORE_BYTES} in bytes. */
+const MAX_RESTORE_SIZE = 500 * 1024 * 1024;
+
+/** First bytes of a file (fewer when it is shorter). */
+async function headOf(file: string, length: number): Promise<Buffer> {
+  const handle = await open(file, 'r');
+  try {
+    const head = Buffer.alloc(length);
+    const { bytesRead } = await handle.read(head, 0, length, 0);
+    return head.subarray(0, bytesRead);
+  } finally {
+    await handle.close();
+  }
+}
 const text = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 
 /**
@@ -502,26 +518,29 @@ export function adminRouter(ctx: ServerContext): Router {
    * The administrator's password is asked again, as for a backup of the server: this replaces the whole game.
    */
   // One restoration at a time (a double click, two administrators): the second must not replace or delete
-  // the file the first one is checking.
-  const parseRestoreBody = express.raw({ type: '*/*', limit: MAX_RESTORE_BYTES });
-  let restoring = false;
+  // the file the first one is checking. A project import shares the lock (each may take hundreds of megabytes).
   router.post('/restore', adminOnly, async (req, res) => {
     const refused = await ctx.auth.verifyPassword(me(res).id, confirmedPassword(req));
     if (refused) return fail(res, refused.errorKey === 'error.auth.too_many_attempts' ? 429 : 403, refused.errorKey, refused.params);
-    // Checked after the password, and set below with no wait in between: two uploads cannot both pass it.
-    if (restoring) return fail(res, 409, 'error.admin.restore_busy');
+    // The size is known before anything is read: the body goes to the disk as it arrives, never whole in memory,
+    // and Node.js stops it at the length it announced.
+    const length = Number(req.get('content-length'));
+    if (!Number.isSafeInteger(length) || length <= 0) return fail(res, 411, 'error.admin.invalid_backup');
+    if (length > MAX_RESTORE_SIZE) return fail(res, 413, 'error.http.too_large');
+    const encoding = req.get('content-encoding');
+    if (encoding && encoding !== 'identity') return fail(res, 415, 'error.admin.invalid_backup');
+    // Checked after the password, and taken below with no wait in between: two uploads cannot both pass it.
+    const busy = startHeavyJob(ctx, 'restore');
+    if (busy) return fail(res, 409, heavyJobBusyKey(busy));
     const pending = restorePathOf(ctx.config.dbPath);
     // Written and checked under another name first: a refused file never replaces a restoration already
     // prepared, and a server stopped in the middle never applies an unchecked file at its next start.
     // Writing and checking run outside the game loop (a backup may weigh hundreds of megabytes).
     const upload = `${pending}.${randomBytes(8).toString('hex')}.upload`;
-    restoring = true;
     try {
-      await new Promise<void>((ok, ko) => parseRestoreBody(req, res, (err?: unknown) => (err ? ko(err) : ok())));
-      const body = req.body as Buffer;
-      if (!Buffer.isBuffer(body) || body.subarray(0, 16).toString('latin1') !== SQLITE_HEADER) return fail(res, 400, 'error.admin.invalid_backup');
       mkdirSync(dirname(upload), { recursive: true });
-      await writeFile(upload, body);
+      await pipeline(req, createWriteStream(upload));
+      if ((await headOf(upload, 16)).toString('latin1') !== SQLITE_HEADER) return fail(res, 400, 'error.admin.invalid_backup');
       const problem = await inspectBackup(upload);
       if (problem) return fail(res, 400, problem);
       // Same cleaning as the downloaded backups (sessions and secrets are not restored).
@@ -529,7 +548,7 @@ export function adminRouter(ctx: ServerContext): Router {
       renameSync(upload, pending);
     } finally {
       rmSync(upload, { force: true });
-      restoring = false;
+      endHeavyJob(ctx);
     }
     // No resources left over from an earlier `npm run restore` that would replace `uploads/` together with this database.
     rmSync(uploadsRestorePathOf(ctx.config.dbPath), { recursive: true, force: true });
@@ -558,13 +577,13 @@ export function adminRouter(ctx: ServerContext): Router {
     if (!listBackups(dir).includes(name)) return fail(res, 404, 'error.admin.not_found');
     const refused = await ctx.auth.verifyPassword(me(res).id, String((req.body as { password?: unknown }).password ?? ''));
     if (refused) return fail(res, refused.errorKey === 'error.auth.too_many_attempts' ? 429 : 403, refused.errorKey, refused.params);
-    if (restoring) return fail(res, 409, 'error.admin.restore_busy');
-    restoring = true;
+    const busy = startHeavyJob(ctx, 'restore');
+    if (busy) return fail(res, 409, heavyJobBusyKey(busy));
     let prepared: Awaited<ReturnType<typeof prepareRestore>>;
     try {
       prepared = await prepareRestore(join(dir, name), ctx.config.dbPath);
     } finally {
-      restoring = false;
+      endHeavyJob(ctx);
     }
     if (!prepared) return fail(res, 404, 'error.admin.not_found');
     if ('problem' in prepared) return fail(res, 400, prepared.problem);

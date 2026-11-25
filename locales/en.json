@@ -327,7 +327,8 @@
     "instance": {
       "level": "Your level is too low to enter",
       "too_few": "More party members must be here with you to enter",
-      "too_many": "Your party is too large to enter"
+      "too_many": "Your party is too large to enter",
+      "locked": "You were in this dungeon a moment ago: wait {{minutes}} min before starting a new run."
     },
     "admin": {
       "not_found": "Not found",
@@ -638,6 +639,9 @@
     "conflict_title": "Map changed meanwhile",
     "conflict_reload": "Reopen the map",
     "conflict_keep": "Keep my copy open",
+    "occupied_title": "Instances in progress",
+    "occupied_confirm": "{{players}} player(s) are in {{instances}} instance(s) of this map. Saving starts their fights over: the monsters come back and a boss in progress returns to full health. Save anyway?",
+    "save_anyway": "Save anyway",
     "versions_title": "History",
     "current": "current version",
     "original_version": "original version (before the first edit)",
@@ -1022,6 +1026,7 @@
       "interval": "Interval (s, 0 = once)",
       "maxRaidSize": "Maximum raid size",
       "instanceIdleMinutes": "Close empty instances after (min)",
+      "instanceLockMinutes": "Wait before a new dungeon run (min)",
       "pick": "Pick on the map",
       "start": "Spawn place",
       "mode": "Place",
@@ -1283,6 +1288,7 @@
       "maxPartySize": "Maximum number of players in a party.",
       "maxRaidSize": "Maximum number of players in a raid (enlarged party).",
       "instanceIdleMinutes": "An empty instance is closed after this many minutes.",
+      "instanceLockMinutes": "A character that was in a dungeon cannot open a new copy of it for this many minutes (leaving its party does not reset the dungeon). 0 = no wait. Raids keep their own lockouts.",
       "guildMaxMembers": "Maximum number of members in a guild. A guild that is already larger keeps its members but cannot recruit.",
       "startPosition": "Where new characters appear: map and tile.",
       "bossEnemyId": "Monster acting as this raid’s boss.",

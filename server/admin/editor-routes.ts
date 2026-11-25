@@ -28,6 +28,7 @@ import { databaseRouter, MAX_USAGES } from './database-routes.js';
 import { findMapUsages } from './db-usage.js';
 import { imageSize, scanResources, scanUploadedFile } from '../resources/scanner.js';
 import { MAX_UPLOAD_BYTES, deleteUpload, guessKind, sanitizeName, sniffType, storeUploadAsync } from '../resources/uploads.js';
+import { endHeavyJob, heavyJobBusyKey, startHeavyJob } from './heavy-jobs.js';
 import { exportMap, importProject } from '../importers/project.js';
 import { ZipError, readZip } from '../importers/zip.js';
 
@@ -91,6 +92,15 @@ export function editorRouter(ctx: ServerContext): Router {
       return;
     }
     res.json({ info, map, version: ctx.maps.revision(info.id), lock: ctx.editLocks.holder(info.id) ?? null });
+  });
+
+  /**
+   * Players on a map and open copies of it with players inside: saving the map starts their fights over
+   * (monsters back, a boss in progress at full health), which the editor says before saving.
+   */
+  router.get('/maps/:id/occupancy', (req, res) => {
+    const players = ctx.world.playersOn(mapId(req)).filter((p) => ctx.world.isLive(p));
+    res.json({ players: players.length, instances: new Set(players.filter((p) => p.instance > 0).map((p) => p.instance)).size });
   });
 
   router.post('/maps/:id/lock', (req, res) => {
@@ -340,23 +350,23 @@ export function editorRouter(ctx: ServerContext): Router {
 
   // --- Import / export ------------------------------------------------------------
 
-  // An import runs a little at a time (the game keeps running): a second one waits for the first to end.
-  let importing = false;
+  // An import runs a little at a time (the game keeps running): a second one, or a restoration, waits for it to
+  // end (they share one lock: each may take hundreds of megabytes).
   // At most `importsPer15Min` imports per account every 15 minutes (3 in production), checked before the body (up to 200 MB) is read.
   const importLimiter = new SlidingWindowLimiter(ctx.config.importsPer15Min, 15 * 60_000);
   const parseImportBody = express.raw({ type: '*/*', limit: '200mb' });
   router.post('/import', async (req, res) => {
-    if (importing) {
-      fail(res, 409, 'error.import.busy');
-      return;
-    }
     const key = String(account(res).id);
     if (importLimiter.retryAfter(key) > 0) {
       fail(res, 429, 'error.import.too_many');
       return;
     }
+    const busy = startHeavyJob(ctx, 'import');
+    if (busy) {
+      fail(res, 409, heavyJobBusyKey(busy));
+      return;
+    }
     importLimiter.record(key);
-    importing = true;
     try {
       await new Promise<void>((ok, ko) => parseImportBody(req, res, (err?: unknown) => (err ? ko(err) : ok())));
       const data = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
@@ -366,7 +376,7 @@ export function editorRouter(ctx: ServerContext): Router {
       if (err instanceof ZipError) fail(res, 400, err.key);
       else throw err;
     } finally {
-      importing = false;
+      endHeavyJob(ctx);
     }
   });
 

@@ -184,7 +184,7 @@ export function lich({ main, accent, eye }: Scheme): PixelCanvas {
       s.hline(hx + (side ? 1 : 6), hx + (side ? 5 : 11), 20 + bob, bone[0]);
     }
     // Crown of spikes.
-    for (let i = 0; i < 4; i++) s.vline(hx + 3 + i * 4, 3 + bob, 6 + bob, RAMPS.gold[2 + (i % 2)]);
+    for (let i = 0; i < 4; i++) s.vline(hx + 3 + i * 4, 3 + bob, 6 + bob, RAMPS.gold[2 + (i % 2)]!);
   });
 }
 
@@ -252,7 +252,7 @@ export function spiderQueen({ main, accent, eye }: Scheme): PixelCanvas {
       s.fillRect(8, 42, 3, 3, eye);
       s.fillRect(13, 42, 2, 2, eye);
       s.vline(7, 50, 54, RAMPS.plaster[2]);
-      for (let i = 0; i < 3; i++) s.vline(10 + i * 4, 31, 36, RAMPS.gold[2 + (i % 2)]);
+      for (let i = 0; i < 3; i++) s.vline(10 + i * 4, 31, 36, RAMPS.gold[2 + (i % 2)]!);
     } else {
       legs(24, 46, 20);
       shadedBlob(s, 10, 22, 28, 26, main);
@@ -262,7 +262,7 @@ export function spiderQueen({ main, accent, eye }: Scheme): PixelCanvas {
         for (const [x, y] of [[18, 43], [28, 43], [21, 46], [25, 46]] as const) s.fillRect(x, y, 2, 2, eye);
         s.vline(19, 52, 57, RAMPS.plaster[2]);
         s.vline(28, 52, 57, RAMPS.plaster[2]);
-        for (let i = 0; i < 4; i++) s.vline(16 + i * 5, 33, 38, RAMPS.gold[2 + (i % 2)]);
+        for (let i = 0; i < 4; i++) s.vline(16 + i * 5, 33, 38, RAMPS.gold[2 + (i % 2)]!);
       }
     }
   });

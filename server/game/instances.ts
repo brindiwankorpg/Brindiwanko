@@ -7,6 +7,11 @@
  * join the same copy. A raid defined in the database on that map also sets
  * access conditions (level, party size). Instances without players are closed
  * after the delay of the System settings.
+ *
+ * A character that was in a copy of a dungeon cannot open another copy of it
+ * for a while (System settings): leaving its party, or making a new one, does
+ * not give it a fresh dungeon at will. Joining a copy already open (its party's)
+ * is always possible. Raids have their own lockouts.
  */
 import type { RaidData } from '../../shared/database.js';
 import { DEFAULT_SETTINGS } from '../../shared/settings.js';
@@ -31,6 +36,8 @@ export class InstanceService {
   private readonly instances = new Map<number, Instance>();
   /** Instance of each owner on each map: `mapId:owner` → instance id. */
   private readonly byOwner = new Map<string, number>();
+  /** Last copy of each dungeon each character was in, and when it was last seen there: `mapId:characterId`. */
+  private readonly lastStay = new Map<string, { instance: number; at: number }>();
   private nextId = 1;
   private readonly timer: ReturnType<typeof setInterval>;
 
@@ -44,6 +51,7 @@ export class InstanceService {
     clearInterval(this.timer);
     this.instances.clear();
     this.byOwner.clear();
+    this.lastStay.clear();
   }
 
   /** Raid defined on a map, if any. */
@@ -85,12 +93,38 @@ export class InstanceService {
     if (raid && present === 0 && this.world.party.membersNear(p).length < raid.minPlayers) return 'error.instance.too_few';
     if (existing && this.instances.has(existing)) {
       if (raid && present >= raid.maxPlayers) return 'error.instance.too_many';
+      this.stayed(p, mapId, existing);
       return existing;
+    }
+    // A new copy of a dungeon: not for a character that was in another copy of it a moment ago.
+    if (!raid) {
+      const wait = this.lockedFor(p, mapId);
+      if (wait > 0) return 'error.instance.locked';
     }
     const instance: Instance = { id: this.nextId++, mapId, owner, switches: new Set(), createdAt: Date.now(), emptySince: 0, bossDefeated: false };
     this.instances.set(instance.id, instance);
     this.byOwner.set(key, instance.id);
+    this.stayed(p, mapId, instance.id);
     return instance.id;
+  }
+
+  /** Minutes a character still waits before it may open a new copy of a dungeon (0: it may). */
+  private lockMs(): number {
+    return this.world.ctx.settings.get('instanceLockMinutes', DEFAULT_SETTINGS.instanceLockMinutes) * 60_000;
+  }
+
+  /**
+   * Milliseconds before a character may open a new copy of a dungeon (0: now).
+   * @param now - Clock (tests).
+   */
+  lockedFor(p: PlayerSession, mapId: number, now = Date.now()): number {
+    const stay = this.lastStay.get(`${mapId}:${p.characterId}`);
+    return stay ? Math.max(0, stay.at + this.lockMs() - now) : 0;
+  }
+
+  /** Notes that a character is in a copy of a map now. */
+  private stayed(p: PlayerSession, mapId: number, instance: number, now = Date.now()): void {
+    this.lastStay.set(`${mapId}:${p.characterId}`, { instance, at: now });
   }
 
   /** Players inside an instance. */
@@ -101,8 +135,13 @@ export class InstanceService {
   /** Closes the instances left empty for too long. */
   cleanup(now = Date.now()): void {
     const idle = this.world.ctx.settings.get('instanceIdleMinutes', DEFAULT_SETTINGS.instanceIdleMinutes) * 60_000;
+    const lock = this.lockMs();
+    for (const [key, stay] of this.lastStay) if (now - stay.at >= lock) this.lastStay.delete(key);
     for (const [id, instance] of this.instances) {
-      if (this.players(instance).length > 0) {
+      const inside = this.players(instance);
+      if (inside.length > 0) {
+        // The wait before a new copy counts from the last time the character was seen inside.
+        for (const p of inside) this.stayed(p, instance.mapId, id, now);
         instance.emptySince = 0;
         continue;
       }

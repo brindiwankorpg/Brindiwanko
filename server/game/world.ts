@@ -1095,7 +1095,8 @@ export class World {
       const chosen = instance !== undefined && this.instances.get(instance)?.mapId === mapId ? instance : undefined;
       const entered = chosen ?? (mapId === p.mapId && p.instance ? p.instance : this.instances.enter(p, mapId));
       if (typeof entered === 'string') {
-        p.socket.emit('notify', { key: entered });
+        const minutes = Math.max(1, Math.ceil(this.instances.lockedFor(p, mapId) / 60_000));
+        p.socket.emit('notify', { key: entered, params: entered === 'error.instance.locked' ? { minutes } : undefined });
         return false;
       }
       zone = entered;

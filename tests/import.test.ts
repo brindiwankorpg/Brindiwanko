@@ -170,7 +170,7 @@ test('a damaged or cut image never replaces the current one, nor does a write th
   assert.equal(storeUpload('pictures', 'Sign', good).ok, true);
   const file = join(folder, 'Sign.png');
   const flipped = Buffer.from(good);
-  flipped[42] ^= 0xff;
+  flipped[42] = flipped[42]! ^ 0xff;
   for (const bad of [good.subarray(0, good.length - 6), flipped]) {
     const res = storeUpload('pictures', 'Sign', bad);
     assert.equal(!res.ok && res.errorKey, 'error.resources.damaged_image');

@@ -81,6 +81,7 @@ export function normalizeSystem(raw: Record<string, unknown>, current: SystemSet
     maxPartySize: int(raw.maxPartySize, current.maxPartySize, 2, 40),
     maxRaidSize: int(raw.maxRaidSize, current.maxRaidSize, 2, 40),
     instanceIdleMinutes: int(raw.instanceIdleMinutes, current.instanceIdleMinutes, 1, 1440),
+    instanceLockMinutes: int(raw.instanceLockMinutes, current.instanceLockMinutes, 0, 1440),
     guildCreationCost: int(raw.guildCreationCost, current.guildCreationCost, 0, 99_999_999),
     guildMaxMembers: int(raw.guildMaxMembers, current.guildMaxMembers, 2, 1000),
     elements: names(raw.elements, current.elements),

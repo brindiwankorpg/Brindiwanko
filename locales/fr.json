@@ -327,7 +327,8 @@
     "instance": {
       "level": "Niveau insuffisant pour entrer ici",
       "too_few": "Il faut plus de membres du groupe ici avec vous pour entrer",
-      "too_many": "Votre groupe est trop nombreux pour entrer"
+      "too_many": "Votre groupe est trop nombreux pour entrer",
+      "locked": "Vous étiez dans ce donjon il y a peu : patientez {{minutes}} min avant d’en recommencer un."
     },
     "admin": {
       "not_found": "Introuvable",
@@ -638,6 +639,9 @@
     "conflict_title": "Carte modifiée entre-temps",
     "conflict_reload": "Rouvrir la carte",
     "conflict_keep": "Garder ma copie ouverte",
+    "occupied_title": "Instances en cours",
+    "occupied_confirm": "{{players}} joueur(s) sont dans {{instances}} instance(s) de cette carte. Enregistrer recommence leurs combats : les monstres reviennent et un boss en cours retrouve tous ses PV. Enregistrer quand même ?",
+    "save_anyway": "Enregistrer quand même",
     "versions_title": "Historique",
     "current": "version actuelle",
     "original_version": "version d’origine (avant la 1re modification)",
@@ -1022,6 +1026,7 @@
       "interval": "Intervalle (s, 0 = une fois)",
       "maxRaidSize": "Taille max. des raids",
       "instanceIdleMinutes": "Fermeture des instances vides (min)",
+      "instanceLockMinutes": "Délai avant un nouveau donjon (min)",
       "pick": "Choisir sur la carte",
       "start": "Lieu d’apparition",
       "mode": "Lieu",
@@ -1283,6 +1288,7 @@
       "maxPartySize": "Nombre maximal de joueurs dans un groupe.",
       "maxRaidSize": "Nombre maximal de joueurs dans un raid (groupe élargi).",
       "instanceIdleMinutes": "Une instance vide est fermée après ce nombre de minutes.",
+      "instanceLockMinutes": "Pendant ce nombre de minutes, un personnage qui était dans un donjon ne peut pas en ouvrir une nouvelle copie (quitter son groupe ne remet pas le donjon à zéro). 0 = aucun délai. Les raids gardent leurs propres verrous.",
       "guildMaxMembers": "Nombre maximal de membres d’une guilde. Une guilde déjà plus grande garde ses membres mais ne peut plus recruter.",
       "startPosition": "Où apparaissent les nouveaux personnages : carte et case.",
       "bossEnemyId": "Monstre qui joue le rôle du boss de ce raid.",
