@@ -79,6 +79,14 @@
 
 <sub>📁 `client/ui/windows.ts` · `README.md`</sub>
 
+#### 📦 Dépendances
+
+- **Temps réel** — `engine.io` `6.6.11` → `6.6.13`, `socket.io-adapter` `2.5.8` → `2.5.9`, `ws` `8.21.3` → `8.23.0` *(`engine.io-client` garde sa propre copie de `ws` `8.21.3`)*.
+- **Divers** — `object-inspect` `1.13.4` → `1.14.0`.
+- **Typages (développement)** — `@types/node` `26.6.6` → `26.6.11`, `@types/body-parser` `1.19.6` → `2.2.0`.
+
+<sub>📁 `package.json` · `package-lock.json`</sub>
+
 <a id="fr-lot-2"></a>
 
 <details>
@@ -342,6 +350,14 @@
 - **README** — translation key count updated (`2,391`).
 
 <sub>📁 `client/ui/windows.ts` · `README.md`</sub>
+
+#### 📦 Dependencies
+
+- **Real time** — `engine.io` `6.6.11` → `6.6.13`, `socket.io-adapter` `2.5.8` → `2.5.9`, `ws` `8.21.3` → `8.23.0` *(`engine.io-client` keeps its own copy of `ws` `8.21.3`)*.
+- **Misc** — `object-inspect` `1.13.4` → `1.14.0`.
+- **Typings (development)** — `@types/node` `26.6.6` → `26.6.11`, `@types/body-parser` `1.19.6` → `2.2.0`.
+
+<sub>📁 `package.json` · `package-lock.json`</sub>
 
 <a id="en-batch-2"></a>
 
