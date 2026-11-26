@@ -28,6 +28,23 @@
 
 > [!NOTE]
 > Ce journal suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le [versionnage sémantique](https://semver.org/lang/fr/). Les niveaux `P1` (prioritaire) et `P2` (à corriger) renvoient aux audits de code.
+>
+> **Légende** &nbsp;·&nbsp; 🔴 `P1` prioritaire &nbsp;·&nbsp; 🟠 `P2` à corriger &nbsp;·&nbsp; 💥 rupture de compatibilité &nbsp;·&nbsp; 📁 fichiers modifiés
+
+<div align="center">
+
+### 🗓️ En un coup d'œil
+
+| Statut | Étape | Date | Thème | En bref |
+| :---: | :--- | :---: | :--- | :--- |
+| 🚧 | [**🐺 Lot 3**](#fr-lot-3) | 26/11/2026 | Campagne de test « Red XIII » | 3 anomalies corrigées · 6 dépendances à jour |
+| 🚧 | [**🛠️ Lot 2**](#fr-lot-2) | 25/11/2026 | Contre-expertise de l'audit 360° | 🔴 1 `P1` · 12 tests de régression |
+| 🚧 | [**🧱 Lot 1**](#fr-lot-1) | 20/11/2026 | Stabilisation AppSec, performance & UX | 🔴 2 `P1` · 🟠 22 `P2` |
+| ✅ | [**🧪 1.0.0-beta.1**](#fr-beta-1) | 11/11/2026 | Première bêta | 12 domaines · 💥 nouveau schéma |
+
+<sub>🚧 non publié &nbsp;·&nbsp; ✅ publié</sub>
+
+</div>
 
 ---
 
@@ -63,6 +80,14 @@
 
 ### 🐺 Lot 3 — Campagne de test « Red XIII » sur base vierge &nbsp;<sub>26/11/2026</sub>
 
+<div align="center">
+
+| 📅 Date | 🎯 Nature | 🐞 Anomalies corrigées | 📦 Dépendances | 🧪 Tests |
+| :---: | :---: | :---: | :---: | :---: |
+| 26/11/2026 | Recette sur base vierge | **3** mineures | **6** à jour | **354** ✅ |
+
+</div>
+
 > Parcours complet sur une installation neuve, côté éditeur puis côté joueur : nouveau village, portails aller-retour, 2 monstres, 4 PNJ, quête en 3 étapes, redémarrage du serveur et bascule FR/EN. Aucun bug bloquant ; 3 anomalies mineures corrigées.
 
 #### 🗺️ Éditeur d'évènements
@@ -86,6 +111,10 @@
 - **Typages (développement)** — `@types/node` `26.6.6` → `26.6.11`, `@types/body-parser` `1.19.6` → `2.2.0`.
 
 <sub>📁 `package.json` · `package-lock.json`</sub>
+
+<p align="right"><a href="#fr-top">⬆️ Haut de page</a></p>
+
+#### 🗂️ Lots précédents &nbsp;<sub>cliquer sur un lot pour le déplier</sub>
 
 <a id="fr-lot-2"></a>
 
@@ -230,6 +259,14 @@
 
 ## 🧪 1.0.0-beta.1 &nbsp;<sub>11/11/2026</sub>
 
+<div align="center">
+
+| 📅 Date | 🏷️ Nature | 🧩 Domaines | ⚙️ Moteur | 💥 Rupture |
+| :---: | :---: | :---: | :---: | :---: |
+| 11/11/2026 | Première bêta | **12** | Node.js `>= 24` + SQLite | Schéma `001_init.sql` |
+
+</div>
+
 > Première bêta de **Brindiwanko 1.0** : un moteur de MMORPG 2D pour navigateur avec éditeur de monde en temps réel, dans un seul processus Node.js (`>= 24`, `26 LTS` conseillé) adossé à SQLite, livré avec un monde de démonstration jouable.
 
 ### ✨ Ce que contient la bêta
@@ -300,6 +337,23 @@
 
 > [!NOTE]
 > This changelog follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/). `P1` (urgent) and `P2` (to fix) refer to the code audits.
+>
+> **Legend** &nbsp;·&nbsp; 🔴 `P1` urgent &nbsp;·&nbsp; 🟠 `P2` to fix &nbsp;·&nbsp; 💥 breaking change &nbsp;·&nbsp; 📁 files changed
+
+<div align="center">
+
+### 🗓️ At a glance
+
+| Status | Step | Date | Theme | Highlights |
+| :---: | :--- | :---: | :--- | :--- |
+| 🚧 | [**🐺 Batch 3**](#en-batch-3) | 2026-11-26 | "Red XIII" test campaign | 3 issues fixed · 6 dependencies updated |
+| 🚧 | [**🛠️ Batch 2**](#en-batch-2) | 2026-11-25 | Second opinion on the 360° audit | 🔴 1 `P1` · 12 regression tests |
+| 🚧 | [**🧱 Batch 1**](#en-batch-1) | 2026-11-20 | AppSec, performance & UX stabilization | 🔴 2 `P1` · 🟠 22 `P2` |
+| ✅ | [**🧪 1.0.0-beta.1**](#en-beta-1) | 2026-11-11 | First beta | 12 areas · 💥 new schema |
+
+<sub>🚧 unreleased &nbsp;·&nbsp; ✅ released</sub>
+
+</div>
 
 ---
 
@@ -335,6 +389,14 @@
 
 ### 🐺 Batch 3 — "Red XIII" test campaign on a blank database &nbsp;<sub>2026-11-26</sub>
 
+<div align="center">
+
+| 📅 Date | 🎯 Kind | 🐞 Issues fixed | 📦 Dependencies | 🧪 Tests |
+| :---: | :---: | :---: | :---: | :---: |
+| 2026-11-26 | Run on a blank database | **3** minor | **6** updated | **354** ✅ |
+
+</div>
+
 > Full run on a fresh install, first in the editor then as a player: new village, two-way portals, 2 monsters, 4 NPCs, a 3-step quest, a server restart and FR/EN switching. No blocking bug; 3 minor issues fixed.
 
 #### 🗺️ Event editor
@@ -358,6 +420,10 @@
 - **Typings (development)** — `@types/node` `26.6.6` → `26.6.11`, `@types/body-parser` `1.19.6` → `2.2.0`.
 
 <sub>📁 `package.json` · `package-lock.json`</sub>
+
+<p align="right"><a href="#en-top">⬆️ Back to top</a></p>
+
+#### 🗂️ Previous batches &nbsp;<sub>click a batch to expand it</sub>
 
 <a id="en-batch-2"></a>
 
@@ -501,6 +567,14 @@
 <a id="en-beta-1"></a>
 
 ## 🧪 1.0.0-beta.1 &nbsp;<sub>2026-11-11</sub>
+
+<div align="center">
+
+| 📅 Date | 🏷️ Kind | 🧩 Areas | ⚙️ Engine | 💥 Breaking |
+| :---: | :---: | :---: | :---: | :---: |
+| 2026-11-11 | First beta | **12** | Node.js `>= 24` + SQLite | `001_init.sql` schema |
+
+</div>
 
 > First beta of **Brindiwanko 1.0**: a browser-based 2D MMORPG engine with a live world editor, in a single Node.js process (`>= 24`, `26 LTS` recommended) backed by SQLite, shipped with a playable demo world.
 
