@@ -82,9 +82,9 @@
 
 <div align="center">
 
-| 📅 Date | 🎯 Nature | 🐞 Anomalies corrigées | 📦 Dépendances | 🧪 Tests |
-| :---: | :---: | :---: | :---: | :---: |
-| 26/11/2026 | Recette sur base vierge | **3** mineures | **6** à jour | **354** ✅ |
+| 🎯 Nature | 🐞 Anomalies corrigées | 📦 Dépendances | 🧪 Tests |
+| :---: | :---: | :---: | :---: |
+| Recette sur base vierge | **3** mineures | **6** à jour | **354** ✅ |
 
 </div>
 
@@ -111,8 +111,6 @@
 - **Typages (développement)** — `@types/node` `26.6.6` → `26.6.11`, `@types/body-parser` `1.19.6` → `2.2.0`.
 
 <sub>📁 `package.json` · `package-lock.json`</sub>
-
-<p align="right"><a href="#fr-top">⬆️ Haut de page</a></p>
 
 #### 🗂️ Lots précédents &nbsp;<sub>cliquer sur un lot pour le déplier</sub>
 
@@ -261,9 +259,9 @@
 
 <div align="center">
 
-| 📅 Date | 🏷️ Nature | 🧩 Domaines | ⚙️ Moteur | 💥 Rupture |
-| :---: | :---: | :---: | :---: | :---: |
-| 11/11/2026 | Première bêta | **12** | Node.js `>= 24` + SQLite | Schéma `001_init.sql` |
+| 🏷️ Nature | 🧩 Domaines | ⚙️ Moteur | 💥 Rupture |
+| :---: | :---: | :---: | :---: |
+| Première bêta | **12** | Node.js `>= 24` + SQLite | Schéma `001_init.sql` |
 
 </div>
 
@@ -391,9 +389,9 @@
 
 <div align="center">
 
-| 📅 Date | 🎯 Kind | 🐞 Issues fixed | 📦 Dependencies | 🧪 Tests |
-| :---: | :---: | :---: | :---: | :---: |
-| 2026-11-26 | Run on a blank database | **3** minor | **6** updated | **354** ✅ |
+| 🎯 Kind | 🐞 Issues fixed | 📦 Dependencies | 🧪 Tests |
+| :---: | :---: | :---: | :---: |
+| Run on a blank database | **3** minor | **6** updated | **354** ✅ |
 
 </div>
 
@@ -420,8 +418,6 @@
 - **Typings (development)** — `@types/node` `26.6.6` → `26.6.11`, `@types/body-parser` `1.19.6` → `2.2.0`.
 
 <sub>📁 `package.json` · `package-lock.json`</sub>
-
-<p align="right"><a href="#en-top">⬆️ Back to top</a></p>
 
 #### 🗂️ Previous batches &nbsp;<sub>click a batch to expand it</sub>
 
@@ -570,9 +566,9 @@
 
 <div align="center">
 
-| 📅 Date | 🏷️ Kind | 🧩 Areas | ⚙️ Engine | 💥 Breaking |
-| :---: | :---: | :---: | :---: | :---: |
-| 2026-11-11 | First beta | **12** | Node.js `>= 24` + SQLite | `001_init.sql` schema |
+| 🏷️ Kind | 🧩 Areas | ⚙️ Engine | 💥 Breaking |
+| :---: | :---: | :---: | :---: |
+| First beta | **12** | Node.js `>= 24` + SQLite | `001_init.sql` schema |
 
 </div>
 
