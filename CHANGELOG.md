@@ -18,7 +18,7 @@
 
 <table>
   <tr>
-    <td align="center" width="200"><a href="#fr-unreleased"><b>🚧 Non publié</b></a><br /><sub>25/11/2026 · 2 lots</sub></td>
+    <td align="center" width="200"><a href="#fr-unreleased"><b>🚧 Non publié</b></a><br /><sub>26/11/2026 · 3 lots</sub></td>
     <td align="center" width="200"><a href="#fr-beta-1"><b>🧪 1.0.0-beta.1</b></a><br /><sub>11/11/2026 · première bêta</sub></td>
     <td align="center" width="200"><a href="README.md"><b>📖 README</b></a><br /><sub>Installation & guide</sub></td>
   </tr>
@@ -39,7 +39,7 @@
 
 | 🔴 `P1` corrigés | 🧪 Tests | 💥 Ruptures | 🆕 Réglages | 📦 Lots |
 | :---: | :---: | :---: | :---: | :---: |
-| **3** | **354** ✅ | **3** | **5** | **2** |
+| **3** | **354** ✅ | **3** | **5** | **3** |
 
 </div>
 
@@ -59,9 +59,32 @@
 | `guildMaxMembers` | Réglages système | `100` | Taille maximale d'une guilde. |
 | `instanceLockMinutes` | Réglages système | `5` | Délai avant de rouvrir une copie d'un même donjon. |
 
+<a id="fr-lot-3"></a>
+
+### 🐺 Lot 3 — Campagne de test « Red XIII » sur base vierge &nbsp;<sub>26/11/2026</sub>
+
+> Parcours complet sur une installation neuve, côté éditeur puis côté joueur : nouveau village, portails aller-retour, 2 monstres, 4 PNJ, quête en 3 étapes, redémarrage du serveur et bascule FR/EN. Aucun bug bloquant ; 3 anomalies mineures corrigées.
+
+#### 🗺️ Éditeur d'évènements
+
+- **Ordre d'insertion** — des commandes insérées l'une après l'autre gardent l'ordre choisi : la sélection reste sur la ligne suivante, comme après un collage. Une boutique ne passe plus avant le message d'accueil qui la précède.
+- **Aide de la commande Boutique** — la note de développement « la fenêtre de boutique arrive avec l'étape Boutiques » laisse place à une vraie aide ; clé `ev.later_shop` renommée `ev.shop_help`.
+
+<sub>📁 `client/editor/event-editor.ts` · `client/editor/command-specs.ts` · `locales/*.json`</sub>
+
+#### 🌐 Traductions
+
+- **Changement de langue en jeu** — une fenêtre fermée au moment du changement (sac, équipement…) reprend ses textes fixes dans la nouvelle langue à son ouverture : sa croix affiche « Close » et non plus « Fermer ».
+- **README** — nombre de clés de traduction mis à jour (`2 391`).
+
+<sub>📁 `client/ui/windows.ts` · `README.md`</sub>
+
 <a id="fr-lot-2"></a>
 
-### 🛠️ Lot 2 — Contre-expertise de l'audit 360° &nbsp;<sub>25/11/2026</sub>
+<details>
+<summary><b>🛠️ Lot 2 — Contre-expertise de l'audit 360°</b> &nbsp;<sub>25/11/2026 · 1 <code>P1</code> · cliquer pour déplier</sub></summary>
+
+<br />
 
 > Correction de l'unique `P1` restant et des `P2` validés par la contre-expertise.
 
@@ -131,6 +154,8 @@
 - Dernier `Tomas` ➔ `Thomas` corrigé dans les tests et `demo/data`.
 
 <sub>📁 `tsconfig.json` · `tests/avalanche-fixes.test.ts` · `tests/*.test.ts` · `demo/data/*.json`</sub>
+
+</details>
 
 <a id="fr-lot-1"></a>
 
@@ -257,7 +282,7 @@
 
 <table>
   <tr>
-    <td align="center" width="200"><a href="#en-unreleased"><b>🚧 Unreleased</b></a><br /><sub>2026-11-25 · 2 batches</sub></td>
+    <td align="center" width="200"><a href="#en-unreleased"><b>🚧 Unreleased</b></a><br /><sub>2026-11-26 · 3 batches</sub></td>
     <td align="center" width="200"><a href="#en-beta-1"><b>🧪 1.0.0-beta.1</b></a><br /><sub>2026-11-11 · first beta</sub></td>
     <td align="center" width="200"><a href="README.md#en-top"><b>📖 README</b></a><br /><sub>Setup & guide</sub></td>
   </tr>
@@ -278,7 +303,7 @@
 
 | 🔴 `P1` fixed | 🧪 Tests | 💥 Breaking | 🆕 Settings | 📦 Batches |
 | :---: | :---: | :---: | :---: | :---: |
-| **3** | **354** ✅ | **3** | **5** | **2** |
+| **3** | **354** ✅ | **3** | **5** | **3** |
 
 </div>
 
@@ -298,9 +323,32 @@
 | `guildMaxMembers` | System settings | `100` | Largest guild size. |
 | `instanceLockMinutes` | System settings | `5` | Wait before reopening a copy of the same dungeon. |
 
+<a id="en-batch-3"></a>
+
+### 🐺 Batch 3 — "Red XIII" test campaign on a blank database &nbsp;<sub>2026-11-26</sub>
+
+> Full run on a fresh install, first in the editor then as a player: new village, two-way portals, 2 monsters, 4 NPCs, a 3-step quest, a server restart and FR/EN switching. No blocking bug; 3 minor issues fixed.
+
+#### 🗺️ Event editor
+
+- **Insertion order** — commands inserted one after the other keep the order they were chosen in: the selection stays on the next row, as after a paste. A shop no longer ends up before the greeting that should open it.
+- **Shop command help** — the development note "the shop window comes with the Shops step" gives way to real help; key `ev.later_shop` renamed `ev.shop_help`.
+
+<sub>📁 `client/editor/event-editor.ts` · `client/editor/command-specs.ts` · `locales/*.json`</sub>
+
+#### 🌐 Translations
+
+- **Changing language in game** — a window closed at the time of the change (bag, equipment…) gets its fixed texts in the new language when it opens: its close button reads "Close" instead of "Fermer".
+- **README** — translation key count updated (`2,391`).
+
+<sub>📁 `client/ui/windows.ts` · `README.md`</sub>
+
 <a id="en-batch-2"></a>
 
-### 🛠️ Batch 2 — Second opinion on the 360° audit &nbsp;<sub>2026-11-25</sub>
+<details>
+<summary><b>🛠️ Batch 2 — Second opinion on the 360° audit</b> &nbsp;<sub>2026-11-25 · 1 <code>P1</code> · click to expand</sub></summary>
+
+<br />
 
 > Fixes the only remaining `P1` and the `P2` items confirmed by the second opinion.
 
@@ -370,6 +418,8 @@
 - Last `Tomas` ➔ `Thomas` fixed in tests and `demo/data`.
 
 <sub>📁 `tsconfig.json` · `tests/avalanche-fixes.test.ts` · `tests/*.test.ts` · `demo/data/*.json`</sub>
+
+</details>
 
 <a id="en-batch-1"></a>
 

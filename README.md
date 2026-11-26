@@ -82,7 +82,7 @@ Brindiwanko/
 ├── shared/       # Contrats partagés (protocole Socket.io typé, schémas, formules, i18n)
 ├── assets/       # Générateurs procéduraux SVG de pixel art et ressources compilées
 ├── views/        # Gabarits EJS des pages web (authentification, personnages, compte, admin)
-├── locales/      # Dictionnaires de traduction fr.json et en.json (2 364 clés)
+├── locales/      # Dictionnaires de traduction fr.json et en.json (2 391 clés)
 ├── scripts/      # Pipeline de build, serveur dev, load-test, export démo, vérifications CI
 └── tests/        # Suite de 354 tests automatisés (node --test)
 ```
@@ -632,7 +632,7 @@ Historique détaillé dans [CHANGELOG.md](CHANGELOG.md). Principaux apports depu
 - 🔒 **Sécurité & restauration à chaud :** vérification du mot de passe et du verrou `restoring` avant le buffering sur `POST /api/admin/restore`, `prepareRestore` asynchrone (Worker + `fs.promises.cp`), contrôle anti-chevauchement ZIP, durcissement SVG/sandbox/Socket.io (`Sec-Fetch-Site`) et libération des verrous d'édition au changement de mot de passe.
 - ⚡ **Performance, fiabilité & cycle de vie :** `11` index secondaires consolidés dans `001_init.sql`, cache `SettingsRepository`, requêtes unifiées sur l'annuaire des guildes, parsing JSON défensif, suppression atomique de compte par transaction SQLite, contrôle multi-onglets (`characterId`), nettoyage `AbortController`/`destroy()` côté client et validation `i18n:check` étendue.
 - 🗺️ **Combat & IA des régions :** confinement des monstres dans leur région en `idle` et fuite sur zone peinte, détection d'aggro à 1 case des bordures et retour maison au-delà de 2 cases hors zone *(boss à 1 case non bridés)*.
-- 🎮 **Ergonomie joueur & éditeur :** focus clavier rendu au clic carte, buffer d'action de `150 ms`, masquage des barres/chat pendant les dialogues actifs, bascule tactile dynamique sans `F5`, mémoire par onglet de la palette et boutons `+ Ajouter` ancrés.
+- 🎮 **Ergonomie joueur & éditeur :** focus clavier rendu au clic carte, buffer d'action de `150 ms`, masquage des barres/chat pendant les dialogues actifs, bascule tactile dynamique sans `F5`, mémoire par onglet de la palette, boutons `+ Ajouter` ancrés, commandes d'évènement insérées dans l'ordre choisi et fenêtres retraduites après un changement de langue en jeu.
 
 ---
 
@@ -731,7 +731,7 @@ Brindiwanko/
 ├── shared/       # Shared contracts (typed Socket.io protocol, schemas, formulas, i18n)
 ├── assets/       # Procedural SVG pixel-art generators and compiled asset targets
 ├── views/        # EJS templates for account, auth, character, and admin pages
-├── locales/      # Bilingual dictionaries en.json and fr.json (2,364 keys)
+├── locales/      # Bilingual dictionaries en.json and fr.json (2,391 keys)
 ├── scripts/      # Build pipeline, dev watcher, load tester, demo export, CI checks
 └── tests/        # Automated suite of 354 tests (node --test)
 ```
@@ -1283,7 +1283,7 @@ See [CHANGELOG.md](CHANGELOG.md) for complete release notes. Key updates since `
 - 🔒 **Security & non-blocking restore:** `POST /api/admin/restore` verifies admin password and `restoring` lock before body buffering; `prepareRestore` runs asynchronously via Worker + `fs.promises.cp`; hardening covers ZIP overlaps, SVG bounds/CSS escapes, script ID bounds, `Sec-Fetch-Site` handshakes, and edit-lock release on password resets.
 - ⚡ **Performance, reliability & lifecycle:** `11` secondary indexes consolidated into `001_init.sql`, transaction-safe `SettingsRepository` cache, unified guild directory SQL queries, defensive JSON parsing, transactional account deletion, multi-tab reconnect `characterId` checks, `AbortController`/`destroy()` cleanup, and extended `i18n:check` checks for placeholders and `.ejs` views.
 - 🗺️ **Monster region confinement:** monsters remain within their spawn region while idle and fleeing on multi-cell zones, spot players within 1 cell of painted region borders, and leash home beyond 2 cells outside *(single-tile boss markers stay unrestricted)*.
-- 🎮 **Player & editor ergonomics:** clicking the canvas restores keyboard focus, a `150 ms` input buffer captures step-end interactions, bottom bars/chat hide during active dialogues, `touch-mode` updates live without reloads, tile palettes keep per-tab selection/scroll, and database `+ Add` buttons stay anchored.
+- 🎮 **Player & editor ergonomics:** clicking the canvas restores keyboard focus, a `150 ms` input buffer captures step-end interactions, bottom bars/chat hide during active dialogues, `touch-mode` updates live without reloads, tile palettes keep per-tab selection/scroll, database `+ Add` buttons stay anchored, event commands are inserted in the order they are chosen, and windows follow an in-game language switch.
 
 ---
 
