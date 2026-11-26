@@ -291,6 +291,9 @@
 > [!IMPORTANT]
 > **Rupture de schéma (`001_init.sql`)** : le schéma repart d'une migration initiale unique, équivalente aux `22` migrations précédentes. Les bases et sauvegardes `0.x` ne sont **pas compatibles** : repartez d'une base neuve.
 
+> [!TIP]
+> **Rien n'est passé sous silence.** Chaque modification du projet, même minime (correctif d'une ligne, texte d'interface, mise à jour de dépendance, documentation), est consignée dans ce journal, avec les fichiers concernés.
+
 ---
 
 <div align="center">
@@ -597,6 +600,9 @@
 
 > [!IMPORTANT]
 > **Schema reset (`001_init.sql`)**: the schema starts from a single base migration matching the `22` earlier ones. Databases and backups from `0.x` are **not compatible**: start from a fresh database.
+
+> [!TIP]
+> **Nothing goes unrecorded.** Every change to the project, however small (a one-line fix, an interface string, a dependency update, documentation), is logged in this changelog, with the files it touches.
 
 ---
 
