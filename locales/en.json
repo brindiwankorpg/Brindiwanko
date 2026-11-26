@@ -1859,7 +1859,7 @@
     "equip_help": "The item must be in the player’s bag; the replaced item goes back to it.",
     "recover_help": "Restores all the player’s HP and MP.",
     "inn_help": "The player pays the price and recovers all HP and MP (refused without enough gold).",
-    "later_shop": "The shop window comes with the \"Shops\" step. Until then, the player sees a message.",
+    "shop_help": "Opens a shop where the player buys these articles and can sell items (unless \"Purchase only\" is ticked).",
     "battle_help": "The monster appears next to the player and attacks at once; it is gone for good once defeated. The player fights freely (the event goes on without waiting).",
     "no_se": "No sound imported: add files in the resource manager (se folder).",
     "script_help": "JavaScript expression evaluated on the server, in a sandbox (v(n), s(n), self('A'), gold(), level(), item(n)).",

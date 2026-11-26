@@ -1859,7 +1859,7 @@
     "equip_help": "L’objet doit être dans le sac du joueur ; l’objet remplacé y retourne.",
     "recover_help": "Rend tous ses PV et PM au joueur.",
     "inn_help": "Le joueur paie le prix et récupère tous ses PV et PM (refusé s’il n’a pas assez d’or).",
-    "later_shop": "La fenêtre de boutique arrive avec l’étape « Boutiques ». En attendant, le joueur voit un message.",
+    "shop_help": "Ouvre une boutique où le joueur achète ces articles et peut vendre ses objets (sauf avec « Achat seulement »).",
     "battle_help": "Le monstre apparaît à côté du joueur et l’attaque aussitôt ; il disparaît pour de bon une fois vaincu. Le joueur combat librement (l’événement continue sans attendre).",
     "no_se": "Aucun son importé : ajoutez des fichiers dans le gestionnaire de ressources (dossier se).",
     "script_help": "Expression JavaScript évaluée sur le serveur, dans un bac à sable (v(n), s(n), self('A'), gold(), level(), item(n)).",

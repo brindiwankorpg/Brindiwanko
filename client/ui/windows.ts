@@ -13,7 +13,7 @@
 import type { UiAudio } from '../engine/audio.js';
 import type { Input } from '../engine/input.js';
 import { t } from '../i18n.js';
-import { el, icon, localized } from './dom.js';
+import { el, icon, localized, retranslate } from './dom.js';
 import type { IconName } from '../../shared/icons.js';
 
 /** Clicks received this soon after a window opened are ignored (the end of the touch that opened it). */
@@ -239,6 +239,9 @@ export class WindowManager {
     this.stack.push(w);
     w.attach(this);
     w.markOpened();
+    // A closed window is out of the page, so a change of language made meanwhile did not reach its
+    // static labels (close button...): they are translated again as it comes back.
+    retranslate(w.element);
     this.layer.append(w.element);
     w.onOpen();
     anchorTop(w.element);

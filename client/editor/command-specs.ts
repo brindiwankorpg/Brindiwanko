@@ -1301,7 +1301,7 @@ export const COMMAND_SPECS: CommandSpec[] = [
       (goods.length ? goods : [[0, look.items[0]?.id ?? 1, 0, 0]]).forEach(addRow);
       const add = el('button', { className: 'button small', text: t('ev.add_good'), attrs: { type: 'button' }, on: { click: () => addRow([0, look.items[0]?.id ?? 1, 0, 0]) } });
       return {
-        element: el('div', {}, [rows, add, grid([field(t('ev.field.purchase_only'), purchaseOnly)]), el('p', { className: 'hint', text: t('ev.later_shop') })]),
+        element: el('div', {}, [rows, add, grid([field(t('ev.field.purchase_only'), purchaseOnly)]), el('p', { className: 'hint', text: t('ev.shop_help') })]),
         read: () => {
           const list = [...rows.children].map((r) => (r as HTMLElement & { read: () => unknown[] }).read());
           if (list.length === 0) throw Object.assign(new Error('goods'), { key: 'ev.error.no_goods' });

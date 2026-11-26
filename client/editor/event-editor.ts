@@ -162,13 +162,15 @@ export class CommandListEditor {
             on: {
               click: () => {
                 close();
+                // The selection stays on the row the command was inserted before (as after a paste), so
+                // commands inserted one after the other keep the order in which they were chosen.
                 if (!spec.form) {
-                  this.selected = insertBlock(this.list, at, [{ code: spec.code, indent: 0, parameters: [] }]);
+                  this.selected = insertBlock(this.list, at, [{ code: spec.code, indent: 0, parameters: [] }]) + 1;
                   this.changed();
                   return;
                 }
                 this.openForm(spec.code, null, (block) => {
-                  this.selected = insertBlock(this.list, at, block);
+                  this.selected = insertBlock(this.list, at, block) + block.length;
                   this.changed();
                 });
               },
