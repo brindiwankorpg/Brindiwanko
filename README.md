@@ -35,6 +35,12 @@
 
 ---
 
+> [!TIP]
+> 🎉 **La bêta 2 est disponible !** &nbsp;`1.0.0-beta.2` · 27/11/2026
+> Sécurité durcie, serveur plus robuste, fin de la duplication d'objets à la déconnexion, questions sans réponse annulées au lieu d'être validées, rangs de guilde traduits et guides d'installation complets, le tout vérifié par **359 tests**.
+> ⚠️ Venant de la bêta 1 ? Le schéma de la base a changé : repartez d'une base neuve.
+> 👉 [Télécharger la bêta 2](https://github.com/brindiwankorpg/Brindiwanko/releases/tag/v1.0.0-beta.2) · [Les nouveautés](#fr-changelog) · [Le journal complet](CHANGELOG.md#fr-beta-2)
+
 > 🎮 **Un monde persistant directement dans le navigateur :** dessinez vos cartes, écrivez vos quêtes, placez vos monstres… et vos joueurs voient chaque mise à jour **en direct**, sans recharger la page.
 
 **Brindiwanko** réunit dans **un seul processus Node.js** et **une seule base SQLite** tout le nécessaire pour lancer et administrer un monde en ligne complet : cartes en tuiles, cinématiques, quêtes à étapes, combats temps réel, groupes, guildes, donjons instanciés et raids — sans serveur de base de données externe à configurer.
@@ -625,14 +631,18 @@ pm2 restart Brindiwanko
 
 <a id="fr-changelog"></a>
 
-## 📜 Journal des modifications (Derniers correctifs)
+## 📜 Nouveautés de la bêta 2
 
-Historique détaillé dans [CHANGELOG.md](CHANGELOG.md). Principaux apports depuis `1.0.0-beta.1` :
+La bêta **`1.0.0-beta.2`** est disponible depuis le 27/11/2026 ([page de la version](https://github.com/brindiwankorpg/Brindiwanko/releases/tag/v1.0.0-beta.2)). Historique détaillé dans [CHANGELOG.md](CHANGELOG.md#fr-beta-2). Principaux apports depuis `1.0.0-beta.1` :
 
 - 🔒 **Sécurité & restauration à chaud :** vérification du mot de passe et du verrou `restoring` avant le buffering sur `POST /api/admin/restore`, `prepareRestore` asynchrone (Worker + `fs.promises.cp`), contrôle anti-chevauchement ZIP, durcissement SVG/sandbox/Socket.io (`Sec-Fetch-Site`) et libération des verrous d'édition au changement de mot de passe.
 - ⚡ **Performance, fiabilité & cycle de vie :** `11` index secondaires consolidés dans `001_init.sql`, cache `SettingsRepository`, requêtes unifiées sur l'annuaire des guildes, parsing JSON défensif, suppression atomique de compte par transaction SQLite, contrôle multi-onglets (`characterId`), nettoyage `AbortController`/`destroy()` côté client et validation `i18n:check` étendue.
 - 🗺️ **Combat & IA des régions :** confinement des monstres dans leur région en `idle` et fuite sur zone peinte, détection d'aggro à 1 case des bordures et retour maison au-delà de 2 cases hors zone *(boss à 1 case non bridés)*.
 - 🎮 **Ergonomie joueur & éditeur :** focus clavier rendu au clic carte, buffer d'action de `150 ms`, masquage des barres/chat pendant les dialogues actifs, bascule tactile dynamique sans `F5`, mémoire par onglet de la palette, boutons `+ Ajouter` ancrés, commandes d'évènement insérées dans l'ordre choisi et fenêtres retraduites après un changement de langue en jeu.
+- 🧩 **Évènements & guildes :** un joueur qui se déconnecte, ou ouvre un autre onglet, en plein évènement n'en garde plus la moitié (fin de la duplication d'objets sur les coffres), une question laissée sans réponse est annulée au lieu d'être validée sur son premier choix, et les rangs de guilde par défaut suivent la langue du serveur.
+
+> [!IMPORTANT]
+> **Mise à jour depuis la bêta 1 :** le protocole de jeu passe en `v4` (les pages ouvertes se rechargent seules) et le schéma `001_init.sql` a changé : une base créée avec la bêta 1 est à recréer, et ses sauvegardes ne se restaurent plus.
 
 ---
 
@@ -683,6 +693,12 @@ Historique détaillé dans [CHANGELOG.md](CHANGELOG.md). Principaux apports depu
 </div>
 
 ---
+
+> [!TIP]
+> 🎉 **Beta 2 is out!** &nbsp;`1.0.0-beta.2` · 2026-11-27
+> Hardened security, a sturdier server, no more item duplication on disconnection, unanswered questions cancelled instead of accepted, translated guild ranks and complete install guides, all checked by **359 tests**.
+> ⚠️ Coming from beta 1? The database schema changed: start from a fresh database.
+> 👉 [Download beta 2](https://github.com/brindiwankorpg/Brindiwanko/releases/tag/v1.0.0-beta.2) · [What's new](#en-changelog) · [Full changelog](CHANGELOG.md#en-beta-2)
 
 > 🎮 **A living world in your browser:** design your maps, script your quests, place monsters… and players see changes go **live**, with zero page reloads.
 
@@ -1276,14 +1292,18 @@ pm2 restart Brindiwanko
 
 <a id="en-changelog"></a>
 
-## 📜 Changelog (Latest Fixes)
+## 📜 What's New in Beta 2
 
-See [CHANGELOG.md](CHANGELOG.md) for complete release notes. Key updates since `1.0.0-beta.1`:
+Beta **`1.0.0-beta.2`** is out since 2026-11-27 ([release page](https://github.com/brindiwankorpg/Brindiwanko/releases/tag/v1.0.0-beta.2)). See [CHANGELOG.md](CHANGELOG.md#en-beta-2) for complete release notes. Key updates since `1.0.0-beta.1`:
 
 - 🔒 **Security & non-blocking restore:** `POST /api/admin/restore` verifies admin password and `restoring` lock before body buffering; `prepareRestore` runs asynchronously via Worker + `fs.promises.cp`; hardening covers ZIP overlaps, SVG bounds/CSS escapes, script ID bounds, `Sec-Fetch-Site` handshakes, and edit-lock release on password resets.
 - ⚡ **Performance, reliability & lifecycle:** `11` secondary indexes consolidated into `001_init.sql`, transaction-safe `SettingsRepository` cache, unified guild directory SQL queries, defensive JSON parsing, transactional account deletion, multi-tab reconnect `characterId` checks, `AbortController`/`destroy()` cleanup, and extended `i18n:check` checks for placeholders and `.ejs` views.
 - 🗺️ **Monster region confinement:** monsters remain within their spawn region while idle and fleeing on multi-cell zones, spot players within 1 cell of painted region borders, and leash home beyond 2 cells outside *(single-tile boss markers stay unrestricted)*.
 - 🎮 **Player & editor ergonomics:** clicking the canvas restores keyboard focus, a `150 ms` input buffer captures step-end interactions, bottom bars/chat hide during active dialogues, `touch-mode` updates live without reloads, tile palettes keep per-tab selection/scroll, database `+ Add` buttons stay anchored, event commands are inserted in the order they are chosen, and windows follow an in-game language switch.
+- 🧩 **Events & guilds:** a player who disconnects, or opens another tab, in the middle of an event no longer keeps half of it (no more item duplication on chests), an unanswered question is cancelled instead of being accepted with its first choice, and default guild ranks follow the server's language.
+
+> [!IMPORTANT]
+> **Upgrading from beta 1:** the game protocol moves to `v4` (open pages reload by themselves) and the `001_init.sql` schema changed: a database created with beta 1 must be recreated, and its backups can no longer be restored.
 
 ---
 
