@@ -386,6 +386,43 @@ test('a player leaving during a message: the event is finished without it, so th
   assert.equal(trip.selfSwitches.has('C'), false, 'nothing after the transfer');
 });
 
+test('a question left unanswered for too long is cancelled, never answered with its first choice', async () => {
+  /** A player still there who never answers: every message comes back without an answer. */
+  const silent = () => {
+    const host = fakeHost();
+    const gold: number[] = [];
+    host.showMessage = async (m) => (host.shown.push(m), null);
+    host.changeGold = (delta) => void gold.push(delta);
+    return { host, gold };
+  };
+  const question = (cancelType: number) => [
+    ...say('A potion for 50 gold?'),
+    c(Cmd.ShowChoices, [['Yes', 'No'], cancelType, 0, 2, 0]),
+    c(Cmd.When, [0, 'Yes']), c(Cmd.ChangeGold, [1, 0, 50], 1), c(Cmd.End, [], 1),
+    c(Cmd.When, [1, 'No']), c(Cmd.ControlSwitches, [6, 6, 0], 1), c(Cmd.End, [], 1),
+    ...(cancelType === -2 ? [c(Cmd.WhenCancel, [6, null]), c(Cmd.ControlSwitches, [5, 5, 0], 1), c(Cmd.End, [], 1)] : []),
+    c(Cmd.ChoicesEnd), c(Cmd.ControlSwitches, [9, 9, 0]), c(Cmd.End),
+  ];
+  const cancelled = silent();
+  await runCommands(question(-2), cancelled.host);
+  assert.deepEqual(cancelled.gold, [], 'nothing bought');
+  assert.deepEqual([...cancelled.host.switches].sort(), [5, 9], 'the cancel branch, then the rest of the event');
+  const asNo = silent();
+  await runCommands(question(1), asNo.host);
+  assert.deepEqual([asNo.gold, [...asNo.host.switches].sort()], [[], [6, 9]], 'a cancel that means "No" is "No"');
+  const stuck = silent();
+  await runCommands(question(-1), stuck.host);
+  assert.deepEqual([stuck.gold, [...stuck.host.switches]], [[], []], 'a question that cannot be cancelled ends the event');
+
+  // A number nobody typed is not stored; a plain message left waiting lets the event go on.
+  const number = silent();
+  await runCommands([c(Cmd.InputNumber, [4, 2]), c(Cmd.ControlSwitches, [9, 9, 0]), c(Cmd.End)], number.host);
+  assert.deepEqual([number.host.variables.has(4), number.host.switches.has(9)], [false, false]);
+  const message = silent();
+  await runCommands([...say('Hello.'), c(Cmd.ControlSwitches, [9, 9, 0]), c(Cmd.End)], message.host);
+  assert.ok(message.host.switches.has(9));
+});
+
 // --- Criterion over sockets ----------------------------------------------------
 
 let server: TestServer;
@@ -779,4 +816,21 @@ test('a player who disconnects, or opens another tab, while reading what a chest
   await until(() => back.messages.some((m) => m.text === 'It is empty.'));
   assert.equal(potions(kaiId), kaiBefore + 1, 'the new tab finds the chest open');
   back.socket.close();
+});
+
+
+test('the server stops waiting for an answer after a while, or at the disconnection, and says nobody answered', async () => {
+  const lena = await newPlayer('Lena');
+  const p = lena.session;
+  const runner = server.ctx.world.runner;
+  const question: MessagePayload = { faceName: '', faceIndex: 0, background: 0, position: 2, speaker: '', text: 'Buy?', choices: ['Yes', 'No'], choiceDefault: 0, choiceCancel: -2 };
+  lena.answers.push(1);
+  assert.equal(await runner.ask(p, question, 2000), 1, 'an answer given in time');
+  lena.socket.off('showMessage');
+  lena.socket.on('showMessage', () => undefined);
+  assert.equal(await runner.ask(p, question, 50), null, 'no answer in time: nobody answered (not choice 0)');
+  const pending = runner.ask(p, question, 60_000);
+  lena.socket.close();
+  assert.equal(await pending, null, 'disconnected');
+  assert.equal(await runner.ask(p, question, 50), null, 'a player who left is not asked');
 });

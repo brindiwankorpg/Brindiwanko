@@ -8,7 +8,7 @@
 
 #### Toutes les évolutions de Brindiwanko, version après version
 
-[![Version](https://img.shields.io/badge/version-1.0.0--beta.1-2563eb?style=for-the-badge)](package.json)
+[![Version](https://img.shields.io/badge/version-1.0.0--beta.2-2563eb?style=for-the-badge)](package.json)
 [![Tests](https://img.shields.io/badge/tests-354%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
 [![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/fr/1.1.0/)
 [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/lang/fr/)
@@ -318,7 +318,7 @@
 
 #### Every change to Brindiwanko, release after release
 
-[![Version](https://img.shields.io/badge/version-1.0.0--beta.1-2563eb?style=for-the-badge)](package.json)
+[![Version](https://img.shields.io/badge/version-1.0.0--beta.2-2563eb?style=for-the-badge)](package.json)
 [![Tests](https://img.shields.io/badge/tests-354%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
 [![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/en/1.1.0/)
 [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/)

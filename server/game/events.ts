@@ -624,23 +624,26 @@ export class EventRunner {
   }
 
   /**
-   * Sends a message to the player and waits for the answer (or the disconnection, or 30 minutes).
-   * The timer is cleared as soon as one of them comes: a timer of the socket library would stay
-   * for its 30 minutes after a disconnection, holding the closed socket (and a test run) with it.
+   * Sends a message to the player and waits for the answer, or `null` when none comes: the player
+   * disconnects, or leaves the message waiting for 30 minutes (a question is then cancelled, never
+   * answered with its first choice). The timer is cleared as soon as one of them comes: a timer of
+   * the socket library would stay for its 30 minutes after a disconnection, holding the closed
+   * socket (and a test run) with it.
+   * @param timeoutMs - How long the answer is waited for (tests shorten it).
    */
-  private ask(p: PlayerSession, message: MessagePayload): Promise<number> {
-    if (!this.world.isLive(p)) return Promise.resolve(0);
-    return new Promise<number>((resolve) => {
+  ask(p: PlayerSession, message: MessagePayload, timeoutMs = MESSAGE_TIMEOUT_MS): Promise<number | null> {
+    if (!this.world.isLive(p)) return Promise.resolve(null);
+    return new Promise<number | null>((resolve) => {
       let settled = false;
-      const settle = (answer: number) => {
+      const settle = (answer: number | null) => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
         p.socket.off('disconnect', onDisconnect);
         resolve(answer);
       };
-      const onDisconnect = () => settle(0);
-      const timer = setTimeout(() => settle(0), MESSAGE_TIMEOUT_MS);
+      const onDisconnect = () => settle(null);
+      const timer = setTimeout(() => settle(null), timeoutMs);
       p.socket.once('disconnect', onDisconnect);
       p.socket.emit('showMessage', message, (a: unknown) => settle(Number.isInteger(a) ? Number(a) : 0));
     });

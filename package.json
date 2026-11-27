@@ -1,6 +1,6 @@
 {
   "name": "brindiwanko",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "brindiwanko - a browser-based 2D MMORPG engine with a built-in live world editor.",
   "private": true,
   "type": "module",

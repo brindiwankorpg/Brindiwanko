@@ -54,9 +54,11 @@ export interface InterpreterHost {
   /**
    * Shows a message (possibly with choices or a number input) and resolves
    * with the player's answer: the choice index (-2 = cancelled), the number
-   * entered, or 0 for a plain message.
+   * entered, or 0 for a plain message; `null` when no answer came (the player
+   * left, or let the message wait too long): a question is then never answered
+   * for the player (see `showChoices`).
    */
-  showMessage(message: MessagePayload): Promise<number>;
+  showMessage(message: MessagePayload): Promise<number | null>;
   /** Player's name, for `\P` in texts. */
   playerName(): string;
   /** Currency name, for `\G` in texts. */
@@ -723,10 +725,11 @@ class Interpreter {
       choiceCancel: cancelType === -1 ? -1 : cancelType === -2 ? -2 : Math.min(cancelType, choices.length - 1),
     };
     const answer = await this.host.showMessage(payload);
-    if (!this.host.isActive()) {
-      // Nobody answered: the player left (the 0 received is not a choice). Finished without the
-      // player, the choice is cancelled; otherwise, or when it cannot be cancelled, the run stops.
-      if (cancelType === -1 || !this.withoutPlayer()) return this.stop();
+    if (answer === null || !this.host.isActive()) {
+      // Nobody answered: the player left, or let the question wait too long. No choice is taken
+      // for it: the question is cancelled, or the run stops when it cannot be cancelled (or when
+      // the player left and the run is not finished without it).
+      if (cancelType === -1 || !this.goesOn()) return this.stop();
       this.branch[c.indent] = cancelType === -2 ? -2 : (payload.choiceCancel ?? 0);
       this.index++;
       return;
@@ -747,8 +750,8 @@ class Interpreter {
       numberDigits: digits,
     };
     const answer = await this.host.showMessage(payload);
-    // Nobody answered (the player left): no number is stored, and the run stops.
-    if (!this.host.isActive()) return this.stop();
+    // Nobody answered (the player left, or let it wait too long): no number is stored, and the run stops.
+    if (answer === null || !this.host.isActive()) return this.stop();
     const max = 10 ** digits - 1;
     this.host.setVariable(int(c.parameters[0]), Math.min(max, Math.max(0, int(answer))));
     this.index++;
