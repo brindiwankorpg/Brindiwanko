@@ -9,7 +9,7 @@
 #### Toutes les évolutions de Brindiwanko, version après version
 
 [![Version](https://img.shields.io/badge/version-1.0.0--beta.2-2563eb?style=for-the-badge)](package.json)
-[![Tests](https://img.shields.io/badge/tests-354%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/tests-359%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
 [![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/fr/1.1.0/)
 [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/lang/fr/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
@@ -18,7 +18,7 @@
 
 <table>
   <tr>
-    <td align="center" width="200"><a href="#fr-unreleased"><b>🚧 Non publié</b></a><br /><sub>26/11/2026 · 3 lots</sub></td>
+    <td align="center" width="200"><a href="#fr-beta-2"><b>🧪 1.0.0-beta.2</b></a><br /><sub>27/11/2026 · deuxième bêta</sub></td>
     <td align="center" width="200"><a href="#fr-beta-1"><b>🧪 1.0.0-beta.1</b></a><br /><sub>11/11/2026 · première bêta</sub></td>
     <td align="center" width="200"><a href="README.md"><b>📖 README</b></a><br /><sub>Installation & guide</sub></td>
   </tr>
@@ -37,33 +37,37 @@
 
 | Statut | Étape | Date | Thème | En bref |
 | :---: | :--- | :---: | :--- | :--- |
-| 🚧 | [**🐺 Lot 3**](#fr-lot-3) | 26/11/2026 | Campagne de test « Red XIII » | 3 anomalies corrigées · 6 dépendances à jour |
-| 🚧 | [**🛠️ Lot 2**](#fr-lot-2) | 25/11/2026 | Contre-expertise de l'audit 360° | 🔴 1 `P1` · 12 tests de régression |
-| 🚧 | [**🧱 Lot 1**](#fr-lot-1) | 20/11/2026 | Stabilisation AppSec, performance & UX | 🔴 2 `P1` · 🟠 22 `P2` |
+| ✅ | [**🧪 1.0.0-beta.2**](#fr-beta-2) | 27/11/2026 | Deuxième bêta | 4 lots · 🔴 4 `P1` · 💥 3 ruptures |
+| ✅ | [**↳ 🩹 Lot 4**](#fr-lot-4) | 27/11/2026 | Corrections après l'analyse complète du dépôt | 🔴 1 `P1` · 🟠 3 `P2` · 5 tests de régression |
+| ✅ | [**↳ 🔍 Lot 3**](#fr-lot-3) | 26/11/2026 | Campagne de test sur base vierge | 3 anomalies corrigées · 6 dépendances à jour |
+| ✅ | [**↳ 🛠️ Lot 2**](#fr-lot-2) | 25/11/2026 | Contre-expertise de l'audit 360° | 🔴 1 `P1` · 12 tests de régression |
+| ✅ | [**↳ 🧱 Lot 1**](#fr-lot-1) | 20/11/2026 | Stabilisation AppSec, performance & UX | 🔴 2 `P1` · 🟠 22 `P2` |
 | ✅ | [**🧪 1.0.0-beta.1**](#fr-beta-1) | 11/11/2026 | Première bêta | 12 domaines · 💥 nouveau schéma |
 
-<sub>🚧 non publié &nbsp;·&nbsp; ✅ publié</sub>
+<sub>🚧 non publié &nbsp;·&nbsp; ✅ publié &nbsp;·&nbsp; ↳ lot de la version au-dessus</sub>
 
 </div>
 
 ---
 
-<a id="fr-unreleased"></a>
+<a id="fr-beta-2"></a>
 
-## 🚧 Non publié
+## 🧪 1.0.0-beta.2 &nbsp;<sub>27/11/2026</sub>
 
 <div align="center">
 
 | 🔴 `P1` corrigés | 🧪 Tests | 💥 Ruptures | 🆕 Réglages | 📦 Lots |
 | :---: | :---: | :---: | :---: | :---: |
-| **3** | **354** ✅ | **3** | **5** | **3** |
+| **4** | **359** ✅ | **3** | **5** | **4** |
 
 </div>
+
+> Deuxième bêta de **Brindiwanko 1.0** : sécurité durcie, serveur plus robuste, évènements et guildes corrigés, guides d'installation complets. Elle regroupe les 4 lots ci-dessous.
 
 > [!WARNING]
 > **À lire avant de mettre à jour**
 > - 🔌 **Protocole Socket.io `v4`** : les pages de jeu ouvertes se rechargent d'elles-mêmes.
-> - 🗄️ **Schéma `001_init.sql` modifié** : une base créée avant ce lot est à recréer, et ses sauvegardes ne se restaurent plus.
+> - 🗄️ **Schéma `001_init.sql` modifié** : une base créée avec la bêta 1 est à recréer, et ses sauvegardes ne se restaurent plus. Jusqu'à la 1.0 finale, le schéma reste dans ce fichier unique : une nouvelle bêta peut demander une base neuve.
 > - 🔑 **Réinitialisation de mot de passe depuis le panneau admin** : l'administrateur qui la lance doit saisir son propre mot de passe.
 
 ### 🆕 Nouveaux réglages
@@ -76,9 +80,58 @@
 | `guildMaxMembers` | Réglages système | `100` | Taille maximale d'une guilde. |
 | `instanceLockMinutes` | Réglages système | `5` | Délai avant de rouvrir une copie d'un même donjon. |
 
+<a id="fr-lot-4"></a>
+
+### 🩹 Lot 4 — Corrections après l'analyse complète du dépôt &nbsp;<sub>27/11/2026</sub>
+
+<div align="center">
+
+| 🎯 Nature | 🐞 Anomalies corrigées | 🧪 Nouveaux tests | 🧪 Tests |
+| :---: | :---: | :---: | :---: |
+| Lecture des 386 fichiers | 🔴 **1** `P1` · 🟠 **3** `P2` | **5** | **359** ✅ |
+
+</div>
+
+> Lecture de chacun des 386 fichiers du dépôt, puis correction des points relevés. Aucune faille de sécurité urgente trouvée.
+
+#### 🧩 Évènements
+
+- **Plus de duplication d'objets à la déconnexion (`P1`)** — un joueur qui se déconnecte, ou ouvre un autre onglet, en plein évènement n'en garde plus la moitié. La suite est jouée sans lui : messages considérés comme lus, question annulée, effets d'écran et sons sautés. Elle s'arrête à la première commande qui demande sa présence (téléportation, boutique, combat, PV, expérience, quêtes…). Un coffre écrit « donner l'objet → message → interrupteur local » ne se rouvre donc plus, et le nouvel onglet reprend la progression en cours.
+- **Question sans réponse (`P2`)** — après 30 minutes sans réponse, ou à la déconnexion, une question est annulée (ou l'évènement s'arrête si elle ne peut pas l'être) : elle n'est plus validée sur son premier choix. Une saisie de nombre sans réponse n'est plus enregistrée comme `0`.
+- **Attente des réponses (`P2`)** — le minuteur de 30 minutes est effacé dès la réponse ou la déconnexion : il ne retient plus la connexion fermée en mémoire.
+
+<sub>📁 `server/events/interpreter.ts` · `server/game/events.ts` · `server/game/world.ts`</sub>
+
+#### 🛡️ Guildes
+
+- **Rangs par défaut traduits (`P2`)** — une nouvelle guilde reçoit ses rangs dans la langue du contenu du serveur (*Leader, Officer, Member, Recruit* en anglais) au lieu de rangs toujours en français. Les guildes existantes gardent les leurs.
+
+<sub>📁 `shared/guild.ts` · `server/db/guilds.ts` · `server/game/guild.ts`</sub>
+
+#### 📚 Documentation, démo & version
+
+- **Commandes staff** — le README indique que `/ban` et `/unban` sont ouverts aux modérateurs (7 jours au plus, jamais définitif) ; nombre de tests mis à jour (`359`).
+- **Migrations** — règle écrite en tête de `001_init.sql` et de `migrate.ts` : un seul fichier de migration, modifié sur place, jusqu'à la 1.0 finale.
+- **Démo** — `demo/data/Map001.json` régénéré (3 tuiles avaient changé de place depuis).
+- **Tests** — le fichier de tests de la contre-expertise est renommé `tests/second-opinion-fixes.test.ts`.
+- **Version** — `1.0.0-beta.2`.
+
+<sub>📁 `README.md` · `server/db/migrate.ts` · `server/db/migrations/001_init.sql` · `demo/data/Map001.json` · `package.json` · `package-lock.json`</sub>
+
+#### 🧪 Tests
+
+- `5` tests de régression : rangs de guilde selon la langue, joueur qui part pendant un message (interpréteur et vrai serveur), question restée sans réponse (interpréteur et vrai serveur). Suite portée à **359** tests.
+
+<sub>📁 `tests/events.test.ts` · `tests/guild.test.ts` · `tests/audit.test.ts` · `tests/ux-additions.test.ts`</sub>
+
+#### 🗂️ Lots précédents &nbsp;<sub>cliquer sur un lot pour le déplier</sub>
+
 <a id="fr-lot-3"></a>
 
-### 🐺 Lot 3 — Campagne de test « Red XIII » sur base vierge &nbsp;<sub>26/11/2026</sub>
+<details>
+<summary><b>🔍 Lot 3 — Campagne de test sur base vierge</b> &nbsp;<sub>26/11/2026 · 3 anomalies mineures · cliquer pour déplier</sub></summary>
+
+<br />
 
 <div align="center">
 
@@ -112,7 +165,7 @@
 
 <sub>📁 `package.json` · `package-lock.json`</sub>
 
-#### 🗂️ Lots précédents &nbsp;<sub>cliquer sur un lot pour le déplier</sub>
+</details>
 
 <a id="fr-lot-2"></a>
 
@@ -188,7 +241,7 @@
 - `12` tests de régression dédiés, suite portée à **354** tests.
 - Dernier `Tomas` ➔ `Thomas` corrigé dans les tests et `demo/data`.
 
-<sub>📁 `tsconfig.json` · `tests/avalanche-fixes.test.ts` · `tests/*.test.ts` · `demo/data/*.json`</sub>
+<sub>📁 `tsconfig.json` · `tests/second-opinion-fixes.test.ts` · `tests/*.test.ts` · `demo/data/*.json`</sub>
 
 </details>
 
@@ -319,7 +372,7 @@
 #### Every change to Brindiwanko, release after release
 
 [![Version](https://img.shields.io/badge/version-1.0.0--beta.2-2563eb?style=for-the-badge)](package.json)
-[![Tests](https://img.shields.io/badge/tests-354%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/tests-359%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
 [![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/en/1.1.0/)
 [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
@@ -328,7 +381,7 @@
 
 <table>
   <tr>
-    <td align="center" width="200"><a href="#en-unreleased"><b>🚧 Unreleased</b></a><br /><sub>2026-11-26 · 3 batches</sub></td>
+    <td align="center" width="200"><a href="#en-beta-2"><b>🧪 1.0.0-beta.2</b></a><br /><sub>2026-11-27 · second beta</sub></td>
     <td align="center" width="200"><a href="#en-beta-1"><b>🧪 1.0.0-beta.1</b></a><br /><sub>2026-11-11 · first beta</sub></td>
     <td align="center" width="200"><a href="README.md#en-top"><b>📖 README</b></a><br /><sub>Setup & guide</sub></td>
   </tr>
@@ -347,33 +400,37 @@
 
 | Status | Step | Date | Theme | Highlights |
 | :---: | :--- | :---: | :--- | :--- |
-| 🚧 | [**🐺 Batch 3**](#en-batch-3) | 2026-11-26 | "Red XIII" test campaign | 3 issues fixed · 6 dependencies updated |
-| 🚧 | [**🛠️ Batch 2**](#en-batch-2) | 2026-11-25 | Second opinion on the 360° audit | 🔴 1 `P1` · 12 regression tests |
-| 🚧 | [**🧱 Batch 1**](#en-batch-1) | 2026-11-20 | AppSec, performance & UX stabilization | 🔴 2 `P1` · 🟠 22 `P2` |
+| ✅ | [**🧪 1.0.0-beta.2**](#en-beta-2) | 2026-11-27 | Second beta | 4 batches · 🔴 4 `P1` · 💥 3 breaking changes |
+| ✅ | [**↳ 🩹 Batch 4**](#en-batch-4) | 2026-11-27 | Fixes after a full read of the repository | 🔴 1 `P1` · 🟠 3 `P2` · 5 regression tests |
+| ✅ | [**↳ 🔍 Batch 3**](#en-batch-3) | 2026-11-26 | Test campaign on a blank database | 3 issues fixed · 6 dependencies updated |
+| ✅ | [**↳ 🛠️ Batch 2**](#en-batch-2) | 2026-11-25 | Second opinion on the 360° audit | 🔴 1 `P1` · 12 regression tests |
+| ✅ | [**↳ 🧱 Batch 1**](#en-batch-1) | 2026-11-20 | AppSec, performance & UX stabilization | 🔴 2 `P1` · 🟠 22 `P2` |
 | ✅ | [**🧪 1.0.0-beta.1**](#en-beta-1) | 2026-11-11 | First beta | 12 areas · 💥 new schema |
 
-<sub>🚧 unreleased &nbsp;·&nbsp; ✅ released</sub>
+<sub>🚧 unreleased &nbsp;·&nbsp; ✅ released &nbsp;·&nbsp; ↳ batch of the release above</sub>
 
 </div>
 
 ---
 
-<a id="en-unreleased"></a>
+<a id="en-beta-2"></a>
 
-## 🚧 Unreleased
+## 🧪 1.0.0-beta.2 &nbsp;<sub>2026-11-27</sub>
 
 <div align="center">
 
 | 🔴 `P1` fixed | 🧪 Tests | 💥 Breaking | 🆕 Settings | 📦 Batches |
 | :---: | :---: | :---: | :---: | :---: |
-| **3** | **354** ✅ | **3** | **5** | **3** |
+| **4** | **359** ✅ | **3** | **5** | **4** |
 
 </div>
+
+> Second beta of **Brindiwanko 1.0**: hardened security, a sturdier server, fixed events and guilds, and complete install guides. It gathers the 4 batches below.
 
 > [!WARNING]
 > **Read before updating**
 > - 🔌 **Socket.io protocol `v4`**: open game pages reload by themselves.
-> - 🗄️ **`001_init.sql` schema changed**: a database created before this batch must be recreated, and its backups can no longer be restored.
+> - 🗄️ **`001_init.sql` schema changed**: a database created with beta 1 must be recreated, and its backups can no longer be restored. Until the final 1.0, the schema stays in this single file, so a new beta may require a fresh database.
 > - 🔑 **Password resets from the admin panel**: the administrator starting one must type their own password.
 
 ### 🆕 New settings
@@ -386,9 +443,58 @@
 | `guildMaxMembers` | System settings | `100` | Largest guild size. |
 | `instanceLockMinutes` | System settings | `5` | Wait before reopening a copy of the same dungeon. |
 
+<a id="en-batch-4"></a>
+
+### 🩹 Batch 4 — Fixes after a full read of the repository &nbsp;<sub>2026-11-27</sub>
+
+<div align="center">
+
+| 🎯 Kind | 🐞 Issues fixed | 🧪 New tests | 🧪 Tests |
+| :---: | :---: | :---: | :---: |
+| All 386 files read | 🔴 **1** `P1` · 🟠 **3** `P2` | **5** | **359** ✅ |
+
+</div>
+
+> Every one of the 386 files of the repository was read, then the issues found were fixed. No urgent security flaw was found.
+
+#### 🧩 Events
+
+- **No more item duplication on disconnection (`P1`)** — a player who disconnects, or opens another tab, in the middle of an event no longer keeps half of it. The rest is played without them: messages count as read, a question is cancelled, screen effects and sounds are skipped. It stops at the first command that needs the player there (transfer, shop, battle, HP, experience, quests…). A chest written as "give the item → message → self switch" can therefore no longer be opened twice, and the new tab goes on from the current progress.
+- **Unanswered questions (`P2`)** — after 30 minutes without an answer, or on disconnection, a question is cancelled (or the event stops if it cannot be): it is no longer answered with its first choice. An unanswered number input is no longer stored as `0`.
+- **Waiting for answers (`P2`)** — the 30-minute timer is cleared as soon as the answer or the disconnection comes: it no longer keeps the closed connection in memory.
+
+<sub>📁 `server/events/interpreter.ts` · `server/game/events.ts` · `server/game/world.ts`</sub>
+
+#### 🛡️ Guilds
+
+- **Translated default ranks (`P2`)** — a new guild gets its ranks in the language of the server content (*Chef, Officier, Membre, Recrue* in French) instead of always French ones. Existing guilds keep theirs.
+
+<sub>📁 `shared/guild.ts` · `server/db/guilds.ts` · `server/game/guild.ts`</sub>
+
+#### 📚 Documentation, demo & version
+
+- **Staff commands** — the README now says `/ban` and `/unban` are open to moderators (7 days at most, never permanent); test count updated (`359`).
+- **Migrations** — rule written at the top of `001_init.sql` and `migrate.ts`: a single migration file, edited in place, until the final 1.0.
+- **Demo** — `demo/data/Map001.json` regenerated (3 tiles had moved since).
+- **Tests** — the test file of the second opinion is renamed `tests/second-opinion-fixes.test.ts`.
+- **Version** — `1.0.0-beta.2`.
+
+<sub>📁 `README.md` · `server/db/migrate.ts` · `server/db/migrations/001_init.sql` · `demo/data/Map001.json` · `package.json` · `package-lock.json`</sub>
+
+#### 🧪 Tests
+
+- `5` regression tests: guild ranks by language, a player leaving during a message (interpreter and real server), an unanswered question (interpreter and real server). Suite raised to **359** tests.
+
+<sub>📁 `tests/events.test.ts` · `tests/guild.test.ts` · `tests/audit.test.ts` · `tests/ux-additions.test.ts`</sub>
+
+#### 🗂️ Previous batches &nbsp;<sub>click a batch to expand it</sub>
+
 <a id="en-batch-3"></a>
 
-### 🐺 Batch 3 — "Red XIII" test campaign on a blank database &nbsp;<sub>2026-11-26</sub>
+<details>
+<summary><b>🔍 Batch 3 — Test campaign on a blank database</b> &nbsp;<sub>2026-11-26 · 3 minor issues · click to expand</sub></summary>
+
+<br />
 
 <div align="center">
 
@@ -422,7 +528,7 @@
 
 <sub>📁 `package.json` · `package-lock.json`</sub>
 
-#### 🗂️ Previous batches &nbsp;<sub>click a batch to expand it</sub>
+</details>
 
 <a id="en-batch-2"></a>
 
@@ -498,7 +604,7 @@
 - `12` dedicated regression tests, suite now at **354** tests.
 - Last `Tomas` ➔ `Thomas` fixed in tests and `demo/data`.
 
-<sub>📁 `tsconfig.json` · `tests/avalanche-fixes.test.ts` · `tests/*.test.ts` · `demo/data/*.json`</sub>
+<sub>📁 `tsconfig.json` · `tests/second-opinion-fixes.test.ts` · `tests/*.test.ts` · `demo/data/*.json`</sub>
 
 </details>
 

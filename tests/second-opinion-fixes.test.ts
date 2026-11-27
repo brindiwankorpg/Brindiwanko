@@ -1,5 +1,5 @@
 /**
- * @file Regression tests of the repairs made after the second opinion on the 360° audit (Aerith): a failing
+ * @file Regression tests of the repairs made after the second opinion on the 360° audit: a failing
  * database write while a player enters or leaves (#01, #02, #03, #31), global switches refreshed once per tick
  * (#04), the limit of game connections (#61), the API answers (#67, #68, #70), the daily limit of "forgotten
  * password" e-mails (#21), the gate in front of bcrypt (#29), names and texts (#44, #45), the settings read
