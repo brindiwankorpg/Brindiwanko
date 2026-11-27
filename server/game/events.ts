@@ -14,7 +14,7 @@ import type { EffectPayload, EventUpdate, MessagePayload } from '../../shared/pr
 import { DEFAULT_SETTINGS, type Direction } from '../../shared/settings.js';
 import { REGION_LAYER, deltaX, deltaY, isValidPosition, tileAt, type LoopMap } from '../../shared/map.js';
 import { terrainTagAt } from '../../shared/passability.js';
-import { selfSwitchKey } from '../db/progression.js';
+import { selfSwitchKey, type CharacterProgress } from '../db/progression.js';
 import { runCommands, type CharacterRef, type InterpreterHost } from '../events/interpreter.js';
 import { evaluateScript, runScript, type ScriptState } from '../events/sandbox.js';
 import { MapRuntime, type EventInstance, type EventSet } from './map-runtime.js';
@@ -103,12 +103,19 @@ interface RunContext {
   freezing?: string;
   /** Extra condition for the run to go on (parallel events stop when their page changes). */
   valid: () => boolean;
+  /**
+   * The run is finished even if the player leaves in the middle (see `server/events/interpreter.ts`):
+   * set for the runs that freeze the player (action, touch, automatic), never for parallel ones.
+   */
+  finishWithoutPlayer?: boolean;
 }
 
 /** Event execution for every player. */
 export class EventRunner {
   /** Parallel runs in progress, per character (keys `e<id>` / `c<id>`). */
   private readonly parallels = new Map<number, Set<string>>();
+  /** Runs that go on if their player leaves, per character: the session they run for and how many. */
+  private readonly finishing = new Map<number, { p: PlayerSession; runs: number }>();
   /** Earliest time the next automatic event of a character may start (runaway protection). */
   private readonly nextAutorun = new Map<number, number>();
   /** Current pause of each character's automatic events after runaway loops in a row. */
@@ -223,6 +230,16 @@ export class EventRunner {
   }
 
   /**
+   * Story progress of a character that left while one of its events was still being finished
+   * without it, or `undefined`. A new session of that character goes on from this very progress
+   * (not from the database), so that it sees what the end of the event changes.
+   */
+  departedProgress(characterId: number): CharacterProgress | undefined {
+    const entry = this.finishing.get(characterId);
+    return entry && !this.world.isLive(entry.p) ? entry.p.progress : undefined;
+  }
+
+  /**
    * Resets map-bound state of a player (entering another map or reloading an edited map):
    * detaches the previous parallel-event set so new triggers can start right away, and wakes
    * any pending map-bound sleeps.
@@ -305,7 +322,10 @@ export class EventRunner {
       if (e.direction !== prelock) p.socket.emit('eventUpdate', { id: e.def.id, direction: e.direction });
     }
     const mapId = p.mapId;
-    const ctx: RunContext = { p, event: e, mapId, eventId: e.def.id, gen, routes: [], valid: () => true, freezing: `map ${mapId}, event ${e.def.id}` };
+    const ctx: RunContext = { p, event: e, mapId, eventId: e.def.id, gen, routes: [], valid: () => true, freezing: `map ${mapId}, event ${e.def.id}`, finishWithoutPlayer: true };
+    const entry = this.finishing.get(p.characterId);
+    if (entry?.p === p) entry.runs++;
+    else this.finishing.set(p.characterId, { p, runs: 1 });
     let finished = true;
     try {
       finished = await runCommands(page.list, this.host(ctx));
@@ -319,9 +339,15 @@ export class EventRunner {
       }
       if (page.trigger === Trigger.Autorun) this.autorunEnded(p, finished, `map ${mapId}, event ${e.def.id}`);
       else if (!finished) this.reportRunaway(`map ${mapId}, event ${e.def.id}`);
-      if (this.world.isLive(p)) this.ctx.progression.flush(p.characterId, p.progress);
+      // Finished without its player, the run's story changes still reach the database.
+      this.ctx.progression.flush(p.characterId, p.progress);
+      const mine = this.finishing.get(p.characterId);
+      if (mine?.p === p && --mine.runs <= 0) this.finishing.delete(p.characterId);
       this.world.setBusy(p, false);
       this.world.refreshEvents(p);
+      // A new session of the character, started meanwhile, shares this progress: its events follow it.
+      const now = this.world.player(p.characterId);
+      if (now && now !== p) this.world.refreshEvents(now);
     }
   }
 
@@ -411,6 +437,7 @@ export class EventRunner {
     const targetId = (t: EventInstance | 'player') => (t === 'player' ? 0 : t.def.id);
     return {
       isActive: () => w.isLive(p) && run.valid(),
+      finishWithoutPlayer: () => run.finishWithoutPlayer === true && !w.isLive(p) && run.valid(),
       showMessage: (message: MessagePayload) => this.ask(p, message),
       playerName: () => p.name,
       currencyName: () => w.currencyName(),
@@ -596,24 +623,27 @@ export class EventRunner {
     };
   }
 
-  /** Sends a message to the player and waits for the answer (or the disconnection). */
-  private async ask(p: PlayerSession, message: MessagePayload): Promise<number> {
-    if (!this.world.isLive(p)) return 0;
-    let onDisconnect = () => undefined as void;
-    const disconnected = new Promise<number>((resolve) => {
-      onDisconnect = () => resolve(0);
+  /**
+   * Sends a message to the player and waits for the answer (or the disconnection, or 30 minutes).
+   * The timer is cleared as soon as one of them comes: a timer of the socket library would stay
+   * for its 30 minutes after a disconnection, holding the closed socket (and a test run) with it.
+   */
+  private ask(p: PlayerSession, message: MessagePayload): Promise<number> {
+    if (!this.world.isLive(p)) return Promise.resolve(0);
+    return new Promise<number>((resolve) => {
+      let settled = false;
+      const settle = (answer: number) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        p.socket.off('disconnect', onDisconnect);
+        resolve(answer);
+      };
+      const onDisconnect = () => settle(0);
+      const timer = setTimeout(() => settle(0), MESSAGE_TIMEOUT_MS);
       p.socket.once('disconnect', onDisconnect);
+      p.socket.emit('showMessage', message, (a: unknown) => settle(Number.isInteger(a) ? Number(a) : 0));
     });
-    const answer = p.socket
-      .timeout(MESSAGE_TIMEOUT_MS)
-      .emitWithAck('showMessage', message)
-      .then((a) => (Number.isInteger(a) ? Number(a) : 0))
-      .catch(() => 0);
-    try {
-      return await Promise.race([answer, disconnected]);
-    } finally {
-      p.socket.off('disconnect', onDisconnect);
-    }
   }
 
   /** Restores HP and MP to their maximum. */

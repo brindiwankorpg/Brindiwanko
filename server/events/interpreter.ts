@@ -19,6 +19,14 @@
  * window, enemy appearing next to the player).
  * Unknown commands are skipped, so pages written for later features still run
  * the parts that are supported.
+ *
+ * A player who leaves in the middle of an event (disconnection, another tab) must not keep half of
+ * it: items are written at once, so an event "give an item, show a message, close the chest"
+ * stopped at its message would give the item and leave the chest closed for the next visit. When
+ * the host allows it (`finishWithoutPlayer`), the rest of the run is played without the player:
+ * plain messages count as read, a choice is cancelled (or the run stops if it cannot be), effects
+ * for the screen are skipped, and the run stops at the first command that needs the player there
+ * (see {@link WITHOUT_PLAYER}).
  */
 import { BranchType, Cmd, MmoCmd, PICTURE_COUNT, QuestStatus, SELF_SWITCHES, WEATHER_TYPES, questStatusMatches, type EventCommand, type MoveRoute, type SelfSwitch, type WeatherType } from '../../shared/events.js';
 import type { EffectPayload, MessagePayload } from '../../shared/protocol.js';
@@ -38,6 +46,11 @@ export type CharacterRef = number;
 export interface InterpreterHost {
   /** Tells whether the run may continue (player connected, still on the map...). */
   isActive(): boolean;
+  /**
+   * Tells whether the run is to be finished although the player is gone (see the file header):
+   * `true` only once the player has left, for runs whose state changes must not stop halfway.
+   */
+  finishWithoutPlayer?(): boolean;
   /**
    * Shows a message (possibly with choices or a number input) and resolves
    * with the player's answer: the choice index (-2 = cancelled), the number
@@ -146,6 +159,30 @@ const frames = (v: unknown): number => Math.min(60_000, Math.max(0, int(v, 30)) 
 const nextTurn = (): Promise<void> => new Promise((resolve) => setImmediate(resolve));
 
 /**
+ * What a run finished without its player does with each command: `run` it (story state, items,
+ * gold, flow of the list; messages answer at once and choices are cancelled), `skip` it (effects
+ * meant for the player's screen), or stop the run (any other command of the engine: it needs the
+ * player there, like a transfer, a shop, a battle, or changes to a character that is no longer in
+ * the world). Codes unknown to the engine do nothing anyway, and are run.
+ */
+const WITHOUT_PLAYER: ReadonlyMap<number, 'run' | 'skip'> = new Map<number, 'run' | 'skip'>([
+  ...[
+    Cmd.End, Cmd.ShowText, Cmd.TextLine, Cmd.ShowChoices, Cmd.When, Cmd.WhenCancel, Cmd.ChoicesEnd, Cmd.Comment, Cmd.CommentLine,
+    Cmd.If, Cmd.Else, Cmd.IfEnd, Cmd.Loop, Cmd.LoopEnd, Cmd.BreakLoop, Cmd.ExitEvent, Cmd.CommonEvent, Cmd.Label, Cmd.JumpToLabel,
+    Cmd.ControlSwitches, Cmd.ControlVariables, Cmd.ControlSelfSwitch, Cmd.ChangeGold, Cmd.ChangeItems, Cmd.ChangeWeapons, Cmd.ChangeArmors,
+    Cmd.Script, Cmd.ScriptLine, Cmd.GetLocationInfo, MmoCmd.Notify,
+  ].map((code) => [code, 'run'] as const),
+  ...[
+    Cmd.FadeOut, Cmd.FadeIn, Cmd.TintScreen, Cmd.FlashScreen, Cmd.ShakeScreen, Cmd.Wait, Cmd.ShowAnimation, Cmd.ShowBalloon, Cmd.EraseEvent,
+    Cmd.PlaySe, Cmd.PlayBgm, Cmd.FadeoutBgm, Cmd.SaveBgm, Cmd.ResumeBgm, Cmd.PlayBgs, Cmd.FadeoutBgs, Cmd.PlayMe, Cmd.StopSe,
+    Cmd.ShowPicture, Cmd.MovePicture, Cmd.RotatePicture, Cmd.TintPicture, Cmd.ErasePicture, Cmd.SetWeather, Cmd.ControlTimer,
+    Cmd.SetEventLocation, Cmd.ScrollMap, Cmd.ChangeTransparency, Cmd.ChangeParallax,
+  ].map((code) => [code, 'skip'] as const),
+]);
+/** Every command the engine knows: those missing from {@link WITHOUT_PLAYER} stop a run finished without its player. */
+const KNOWN_COMMANDS: ReadonlySet<number> = new Set<number>([...Object.values(Cmd), ...Object.values(MmoCmd)]);
+
+/**
  * Compares two values with the standard comparison codes.
  * @param op - 0 =, 1 ≥, 2 ≤, 3 >, 4 <, 5 ≠.
  */
@@ -187,7 +224,7 @@ class Interpreter {
   /** Runs the list to completion. */
   async run(): Promise<void> {
     let sliceStart = performance.now();
-    while (this.index < this.list.length && this.host.isActive()) {
+    while (this.index < this.list.length && this.goesOn()) {
       if (++this.counter.steps > MAX_SYNC_STEPS) {
         this.counter.runaway = true;
         return;
@@ -213,6 +250,21 @@ class Interpreter {
     return this.list[this.index]!;
   }
 
+  /** The player has left and the run is finished without it (see the file header). */
+  private withoutPlayer(): boolean {
+    return !this.host.isActive() && this.host.finishWithoutPlayer?.() === true;
+  }
+
+  /** Tells whether the run goes on: with its player, or finished without it. */
+  private goesOn(): boolean {
+    return this.host.isActive() || this.withoutPlayer();
+  }
+
+  /** Ends the run here. */
+  private stop(): void {
+    this.index = this.list.length;
+  }
+
   /** Skips the commands indented deeper than the current one. */
   private skipBranch(): void {
     const indent = this.current.indent;
@@ -233,6 +285,17 @@ class Interpreter {
     const p = c.parameters;
     const h = this.host;
     let paused = false;
+    if (this.withoutPlayer()) {
+      const plan = WITHOUT_PLAYER.get(c.code) ?? (KNOWN_COMMANDS.has(c.code) ? undefined : 'run');
+      if (plan === undefined) {
+        this.stop();
+        return false;
+      }
+      if (plan === 'skip') {
+        this.index++;
+        return false;
+      }
+    }
     switch (c.code) {
       case Cmd.ShowText:
         paused = await this.pause(this.showText());
@@ -253,7 +316,7 @@ class Interpreter {
       case Cmd.If: {
         // A script condition waiting for approval (imported file) is false.
         const result = isQuarantined(c) ? false : await this.condition(p);
-        if (!h.isActive()) return false;
+        if (!this.goesOn()) return false;
         this.branch[c.indent] = result;
         if (!result) this.skipBranch();
         break;
@@ -411,7 +474,7 @@ class Interpreter {
         // A script waiting for approval (imported file) does nothing.
         if (!isQuarantined(c)) {
           const ops = await h.runScript(lines.join('\n'));
-          if (!h.isActive()) return false;
+          if (!this.goesOn()) return false;
           this.applyScript(ops);
         }
         break;
@@ -660,6 +723,14 @@ class Interpreter {
       choiceCancel: cancelType === -1 ? -1 : cancelType === -2 ? -2 : Math.min(cancelType, choices.length - 1),
     };
     const answer = await this.host.showMessage(payload);
+    if (!this.host.isActive()) {
+      // Nobody answered: the player left (the 0 received is not a choice). Finished without the
+      // player, the choice is cancelled; otherwise, or when it cannot be cancelled, the run stops.
+      if (cancelType === -1 || !this.withoutPlayer()) return this.stop();
+      this.branch[c.indent] = cancelType === -2 ? -2 : (payload.choiceCancel ?? 0);
+      this.index++;
+      return;
+    }
     const valid = Number.isInteger(answer) && ((answer >= 0 && answer < choices.length) || (answer === -2 && cancelType !== -1));
     let result = valid ? answer : Math.max(0, payload.choiceDefault ?? 0);
     // A cancel that maps onto a choice behaves like that choice.
@@ -676,6 +747,8 @@ class Interpreter {
       numberDigits: digits,
     };
     const answer = await this.host.showMessage(payload);
+    // Nobody answered (the player left): no number is stored, and the run stops.
+    if (!this.host.isActive()) return this.stop();
     const max = 10 ** digits - 1;
     this.host.setVariable(int(c.parameters[0]), Math.min(max, Math.max(0, int(answer))));
     this.index++;
@@ -740,7 +813,7 @@ class Interpreter {
     const from = Math.max(1, int(p[0]));
     const to = Math.min(int(p[1]), from + 999);
     const scripted = int(p[3]) === 4 && !quarantined ? Math.trunc(Number(await h.evaluate(String(p[4] ?? ''))) || 0) : 0;
-    if (!h.isActive()) return;
+    if (!this.goesOn()) return;
     const apply = (): void => {
     for (let id = from; id <= to; id++) {
       let value: number;

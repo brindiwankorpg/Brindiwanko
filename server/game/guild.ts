@@ -9,10 +9,12 @@
  * below its own rank, and only with the permissions of its rank. The tag of a
  * member's guild is shown under its name to the other players.
  */
-import { GUILD_NAME, GUILD_RANKS, GUILD_TAG, GuildPermission, guildBankSlots, guildLevelXp, sanitizeEmblem, type GuildView } from '../../shared/guild.js';
+import { defaultRanks, GUILD_NAME, GUILD_RANKS, GUILD_TAG, GuildPermission, guildBankSlots, guildLevelXp, sanitizeEmblem, type GuildView } from '../../shared/guild.js';
+import { isLocale, type Locale } from '../../shared/i18n.js';
 import { hasInvisible, mixesScripts } from '../../shared/names.js';
 import { DEFAULT_SETTINGS } from '../../shared/settings.js';
 import type { ItemKind } from '../db/inventory.js';
+import { CONTENT_LANGUAGE_KEY } from '../db/seed.js';
 import { RequestThrottle } from './request-throttle.js';
 import { cleanPlayerText } from './social.js';
 import type { PlayerSession, World } from './world.js';
@@ -217,7 +219,8 @@ export class GuildService {
     if (!GUILD_NAME.test(n) || !GUILD_TAG.test(t) || hasInvisible(n) || hasInvisible(t)) return this.notify(p, 'error.guild.invalid_name');
     if (mixesScripts(n) || mixesScripts(t)) return this.notify(p, 'error.guild.mixed_scripts');
     const cost = this.world.ctx.settings.get('guildCreationCost', DEFAULT_SETTINGS.guildCreationCost);
-    const result = this.repo.create(p.characterId, n, t, sanitizeEmblem(emblem), cost);
+    const language = this.world.ctx.settings.get<Locale>(CONTENT_LANGUAGE_KEY, 'fr');
+    const result = this.repo.create(p.characterId, n, t, sanitizeEmblem(emblem), cost, defaultRanks(isLocale(language) ? language : 'fr'));
     if (!result.ok) return this.notify(p, result.error, { cost, currency: this.world.currencyName() });
     this.setGuild(p, { id: result.guild.id, rank: 0 });
     p.socket.emit('playerUpdate', { gold: this.world.ctx.inventory.gold(p.characterId) });

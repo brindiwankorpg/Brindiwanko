@@ -1,6 +1,10 @@
 -- Schema of the database of Brindiwanko 1.0, in one migration: the starting point of every game made
--- with this version. Like any applied migration it is never edited again; a later change of the schema
--- goes to a new numbered file (see `server/db/migrate.ts`).
+-- with this version.
+--
+-- Until the final 1.0 release, this is the only migration and it is edited in place: a database made
+-- with an earlier beta has to be recreated (the CHANGELOG says so for each change). From the final
+-- release on, this file is frozen like any applied migration, and a later change of the schema goes
+-- to a new numbered file (see `server/db/migrate.ts`).
 
 -- --- Base: settings, secrets and resources ------------------------------------------------------------
 

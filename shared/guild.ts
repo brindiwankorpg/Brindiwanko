@@ -3,6 +3,7 @@
  * guild identity and emblem, ranks and permissions, members, bank and log,
  * and the party frames.
  */
+import type { Locale } from './i18n.js';
 
 /** Guild permissions (bit flags of a rank). */
 export const GuildPermission = {
@@ -20,13 +21,31 @@ export const PERMISSION_KEYS = ['Invite', 'Kick', 'Motd', 'Deposit', 'Withdraw',
 /** Number of ranks of a guild (0 = leader). */
 export const GUILD_RANKS = 4;
 
-/** Default ranks of a new guild. */
-export const DEFAULT_RANKS: { name: string; permissions: number }[] = [
-  { name: 'Chef', permissions: ALL_PERMISSIONS },
-  { name: 'Officier', permissions: GuildPermission.Invite | GuildPermission.Kick | GuildPermission.Motd | GuildPermission.Deposit | GuildPermission.Withdraw | GuildPermission.Ranks },
-  { name: 'Membre', permissions: GuildPermission.Deposit },
-  { name: 'Recrue', permissions: 0 },
-];
+/** Permissions of the default ranks of a new guild (leader, officer, member, recruit). */
+const DEFAULT_RANK_PERMISSIONS = [
+  ALL_PERMISSIONS,
+  GuildPermission.Invite | GuildPermission.Kick | GuildPermission.Motd | GuildPermission.Deposit | GuildPermission.Withdraw | GuildPermission.Ranks,
+  GuildPermission.Deposit,
+  0,
+] as const;
+
+/**
+ * Names of the default ranks in each language of the game content. They are stored with the guild
+ * (its members rename them freely), so they are written in the language of the server's content,
+ * like the rest of the demo world, and not in the founder's interface language.
+ */
+const DEFAULT_RANK_NAMES: Record<Locale, readonly string[]> = {
+  fr: ['Chef', 'Officier', 'Membre', 'Recrue'],
+  en: ['Leader', 'Officer', 'Member', 'Recruit'],
+};
+
+/**
+ * Default ranks of a new guild.
+ * @param language - Language of the server's content (the `contentLanguage` setting).
+ */
+export function defaultRanks(language: Locale): { name: string; permissions: number }[] {
+  return DEFAULT_RANK_PERMISSIONS.map((permissions, i) => ({ name: DEFAULT_RANK_NAMES[language][i]!, permissions }));
+}
 
 /** Emblem choices. */
 export const EMBLEM_SHAPES = ['shield', 'round', 'banner', 'diamond'] as const;

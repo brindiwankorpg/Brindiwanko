@@ -3,7 +3,7 @@
  * and ranks, message of the day, experience and level, bank (items and gold
  * moved with the member's bag in one transaction) and the guild log.
  */
-import { DEFAULT_RANKS, GUILD_DIRECTORY_PAGE, sanitizeEmblem, type Emblem, type GuildDirectoryPage } from '../../shared/guild.js';
+import { GUILD_DIRECTORY_PAGE, sanitizeEmblem, type Emblem, type GuildDirectoryPage } from '../../shared/guild.js';
 import { nameKey } from '../../shared/names.js';
 import type { Statement } from 'better-sqlite3';
 import { prepareCached, safeJsonParse, type Db } from './database.js';
@@ -123,8 +123,9 @@ export class GuildRepository {
    * Creates a guild: pays the cost from the founder's gold, creates the ranks
    * and makes the founder its leader, all in one transaction. Names and tags
    * are compared through their keys (see `shared/names.ts`).
+   * @param ranks - Names and permissions of the ranks, leader first (see `defaultRanks`).
    */
-  create(founderId: number, name: string, tag: string, emblem: Emblem, cost: number): CreateResult {
+  create(founderId: number, name: string, tag: string, emblem: Emblem, cost: number, ranks: readonly { name: string; permissions: number }[]): CreateResult {
     const nameK = nameKey(name);
     const tagK = nameKey(tag);
     return this.db.transaction((): CreateResult => {
@@ -136,7 +137,7 @@ export class GuildRepository {
       if (gold < cost) return { ok: false, error: 'error.guild.not_enough_gold' };
       prepareCached(this.db, 'UPDATE characters SET gold = ? WHERE id = ?').run(gold - cost, founderId);
       const id = Number(prepareCached(this.db, 'INSERT INTO guilds (name, tag, emblem, name_key, tag_key) VALUES (?, ?, ?, ?, ?)').run(name, tag, JSON.stringify(emblem), nameK, tagK).lastInsertRowid);
-      DEFAULT_RANKS.forEach((r, i) => prepareCached(this.db, 'INSERT INTO guild_ranks (guild_id, rank, name, permissions) VALUES (?, ?, ?, ?)').run(id, i, r.name, r.permissions));
+      ranks.forEach((r, i) => prepareCached(this.db, 'INSERT INTO guild_ranks (guild_id, rank, name, permissions) VALUES (?, ?, ?, ?)').run(id, i, r.name, r.permissions));
       prepareCached(this.db, 'INSERT INTO guild_members (character_id, guild_id, rank) VALUES (?, ?, 0)').run(founderId, id);
       this.log(id, founderId, 'created', { name });
       this.tags.delete(id);

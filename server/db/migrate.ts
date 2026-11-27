@@ -4,8 +4,12 @@
  * Migrations are plain SQL files in `server/db/migrations/`, named
  * `NNN_description.sql`. They are applied in numeric order at startup, each in
  * its own transaction, and recorded in the `schema_migrations` table so that a
- * migration never runs twice. Applied migrations must never be edited: add a
- * new file instead.
+ * migration never runs twice.
+ *
+ * Policy: until the final 1.0 release, the whole schema stays in the single file
+ * `001_init.sql`, edited in place (databases of earlier betas are recreated, as
+ * the CHANGELOG announces). From the final release on, applied migrations are
+ * never edited: a change of the schema is a new file.
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';

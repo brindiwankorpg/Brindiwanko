@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { io as connect, type Socket } from 'socket.io-client';
 import { Cmd } from '../shared/events.js';
-import { sanitizeEmblem } from '../shared/guild.js';
+import { defaultRanks, sanitizeEmblem } from '../shared/guild.js';
 import type { ChatMessage, FriendsPayload } from '../shared/social.js';
 import type { ClientToServerEvents, EnterWorldPayload, ServerToClientEvents } from '../shared/protocol.js';
 import type { PlayerSession } from '../server/game/world.js';
@@ -286,7 +286,7 @@ test('an item deleted anyway is also taken from the bags, banks, equipment and g
   server.ctx.inventory.add(hoarder.id, 'item', 1, 1, 99);
   server.ctx.inventory.addToBank(hoarder.id, 'item', item, 3);
   db.prepare('INSERT INTO character_equipment (character_id, slot, item_kind, item_id) VALUES (?, ?, ?, ?)').run(hoarder.id, 'weapon', 'weapon', weapon);
-  const created = server.ctx.guilds.create(hoarder.id, 'Hoard', 'HRD', sanitizeEmblem({}), 0);
+  const created = server.ctx.guilds.create(hoarder.id, 'Hoard', 'HRD', sanitizeEmblem({}), 0, defaultRanks('fr'));
   assert.ok(created.ok);
   db.prepare('INSERT INTO guild_bank_items (guild_id, item_kind, item_id, quantity) VALUES (?, ?, ?, ?)').run(created.guild.id, 'item', item, 4);
   const owned = (kind: string, id: number) =>

@@ -7,11 +7,12 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { io as connect, type Socket } from 'socket.io-client';
-import type { GuildView, PartyView } from '../shared/guild.js';
+import { defaultRanks, type GuildView, type PartyView } from '../shared/guild.js';
 import { emblemSvg } from '../shared/art/emblem.js';
 import type { ChatMessage } from '../shared/social.js';
 import type { ClientToServerEvents, EnterWorldPayload, ServerToClientEvents } from '../shared/protocol.js';
 import { DEMO_MAPS } from '../server/db/demo-map.js';
+import { CONTENT_LANGUAGE_KEY } from '../server/db/seed.js';
 import type { PlayerSession } from '../server/game/world.js';
 import { startTestServer, TestClient, type TestServer } from './helpers/server.js';
 
@@ -197,7 +198,7 @@ test('deleting a guild leader hands the lead over; a character in the game canno
   const boss = await newPlayer('Founder');
   const heir = await newPlayer('Heir');
   const repo = server.ctx.guilds;
-  const created = repo.create(boss.session.characterId, 'Héritiers', 'HER', { shape: 0, pattern: 0, primary: 1, secondary: 2, symbol: 0, symbolColor: 3 }, 0);
+  const created = repo.create(boss.session.characterId, 'Héritiers', 'HER', { shape: 0, pattern: 0, primary: 1, secondary: 2, symbol: 0, symbolColor: 3 }, 0, defaultRanks('fr'));
   assert.ok(created.ok);
   const guildId = created.guild.id;
   assert.ok(repo.addMember(guildId, heir.session.characterId, 2));
@@ -292,4 +293,30 @@ test('an invitation no longer holds once its sender was excluded from the guild'
   assert.equal(jo.session.guild, null, 'Jo did not join');
   assert.equal(server.ctx.guilds.membership(jo.session.characterId), null);
   for (const p of [hal, ivy, jo]) p.socket.close();
+});
+
+test('the default ranks of a new guild are written in the language of the server content', async () => {
+  const emblem = { shape: 0, pattern: 0, primary: 1, secondary: 2, symbol: 0, symbolColor: 3 };
+  const settings = server.ctx.settings;
+  assert.equal(settings.get(CONTENT_LANGUAGE_KEY, ''), 'fr', 'the test server holds the French demo');
+  const kim = await newPlayer('Kim');
+  server.ctx.world.changeGold(kim.session, 1200);
+  kim.socket.emit('guildCreate', 'Les Francs', 'FRA', emblem);
+  await until(() => kim.guild !== null);
+  assert.deepEqual(kim.guild!.ranks.map((r) => r.name), ['Chef', 'Officier', 'Membre', 'Recrue']);
+
+  // A server whose content is in English: its new guilds get English ranks, with the same permissions.
+  settings.set(CONTENT_LANGUAGE_KEY, 'en');
+  try {
+    const lou = await newPlayer('Lou');
+    server.ctx.world.changeGold(lou.session, 1200);
+    lou.socket.emit('guildCreate', 'The Wardens', 'WAR', emblem);
+    await until(() => lou.guild !== null);
+    assert.deepEqual(lou.guild!.ranks.map((r) => r.name), ['Leader', 'Officer', 'Member', 'Recruit']);
+    assert.deepEqual(lou.guild!.ranks.map((r) => r.permissions), kim.guild!.ranks.map((r) => r.permissions));
+    lou.socket.close();
+  } finally {
+    settings.set(CONTENT_LANGUAGE_KEY, 'fr');
+  }
+  kim.socket.close();
 });

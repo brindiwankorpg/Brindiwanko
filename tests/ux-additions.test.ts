@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { io as connect, type Socket } from 'socket.io-client';
-import { GUILD_DIRECTORY_PAGE, type GuildDirectoryPage } from '../shared/guild.js';
+import { defaultRanks, GUILD_DIRECTORY_PAGE, type GuildDirectoryPage } from '../shared/guild.js';
 import type { ClientToServerEvents, EnterWorldPayload, ServerToClientEvents } from '../shared/protocol.js';
 import { withProfiles } from '../server/game/character-routes.js';
 import { startTestServer, TestClient, type TestServer } from './helpers/server.js';
@@ -41,7 +41,7 @@ test('players without a guild get the directory of the guilds, with their leader
   const ask = (search = '', page = 0) => new Promise<GuildDirectoryPage>((resolve) => seeker.socket.emit('guildDirectory', { search, page }, resolve));
   assert.deepEqual((await ask()).guilds, []);
   server.ctx.inventory.changeGold(founder.characterId, 5000);
-  const created = server.ctx.guilds.create(founder.characterId, 'La Flamme Éternelle', 'FLAM', { shape: 0, pattern: 1, primary: 4, secondary: 2, symbol: 0, symbolColor: 7 }, 1000);
+  const created = server.ctx.guilds.create(founder.characterId, 'La Flamme Éternelle', 'FLAM', { shape: 0, pattern: 1, primary: 4, secondary: 2, symbol: 0, symbolColor: 7 }, 1000, defaultRanks('fr'));
   assert.ok(created.ok);
   const list = await ask();
   assert.equal(list.total, 1);

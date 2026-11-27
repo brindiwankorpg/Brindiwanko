@@ -13,7 +13,7 @@
   [![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![Socket.io](https://img.shields.io/badge/Socket.io-4.x-0f172a?style=for-the-badge&logo=socketdotio&logoColor=white)](https://socket.io/)
   [![SQLite](https://img.shields.io/badge/SQLite-WAL%20%2B%20better--sqlite3-0369a1?style=for-the-badge&logo=sqlite&logoColor=white)](https://github.com/WiseLibs/better-sqlite3)
-  [![Tests](https://img.shields.io/badge/tests-354%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+  [![Tests](https://img.shields.io/badge/tests-357%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
   [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
 
   <br />
@@ -41,7 +41,7 @@
 
 > [!NOTE]
 > **Un projet conçu par IA & validé par l'humain**  
-> L'ensemble du code (serveur, client, éditeur, générateurs SVG et tests) est rédigé par intelligence artificielle sous direction technique et créative humaine, puis éprouvé par **354 tests automatisés** (`npm test`), un banc de charge multi-clients et des campagnes de jeu en navigateur. Comme pour tout logiciel, une relecture et des essais en pré-production sont recommandés avant ouverture publique.
+> L'ensemble du code (serveur, client, éditeur, générateurs SVG et tests) est rédigé par intelligence artificielle sous direction technique et créative humaine, puis éprouvé par **357 tests automatisés** (`npm test`), un banc de charge multi-clients et des campagnes de jeu en navigateur. Comme pour tout logiciel, une relecture et des essais en pré-production sont recommandés avant ouverture publique.
 
 ---
 
@@ -84,7 +84,7 @@ Brindiwanko/
 ├── views/        # Gabarits EJS des pages web (authentification, personnages, compte, admin)
 ├── locales/      # Dictionnaires de traduction fr.json et en.json (2 391 clés)
 ├── scripts/      # Pipeline de build, serveur dev, load-test, export démo, vérifications CI
-└── tests/        # Suite de 354 tests automatisés (node --test)
+└── tests/        # Suite de 357 tests automatisés (node --test)
 ```
 
 </details>
@@ -288,8 +288,8 @@ Accessible aux administrateurs depuis le jeu via **Administration** 👑 ➔ **�
 | `/kick <joueur> [motif]` | Modérateur | Expulse immédiatement la session. |
 | `/mute <joueur> [durée] [motif]` | Modérateur | Coupe le chat (`30m`, `2h`, `7j`). |
 | `/unmute <joueur>` | Modérateur | Lève la mise en sourdine. |
-| `/ban <joueur> [durée\|perm] [motif]` | Administrateur | Suspend le compte temporairement ou définitivement. |
-| `/unban <joueur>` | Administrateur | Révoque un bannissement actif. |
+| `/ban <joueur> [durée\|perm] [motif]` | Modérateur | Suspend le compte : 7 jours au plus pour un modérateur, toute durée ou définitivement pour un administrateur. |
+| `/unban <joueur>` | Modérateur | Révoque un bannissement actif (un modérateur ne lève que ceux qu'un modérateur aurait pu donner). |
 | `/all <message>` | Modérateur | Annonce sur le canal global staff. |
 | `/pkick <joueur>` | Joueur (Chef) | Retire un membre du groupe. |
 
@@ -341,7 +341,7 @@ Toutes les variables d'environnement sont optionnelles :
 ## 🧪 Tests & Assurance Qualité
 
 ```bash
-# Contrôles lexicaux, parité i18n (clés + {{placeholders}} + vues .ejs) et 354 tests
+# Contrôles lexicaux, parité i18n (clés + {{placeholders}} + vues .ejs) et 357 tests
 npm test
 
 # Vérification TypeScript stricte (serveur, client, outils)
@@ -662,7 +662,7 @@ Historique détaillé dans [CHANGELOG.md](CHANGELOG.md). Principaux apports depu
   [![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![Socket.io](https://img.shields.io/badge/Socket.io-4.x-0f172a?style=for-the-badge&logo=socketdotio&logoColor=white)](https://socket.io/)
   [![SQLite](https://img.shields.io/badge/SQLite-WAL%20%2B%20better--sqlite3-0369a1?style=for-the-badge&logo=sqlite&logoColor=white)](https://github.com/WiseLibs/better-sqlite3)
-  [![Tests](https://img.shields.io/badge/tests-354%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+  [![Tests](https://img.shields.io/badge/tests-357%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
   [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
 
   <br />
@@ -690,7 +690,7 @@ Historique détaillé dans [CHANGELOG.md](CHANGELOG.md). Principaux apports depu
 
 > [!NOTE]
 > **An AI-Engineered & Human-Validated Project**  
-> All source code (server, client, editor, SVG generators, and test suites) was authored by AI under human creative and technical direction, and validated by **354 automated tests** (`npm test`), a multi-client stress tester, and browser verification sessions. Review and stage-test before production rollouts; bug reports and PRs are always welcome.
+> All source code (server, client, editor, SVG generators, and test suites) was authored by AI under human creative and technical direction, and validated by **357 automated tests** (`npm test`), a multi-client stress tester, and browser verification sessions. Review and stage-test before production rollouts; bug reports and PRs are always welcome.
 
 ---
 
@@ -733,7 +733,7 @@ Brindiwanko/
 ├── views/        # EJS templates for account, auth, character, and admin pages
 ├── locales/      # Bilingual dictionaries en.json and fr.json (2,391 keys)
 ├── scripts/      # Build pipeline, dev watcher, load tester, demo export, CI checks
-└── tests/        # Automated suite of 354 tests (node --test)
+└── tests/        # Automated suite of 357 tests (node --test)
 ```
 
 </details>
@@ -937,8 +937,8 @@ Administrators can launch the live editor straight from the game menu via **Admi
 | `/kick <player> [reason]` | Moderator | Disconnects the player immediately. |
 | `/mute <player> [duration] [reason]` | Moderator | Silences chat (`30m`, `2h`, `7d`). |
 | `/unmute <player>` | Moderator | Lifts an active mute. |
-| `/ban <player> [duration\|perm] [reason]` | Administrator | Suspends an account temporarily or permanently. |
-| `/unban <player>` | Administrator | Revokes an active ban. |
+| `/ban <player> [duration\|perm] [reason]` | Moderator | Suspends an account: up to 7 days for a moderator, any duration or permanently for an administrator. |
+| `/unban <player>` | Moderator | Revokes an active ban (a moderator only lifts the bans a moderator could have given). |
 | `/all <message>` | Moderator | Broadcasts on the global staff channel. |
 | `/pkick <player>` | Player (Leader) | Removes a member from your party. |
 
@@ -990,7 +990,7 @@ All environment variables are optional:
 ## 🧪 Testing & Quality Assurance
 
 ```bash
-# Runs naming lint, i18n parity/placeholder/EJS checks, and all 354 tests
+# Runs naming lint, i18n parity/placeholder/EJS checks, and all 357 tests
 npm test
 
 # Strict TypeScript checks across server, client, and build tools

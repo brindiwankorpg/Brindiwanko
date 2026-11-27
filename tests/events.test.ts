@@ -307,6 +307,85 @@ test('event commands that wait for nothing cannot freeze the server', { timeout:
   }
 });
 
+/**
+ * A host whose player leaves while the first message (or question) is on screen. `finish` tells
+ * whether the run may be finished without the player (action, touch and automatic events).
+ */
+function leavingHost(finish: boolean) {
+  const host = fakeHost();
+  let here = true;
+  const items: number[] = [];
+  const gold: number[] = [];
+  const selfSwitches = new Set<string>();
+  const done: string[] = [];
+  host.isActive = () => here;
+  host.finishWithoutPlayer = () => finish && !here;
+  host.showMessage = async (m) => {
+    host.shown.push(m);
+    here = false;
+    return 0;
+  };
+  host.changeItems = (_kind, id, delta) => void items.push(id * delta);
+  host.changeGold = (delta) => void gold.push(delta);
+  host.getSelfSwitch = (letter) => selfSwitches.has(letter);
+  host.setSelfSwitch = (letter, on) => void (on ? selfSwitches.add(letter) : selfSwitches.delete(letter));
+  host.transfer = () => (done.push('transfer'), true);
+  host.wait = async () => void done.push('wait');
+  host.playSe = () => void done.push('se');
+  host.shop = async () => void done.push('shop');
+  return { host, items, gold, selfSwitches, done };
+}
+
+const say = (text: string, indent = 0) => [c(Cmd.ShowText, ['', 0, 0, 2, ''], indent), c(Cmd.TextLine, [text], indent)];
+
+test('a player leaving during a message: the event is finished without it, so that it cannot open the same chest twice', async () => {
+  // Give, tell, close: the usual chest written by hand.
+  const chest = [c(Cmd.ChangeItems, [1, 0, 0, 1]), ...say('You found a potion.'), c(Cmd.ControlSelfSwitch, ['A', 0]), c(Cmd.End)];
+  const left = leavingHost(true);
+  await runCommands(chest, left.host);
+  assert.deepEqual(left.items, [1], 'the potion was given');
+  assert.ok(left.selfSwitches.has('A'), 'and the chest is closed, although nobody read the message');
+
+  // Runs that do not freeze the player (parallel events) still stop when it leaves.
+  const parallel = leavingHost(false);
+  await runCommands(chest, parallel.host);
+  assert.equal(parallel.selfSwitches.has('A'), false);
+
+  // A question left unanswered is cancelled: nothing is bought, the cancel branch runs.
+  const shop = [
+    ...say('A potion for 50 gold?'),
+    c(Cmd.ShowChoices, [['Yes', 'No'], -2, 0, 2, 0]),
+    c(Cmd.When, [0, 'Yes']), c(Cmd.ChangeGold, [1, 0, 50], 1), c(Cmd.ChangeItems, [1, 0, 0, 1], 1), c(Cmd.End, [], 1),
+    c(Cmd.When, [1, 'No']), c(Cmd.End, [], 1),
+    c(Cmd.WhenCancel, [6, null]), c(Cmd.ControlSwitches, [5, 5, 0], 1), c(Cmd.End, [], 1),
+    c(Cmd.ChoicesEnd), c(Cmd.ControlSelfSwitch, ['B', 0]), c(Cmd.End),
+  ];
+  const buyer = leavingHost(true);
+  await runCommands(shop, buyer.host);
+  assert.deepEqual([buyer.gold, buyer.items], [[], []], 'the first choice is not taken for the player who left');
+  assert.ok(buyer.host.switches.has(5), 'the cancel branch ran');
+  assert.ok(buyer.selfSwitches.has('B'), 'and the rest of the event');
+
+  // A cancel that maps onto "No" behaves like "No"; a choice that cannot be cancelled stops the run.
+  const mapped = leavingHost(true);
+  await runCommands(shop.map((x) => (x.code === Cmd.ShowChoices ? c(Cmd.ShowChoices, [['Yes', 'No'], 1, 0, 2, 0]) : x)), mapped.host);
+  assert.deepEqual([mapped.gold, mapped.selfSwitches.has('B')], [[], true]);
+  const stuck = leavingHost(true);
+  await runCommands(shop.map((x) => (x.code === Cmd.ShowChoices ? c(Cmd.ShowChoices, [['Yes', 'No'], -1, 0, 2, 0]) : x)), stuck.host);
+  assert.deepEqual([stuck.gold, stuck.items, stuck.selfSwitches.has('B')], [[], [], false]);
+
+  // Effects for the screen are skipped; the run stops at what needs the player there.
+  const trip = leavingHost(true);
+  await runCommands([
+    ...say('Hold on.'), c(Cmd.Wait, [60]), c(Cmd.PlaySe, [{ name: 'Chime', volume: 90, pitch: 100, pan: 0 }]), c(Cmd.CommonEvent, [1]), c(Cmd.ChangeGold, [0, 0, 10]),
+    c(Cmd.TransferPlayer, [0, 2, 3, 4, 2, 0]), c(Cmd.ControlSelfSwitch, ['C', 0]), c(Cmd.End),
+  ], trip.host);
+  assert.deepEqual(trip.done, [], 'no wait, no sound, no transfer');
+  assert.equal(trip.host.variables.get(3), 42, 'a common event called is finished too');
+  assert.deepEqual(trip.gold, [10]);
+  assert.equal(trip.selfSwitches.has('C'), false, 'nothing after the transfer');
+});
+
 // --- Criterion over sockets ----------------------------------------------------
 
 let server: TestServer;
@@ -633,4 +712,71 @@ test('a blocked step of a route the frozen player waits for is given up after a 
     console.warn = warn;
     hugo.socket.close();
   }
+});
+
+
+test('a player who disconnects, or opens another tab, while reading what a chest gave cannot open it again', { timeout: 15_000 }, async () => {
+  const map = createMap(12, 8, 1);
+  map.data.fill(TILE_ID_A2, 0, map.width * map.height);
+  refreshAllAutotiles(map);
+  const image = { tileId: 0, characterName: '!Objects1', characterIndex: 0, direction: 2 as const, pattern: 1 };
+  map.events = [null, { id: 1, name: 'Chest', note: '', x: 5, y: 3, pages: [
+    createPage({ image, priorityType: Priority.Same, list: [c(Cmd.ChangeItems, [1, 0, 0, 1]), c(Cmd.ShowText, ['', 0, 0, 2, '']), c(Cmd.TextLine, ['You found a potion.']), c(Cmd.ControlSelfSwitch, ['A', 0]), c(Cmd.End)] }),
+    createPage({ image: { ...image, direction: 8 }, priorityType: Priority.Same, conditions: { ...createPage().conditions, selfSwitchValid: true, selfSwitchCh: 'A' }, list: [c(Cmd.ShowText, ['', 0, 0, 2, '']), c(Cmd.TextLine, ['It is empty.']), c(Cmd.End)] }),
+  ] }];
+  const mapId = server.ctx.maps.nextId();
+  server.ctx.maps.save({ id: mapId, parentId: 0, name: `Chest ${mapId}`, order: mapId, expanded: true }, map);
+  const potions = (id: number) => server.ctx.inventory.quantity(id, 'item', 1);
+
+  /** Opens the chest and leaves the message unanswered; resolves once it is on screen. */
+  const openAndHold = async (player: Player) => {
+    player.socket.off('showMessage');
+    let shown = false;
+    player.socket.on('showMessage', () => void (shown = true));
+    const p = player.session;
+    server.ctx.world.transfer(p, mapId, 5, 4, 8);
+    await wait(100);
+    server.ctx.world.action(p);
+    await until(() => shown);
+  };
+
+  // 1. Disconnection while the message is on screen.
+  const jade = await newPlayer('Jade');
+  const id = jade.session.characterId;
+  const before = potions(id);
+  await openAndHold(jade);
+  assert.equal(potions(id), before + 1, 'the potion is given');
+  const old = jade.session;
+  jade.socket.close();
+  await until(() => !old.busy);
+  let back = await connectPlayer(jade.client, id);
+  assert.equal(back.session.mapId, mapId);
+  assert.equal(back.pages.get(1), 1, 'the chest is open when the player comes back');
+  back.session.x = 5;
+  back.session.y = 4;
+  back.session.direction = 8;
+  server.ctx.world.action(back.session);
+  await until(() => back.messages.some((m) => m.text === 'It is empty.'));
+  assert.equal(potions(id), before + 1, 'nothing more');
+  back.socket.close();
+  await until(() => !server.ctx.world.player(id));
+
+  // 2. Another tab takes the character over while the message is on screen.
+  const kai = await newPlayer('Kai');
+  const kaiId = kai.session.characterId;
+  const kaiBefore = potions(kaiId);
+  await openAndHold(kai);
+  const first = kai.session;
+  back = await connectPlayer(kai.client, kaiId);
+  await until(() => !first.busy);
+  // The new session shares the progress the end of the event changed (the test client may have
+  // read the views of its arrival after the update that followed them: the server is checked).
+  await until(() => back.session.events.get(1)?.pageIndex === 1);
+  back.session.x = 5;
+  back.session.y = 4;
+  back.session.direction = 8;
+  server.ctx.world.action(back.session);
+  await until(() => back.messages.some((m) => m.text === 'It is empty.'));
+  assert.equal(potions(kaiId), kaiBefore + 1, 'the new tab finds the chest open');
+  back.socket.close();
 });

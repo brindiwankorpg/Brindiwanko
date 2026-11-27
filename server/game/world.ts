@@ -703,7 +703,8 @@ export class World {
       lastRefill: now,
       epoch: 0,
       savedAt: now,
-      progress: this.ctx.progression.load(character.id),
+      // An event still being finished for the session just left goes on with the same progress.
+      progress: this.runner.departedProgress(character.id) ?? this.ctx.progression.load(character.id),
       events: new Map(),
       mapGen: 0,
       instance: 0,
