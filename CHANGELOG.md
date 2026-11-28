@@ -6,48 +6,31 @@
 
 # 📜 Journal des modifications
 
-#### Toutes les évolutions de Brindiwanko, version après version
+#### Ce qui change dans Brindiwanko, de la version la plus récente à la plus ancienne
 
 [![Version](https://img.shields.io/badge/version-1.0.0--beta.2-2563eb?style=for-the-badge)](package.json)
 [![Tests](https://img.shields.io/badge/tests-362%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
-[![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/fr/1.1.0/)
-[![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/lang/fr/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
 
-**🇫🇷 Français** &nbsp;·&nbsp; [🇬🇧 English version](#en-top)
-
-<table>
-  <tr>
-    <td align="center" width="200"><a href="#fr-unreleased"><b>🚧 Non publié</b></a><br /><sub>28/11/2026 · 1 lot</sub></td>
-    <td align="center" width="200"><a href="#fr-beta-2"><b>🧪 1.0.0-beta.2</b></a><br /><sub>27/11/2026 · deuxième bêta</sub></td>
-    <td align="center" width="200"><a href="#fr-beta-1"><b>🧪 1.0.0-beta.1</b></a><br /><sub>11/11/2026 · première bêta</sub></td>
-    <td align="center" width="200"><a href="README.md"><b>📖 README</b></a><br /><sub>Installation & guide</sub></td>
-  </tr>
-</table>
+**🇫🇷 Français** &nbsp;·&nbsp; [🇬🇧 English version](#en-top) &nbsp;·&nbsp; [📖 README](README.md)
 
 </div>
 
 > [!NOTE]
-> Ce journal suit le format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le [versionnage sémantique](https://semver.org/lang/fr/). Les niveaux `P1` (prioritaire) et `P2` (à corriger) renvoient aux audits de code.
->
-> **Légende** &nbsp;·&nbsp; 🔴 `P1` prioritaire &nbsp;·&nbsp; 🟠 `P2` à corriger &nbsp;·&nbsp; 💥 rupture de compatibilité &nbsp;·&nbsp; 📁 fichiers modifiés
+> **Comment lire ce journal**
+> - Chaque version commence par **l'essentiel**, en quelques lignes, puis par ce qu'il faut savoir **avant de mettre à jour**.
+> - Le **détail complet**, avec les fichiers modifiés, est replié en bas de chaque version : cliquez dessus pour l'ouvrir. Les repères `P1` (correction prioritaire) et `P2` (correction importante) viennent des audits du code.
+> - Rien n'est passé sous silence : chaque modification, même d'une ligne, est notée.
 
 <div align="center">
 
-### 🗓️ En un coup d'œil
+| | Version | Date | En une phrase |
+| :---: | :--- | :---: | :--- |
+| 🚧 | [**Prochaine version**](#fr-unreleased) | en cours | Corrections trouvées en testant la bêta 2 dans un navigateur. |
+| ✅ | [**1.0.0-beta.2**](#fr-beta-2) | 27/11/2026 | Plus sûre et plus solide ; évènements et guildes corrigés. |
+| ✅ | [**1.0.0-beta.1**](#fr-beta-1) | 11/11/2026 | Première bêta du moteur et de son éditeur. |
 
-| Statut | Étape | Date | Thème | En bref |
-| :---: | :--- | :---: | :--- | :--- |
-| 🚧 | [**🚧 Non publié**](#fr-unreleased) | 28/11/2026 | Après la bêta 2 | 1 lot · 💥 1 rupture |
-| 🚧 | [**↳ 🧭 Lot 5**](#fr-lot-5) | 28/11/2026 | Campagne de tests en navigateur | 3 anomalies corrigées · 3 tests de régression |
-| ✅ | [**🧪 1.0.0-beta.2**](#fr-beta-2) | 27/11/2026 | Deuxième bêta | 4 lots · 🔴 4 `P1` · 💥 3 ruptures |
-| ✅ | [**↳ 🩹 Lot 4**](#fr-lot-4) | 27/11/2026 | Corrections après l'analyse complète du dépôt | 🔴 1 `P1` · 🟠 3 `P2` · 5 tests de régression |
-| ✅ | [**↳ 🔍 Lot 3**](#fr-lot-3) | 26/11/2026 | Campagne de test sur base vierge | 3 anomalies corrigées · 6 dépendances à jour |
-| ✅ | [**↳ 🛠️ Lot 2**](#fr-lot-2) | 25/11/2026 | Contre-expertise de l'audit 360° | 🔴 1 `P1` · 12 tests de régression |
-| ✅ | [**↳ 🧱 Lot 1**](#fr-lot-1) | 20/11/2026 | Stabilisation AppSec, performance & UX | 🔴 2 `P1` · 🟠 22 `P2` |
-| ✅ | [**🧪 1.0.0-beta.1**](#fr-beta-1) | 11/11/2026 | Première bêta | 12 domaines · 💥 nouveau schéma |
-
-<sub>🚧 non publié &nbsp;·&nbsp; ✅ publié &nbsp;·&nbsp; ↳ lot de la version au-dessus</sub>
+<sub>🚧 pas encore publiée &nbsp;·&nbsp; ✅ publiée</sub>
 
 </div>
 
@@ -55,33 +38,28 @@
 
 <a id="fr-unreleased"></a>
 
-## 🚧 Non publié
+## 🚧 Prochaine version &nbsp;<sub>pas encore publiée</sub>
 
-<div align="center">
+> La bêta 2 est en cours de test dans un vrai navigateur : cette liste va encore s'allonger.
 
-| 🔴 `P1` corrigés | 🧪 Tests | 💥 Ruptures | 🆕 Réglages | 📦 Lots |
-| :---: | :---: | :---: | :---: | :---: |
-| **0** | **362** ✅ | **1** | **0** | **1** |
+### ⭐ L'essentiel
 
-</div>
+- 🖼️ **Les fichiers ajoutés dans l'éditeur servent tout de suite.** Une image, un son ou une musique ajoutés pendant que des joueurs sont connectés peuvent être utilisés par un évènement sans que personne ne recharge la page.
+- ⚔️ **Plus de faux dégâts à l'arrivée sur une carte.** Un joueur qui arrive est protégé quelques secondes ; ceux qui l'attaquent voient maintenant « Miss » au lieu de dégâts qu'il ne subit pas.
+- 🎯 **Plus de barre de vie vide** sous le nom d'un autre joueur que l'on cible.
 
-> Corrections faites depuis la bêta 2. La campagne de tests en navigateur n'est pas encore terminée : ce lot sera complété.
+### ⚠️ Avant de mettre à jour
 
-> [!WARNING]
-> **À lire avant de mettre à jour**
-> - 🔌 **Protocole Socket.io `v5`** : les pages de jeu ouvertes se rechargent d'elles-mêmes.
+- Rien à faire : les pages de jeu déjà ouvertes se rechargent toutes seules (le protocole réseau passe en `v5`).
+
+### 🔎 Tout le détail
 
 <a id="fr-lot-5"></a>
 
-### 🧭 Lot 5 — Campagne de tests en navigateur &nbsp;<sub>28/11/2026</sub>
+<details>
+<summary><b>🧭 Lot 5 — Campagne de tests en navigateur</b> &nbsp;<sub>28/11/2026 · 3 anomalies corrigées · 362 tests</sub></summary>
 
-<div align="center">
-
-| 🎯 Nature | 🐞 Anomalies corrigées | 🧪 Nouveaux tests | 🧪 Tests |
-| :---: | :---: | :---: | :---: |
-| Recette de la bêta 2 dans un navigateur | **3** | **3** | **362** ✅ |
-
-</div>
+<br />
 
 > Parcours de la bêta 2 dans un vrai navigateur avec deux comptes, administrateur et joueur : comptes, cartes, évènements, quêtes, économie, combat, social et guildes. Aucun bug bloquant ; 3 anomalies corrigées.
 
@@ -104,27 +82,33 @@
 
 <sub>📁 `tests/qa-campaign-fixes.test.ts`</sub>
 
+</details>
+
+<p align="right"><a href="#fr-top">⬆️ Haut de page</a></p>
+
 ---
 
 <a id="fr-beta-2"></a>
 
-## 🧪 1.0.0-beta.2 &nbsp;<sub>27/11/2026</sub>
+## ✅ 1.0.0-beta.2 &nbsp;<sub>27/11/2026</sub>
 
-<div align="center">
+> Deuxième bêta de **Brindiwanko 1.0** : plus sûre, plus solide, avec des évènements et des guildes corrigés et des guides d'installation complets.
 
-| 🔴 `P1` corrigés | 🧪 Tests | 💥 Ruptures | 🆕 Réglages | 📦 Lots |
-| :---: | :---: | :---: | :---: | :---: |
-| **4** | **359** ✅ | **3** | **5** | **4** |
+### ⭐ L'essentiel
 
-</div>
+- 🧩 **Évènements** — un joueur qui se déconnecte en plein évènement ne peut plus dupliquer d'objets (rouvrir un coffre, par exemple). Une question laissée sans réponse est annulée au lieu de prendre le premier choix.
+- 🛡️ **Guildes** — une nouvelle guilde reçoit ses rangs dans la langue du serveur, et la taille maximale d'une guilde se règle.
+- 🔌 **Serveur plus solide** — une erreur de base de données à l'arrivée d'un joueur n'arrête plus tout le serveur, les reconnexions en boucle sont freinées, et une restauration de sauvegarde ne fige plus le jeu.
+- 🔐 **Sécurité renforcée** — fichiers envoyés (ZIP, SVG) mieux contrôlés, scripts d'évènements mieux isolés, mot de passe redemandé pour les actions sensibles entre administrateurs, confirmation des adresses e-mail.
+- ⚡ **Plus rapide** — moins de requêtes à la base de données et davantage de mises en cache.
+- 🎮 **Jeu et éditeur** — monstres qui restent dans leur zone, commandes plus réactives, interface masquée pendant les dialogues, donjons qui ne se remettent plus à zéro quand on change de groupe, commandes de l'éditeur gardées dans l'ordre choisi, changement de langue complet.
+- 📚 **Documentation** — guides d'installation pas à pas (PC, Mac, Linux et serveur en ligne) et 28 captures d'écran. Dépendances mises à jour.
 
-> Deuxième bêta de **Brindiwanko 1.0** : sécurité durcie, serveur plus robuste, évènements et guildes corrigés, guides d'installation complets. Elle regroupe les 4 lots ci-dessous.
+### ⚠️ Avant de mettre à jour
 
-> [!WARNING]
-> **À lire avant de mettre à jour**
-> - 🔌 **Protocole Socket.io `v4`** : les pages de jeu ouvertes se rechargent d'elles-mêmes.
-> - 🗄️ **Schéma `001_init.sql` modifié** : une base créée avec la bêta 1 est à recréer, et ses sauvegardes ne se restaurent plus. Jusqu'à la 1.0 finale, le schéma reste dans ce fichier unique : une nouvelle bêta peut demander une base neuve.
-> - 🔑 **Réinitialisation de mot de passe depuis le panneau admin** : l'administrateur qui la lance doit saisir son propre mot de passe.
+- 🗄️ **Base de données à recréer** : une base créée avec la bêta 1 ne fonctionne pas avec la bêta 2, et ses sauvegardes ne se restaurent plus. Jusqu'à la 1.0 finale, une nouvelle bêta peut encore demander une base neuve.
+- 🔌 Les pages de jeu déjà ouvertes se rechargent toutes seules (le protocole réseau passe en `v4`).
+- 🔑 Pour réinitialiser le mot de passe d'un compte depuis le panneau d'administration, l'administrateur doit saisir son propre mot de passe.
 
 ### 🆕 Nouveaux réglages
 
@@ -136,17 +120,16 @@
 | `guildMaxMembers` | Réglages système | `100` | Taille maximale d'une guilde. |
 | `instanceLockMinutes` | Réglages système | `5` | Délai avant de rouvrir une copie d'un même donjon. |
 
+### 🔎 Tout le détail
+
+La bêta 2 a été préparée en 4 lots de corrections, du plus récent au plus ancien. Cliquez sur un lot pour l'ouvrir.
+
 <a id="fr-lot-4"></a>
 
-### 🩹 Lot 4 — Corrections après l'analyse complète du dépôt &nbsp;<sub>27/11/2026</sub>
+<details>
+<summary><b>🩹 Lot 4 — Corrections après la relecture complète du code</b> &nbsp;<sub>27/11/2026 · 🔴 1 <code>P1</code> + 🟠 3 <code>P2</code> · 359 tests</sub></summary>
 
-<div align="center">
-
-| 🎯 Nature | 🐞 Anomalies corrigées | 🧪 Nouveaux tests | 🧪 Tests |
-| :---: | :---: | :---: | :---: |
-| Lecture des 386 fichiers | 🔴 **1** `P1` · 🟠 **3** `P2` | **5** | **359** ✅ |
-
-</div>
+<br />
 
 > Lecture de chacun des 386 fichiers du dépôt, puis correction des points relevés. Aucune faille de sécurité urgente trouvée.
 
@@ -180,22 +163,14 @@
 
 <sub>📁 `tests/events.test.ts` · `tests/guild.test.ts` · `tests/audit.test.ts` · `tests/ux-additions.test.ts`</sub>
 
-#### 🗂️ Lots précédents &nbsp;<sub>cliquer sur un lot pour le déplier</sub>
+</details>
 
 <a id="fr-lot-3"></a>
 
 <details>
-<summary><b>🔍 Lot 3 — Campagne de test sur base vierge</b> &nbsp;<sub>26/11/2026 · 3 anomalies mineures · cliquer pour déplier</sub></summary>
+<summary><b>🔍 Lot 3 — Test complet sur une installation neuve</b> &nbsp;<sub>26/11/2026 · 3 anomalies mineures · 6 dépendances à jour · 354 tests</sub></summary>
 
 <br />
-
-<div align="center">
-
-| 🎯 Nature | 🐞 Anomalies corrigées | 📦 Dépendances | 🧪 Tests |
-| :---: | :---: | :---: | :---: |
-| Recette sur base vierge | **3** mineures | **6** à jour | **354** ✅ |
-
-</div>
 
 > Parcours complet sur une installation neuve, côté éditeur puis côté joueur : nouveau village, portails aller-retour, 2 monstres, 4 PNJ, quête en 3 étapes, redémarrage du serveur et bascule FR/EN. Aucun bug bloquant ; 3 anomalies mineures corrigées.
 
@@ -226,7 +201,7 @@
 <a id="fr-lot-2"></a>
 
 <details>
-<summary><b>🛠️ Lot 2 — Contre-expertise de l'audit 360°</b> &nbsp;<sub>25/11/2026 · 1 <code>P1</code> · cliquer pour déplier</sub></summary>
+<summary><b>🛠️ Lot 2 — Deuxième avis sur l'audit du code</b> &nbsp;<sub>25/11/2026 · 🔴 1 <code>P1</code> · 12 tests ajoutés</sub></summary>
 
 <br />
 
@@ -304,7 +279,7 @@
 <a id="fr-lot-1"></a>
 
 <details>
-<summary><b>🧱 Lot 1 — Stabilisation AppSec, performance & UX bêta</b> &nbsp;<sub>20/11/2026 · 2 <code>P1</code> + 22 <code>P2</code> · cliquer pour déplier</sub></summary>
+<summary><b>🧱 Lot 1 — Sécurité, performances et confort</b> &nbsp;<sub>20/11/2026 · 🔴 2 <code>P1</code> + 🟠 22 <code>P2</code></sub></summary>
 
 <br />
 
@@ -364,19 +339,11 @@
 
 <a id="fr-beta-1"></a>
 
-## 🧪 1.0.0-beta.1 &nbsp;<sub>11/11/2026</sub>
+## ✅ 1.0.0-beta.1 &nbsp;<sub>11/11/2026</sub>
 
-<div align="center">
+> Première bêta de **Brindiwanko 1.0** : un moteur de MMORPG 2D pour navigateur avec un éditeur de monde en temps réel. Il tourne dans un seul processus Node.js (`>= 24`, `26 LTS` conseillé) avec une base SQLite, et il est livré avec un monde de démonstration jouable.
 
-| 🏷️ Nature | 🧩 Domaines | ⚙️ Moteur | 💥 Rupture |
-| :---: | :---: | :---: | :---: |
-| Première bêta | **12** | Node.js `>= 24` + SQLite | Schéma `001_init.sql` |
-
-</div>
-
-> Première bêta de **Brindiwanko 1.0** : un moteur de MMORPG 2D pour navigateur avec éditeur de monde en temps réel, dans un seul processus Node.js (`>= 24`, `26 LTS` conseillé) adossé à SQLite, livré avec un monde de démonstration jouable.
-
-### ✨ Ce que contient la bêta
+### ⭐ L'essentiel
 
 | | Domaine | Capacités |
 | :---: | :--- | :--- |
@@ -393,21 +360,21 @@
 | 📱 | **Mobile** | Joystick tactile, boutons Action et Annuler, compétences en arc, plein écran, installation PWA. |
 | 🌍 | **Bilingue** | Jeu, systèmes et éditeur entièrement en **français** et en **anglais**. |
 
-### 🔒 Sécurité & base de données
+### ⚠️ Avant de mettre à jour
 
-- **Restauration par fichier confirmée** — restaurer une sauvegarde téléversée depuis `/admin` redemande le mot de passe administrateur.
+- 🗄️ **Nouvelle base de données** : le schéma repart d'une seule migration (`001_init.sql`), qui remplace les `22` précédentes. Les bases et sauvegardes des versions `0.x` ne sont **pas compatibles** : repartez d'une base neuve.
 
-> [!IMPORTANT]
-> **Rupture de schéma (`001_init.sql`)** : le schéma repart d'une migration initiale unique, équivalente aux `22` migrations précédentes. Les bases et sauvegardes `0.x` ne sont **pas compatibles** : repartez d'une base neuve.
+### 🔎 Tout le détail
 
-> [!TIP]
-> **Rien n'est passé sous silence.** Chaque modification du projet, même minime (correctif d'une ligne, texte d'interface, mise à jour de dépendance, documentation), est consignée dans ce journal, avec les fichiers concernés.
+- **Restauration par fichier confirmée** — restaurer une sauvegarde envoyée depuis `/admin` redemande le mot de passe administrateur.
+
+<p align="right"><a href="#fr-top">⬆️ Haut de page</a></p>
 
 ---
 
 <div align="center">
 
-📄 Sous licence **[Apache 2.0](LICENSE)** &nbsp;·&nbsp; [⬆️ Haut de page](#fr-top) &nbsp;·&nbsp; [🇬🇧 English changelog](#en-top)
+📄 Sous licence **[Apache 2.0](LICENSE)** &nbsp;·&nbsp; Format [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) &nbsp;·&nbsp; Numéros de version [SemVer](https://semver.org/lang/fr/) &nbsp;·&nbsp; [🇬🇧 English changelog](#en-top)
 
 </div>
 
@@ -425,48 +392,31 @@
 
 # 📜 Changelog
 
-#### Every change to Brindiwanko, release after release
+#### What changes in Brindiwanko, from the newest release to the oldest
 
 [![Version](https://img.shields.io/badge/version-1.0.0--beta.2-2563eb?style=for-the-badge)](package.json)
 [![Tests](https://img.shields.io/badge/tests-362%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
-[![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/en/1.1.0/)
-[![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
 
-[🇫🇷 Version française](#fr-top) &nbsp;·&nbsp; **🇬🇧 English**
-
-<table>
-  <tr>
-    <td align="center" width="200"><a href="#en-unreleased"><b>🚧 Unreleased</b></a><br /><sub>2026-11-28 · 1 batch</sub></td>
-    <td align="center" width="200"><a href="#en-beta-2"><b>🧪 1.0.0-beta.2</b></a><br /><sub>2026-11-27 · second beta</sub></td>
-    <td align="center" width="200"><a href="#en-beta-1"><b>🧪 1.0.0-beta.1</b></a><br /><sub>2026-11-11 · first beta</sub></td>
-    <td align="center" width="200"><a href="README.md#en-top"><b>📖 README</b></a><br /><sub>Setup & guide</sub></td>
-  </tr>
-</table>
+[🇫🇷 Version française](#fr-top) &nbsp;·&nbsp; **🇬🇧 English** &nbsp;·&nbsp; [📖 README](README.md#en-top)
 
 </div>
 
 > [!NOTE]
-> This changelog follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/). `P1` (urgent) and `P2` (to fix) refer to the code audits.
->
-> **Legend** &nbsp;·&nbsp; 🔴 `P1` urgent &nbsp;·&nbsp; 🟠 `P2` to fix &nbsp;·&nbsp; 💥 breaking change &nbsp;·&nbsp; 📁 files changed
+> **How to read this changelog**
+> - Each release starts with **the highlights** in a few lines, then what to know **before upgrading**.
+> - The **full detail**, with the files changed, is folded at the bottom of each release: click it to open it. The `P1` (urgent fix) and `P2` (important fix) marks come from the code audits.
+> - Nothing goes unrecorded: every change, even a one-line one, is listed.
 
 <div align="center">
 
-### 🗓️ At a glance
+| | Release | Date | In one sentence |
+| :---: | :--- | :---: | :--- |
+| 🚧 | [**Next release**](#en-unreleased) | in progress | Fixes found while testing beta 2 in a browser. |
+| ✅ | [**1.0.0-beta.2**](#en-beta-2) | 2026-11-27 | Safer and sturdier; events and guilds fixed. |
+| ✅ | [**1.0.0-beta.1**](#en-beta-1) | 2026-11-11 | First beta of the engine and its editor. |
 
-| Status | Step | Date | Theme | Highlights |
-| :---: | :--- | :---: | :--- | :--- |
-| 🚧 | [**🚧 Unreleased**](#en-unreleased) | 2026-11-28 | After beta 2 | 1 batch · 💥 1 breaking change |
-| 🚧 | [**↳ 🧭 Batch 5**](#en-batch-5) | 2026-11-28 | Browser test campaign | 3 issues fixed · 3 regression tests |
-| ✅ | [**🧪 1.0.0-beta.2**](#en-beta-2) | 2026-11-27 | Second beta | 4 batches · 🔴 4 `P1` · 💥 3 breaking changes |
-| ✅ | [**↳ 🩹 Batch 4**](#en-batch-4) | 2026-11-27 | Fixes after a full read of the repository | 🔴 1 `P1` · 🟠 3 `P2` · 5 regression tests |
-| ✅ | [**↳ 🔍 Batch 3**](#en-batch-3) | 2026-11-26 | Test campaign on a blank database | 3 issues fixed · 6 dependencies updated |
-| ✅ | [**↳ 🛠️ Batch 2**](#en-batch-2) | 2026-11-25 | Second opinion on the 360° audit | 🔴 1 `P1` · 12 regression tests |
-| ✅ | [**↳ 🧱 Batch 1**](#en-batch-1) | 2026-11-20 | AppSec, performance & UX stabilization | 🔴 2 `P1` · 🟠 22 `P2` |
-| ✅ | [**🧪 1.0.0-beta.1**](#en-beta-1) | 2026-11-11 | First beta | 12 areas · 💥 new schema |
-
-<sub>🚧 unreleased &nbsp;·&nbsp; ✅ released &nbsp;·&nbsp; ↳ batch of the release above</sub>
+<sub>🚧 not released yet &nbsp;·&nbsp; ✅ released</sub>
 
 </div>
 
@@ -474,33 +424,28 @@
 
 <a id="en-unreleased"></a>
 
-## 🚧 Unreleased
+## 🚧 Next release &nbsp;<sub>not released yet</sub>
 
-<div align="center">
+> Beta 2 is being tested in a real browser: this list will grow.
 
-| 🔴 `P1` fixed | 🧪 Tests | 💥 Breaking | 🆕 Settings | 📦 Batches |
-| :---: | :---: | :---: | :---: | :---: |
-| **0** | **362** ✅ | **1** | **0** | **1** |
+### ⭐ Highlights
 
-</div>
+- 🖼️ **Files added in the editor work right away.** An image, sound or music added while players are connected can be used by an event without anyone reloading the page.
+- ⚔️ **No more fake damage when arriving on a map.** A player who arrives is protected for a few seconds; their attackers now see "Miss" instead of damage the player does not take.
+- 🎯 **No more empty health bar** under the name of another player you target.
 
-> Fixes made since beta 2. The browser test campaign is not over yet: this batch will grow.
+### ⚠️ Before upgrading
 
-> [!WARNING]
-> **Read before upgrading**
-> - 🔌 **Socket.io protocol `v5`**: open game pages reload by themselves.
+- Nothing to do: open game pages reload by themselves (the network protocol moves to `v5`).
+
+### 🔎 Full detail
 
 <a id="en-batch-5"></a>
 
-### 🧭 Batch 5 — Browser test campaign &nbsp;<sub>2026-11-28</sub>
+<details>
+<summary><b>🧭 Batch 5 — Browser test campaign</b> &nbsp;<sub>2026-11-28 · 3 issues fixed · 362 tests</sub></summary>
 
-<div align="center">
-
-| 🎯 Scope | 🐞 Issues fixed | 🧪 New tests | 🧪 Tests |
-| :---: | :---: | :---: | :---: |
-| Beta 2 played in a browser | **3** | **3** | **362** ✅ |
-
-</div>
+<br />
 
 > Beta 2 played in a real browser with two accounts, an administrator and a player: accounts, maps, events, quests, economy, combat, social features and guilds. No blocking bug; 3 issues fixed.
 
@@ -523,27 +468,33 @@
 
 <sub>📁 `tests/qa-campaign-fixes.test.ts`</sub>
 
+</details>
+
+<p align="right"><a href="#en-top">⬆️ Back to top</a></p>
+
 ---
 
 <a id="en-beta-2"></a>
 
-## 🧪 1.0.0-beta.2 &nbsp;<sub>2026-11-27</sub>
+## ✅ 1.0.0-beta.2 &nbsp;<sub>2026-11-27</sub>
 
-<div align="center">
+> Second beta of **Brindiwanko 1.0**: safer, sturdier, with fixed events and guilds and complete install guides.
 
-| 🔴 `P1` fixed | 🧪 Tests | 💥 Breaking | 🆕 Settings | 📦 Batches |
-| :---: | :---: | :---: | :---: | :---: |
-| **4** | **359** ✅ | **3** | **5** | **4** |
+### ⭐ Highlights
 
-</div>
+- 🧩 **Events** — a player who disconnects in the middle of an event can no longer duplicate items (by opening a chest twice, for example). A question left unanswered is cancelled instead of taking its first choice.
+- 🛡️ **Guilds** — a new guild gets its ranks in the server's language, and the largest guild size can be set.
+- 🔌 **A sturdier server** — a database error while a player arrives no longer stops the whole server, reconnect loops are slowed down, and restoring a backup no longer freezes the game.
+- 🔐 **Stronger security** — uploaded files (ZIP, SVG) checked more closely, event scripts better isolated, password asked again for sensitive actions between administrators, e-mail address confirmation.
+- ⚡ **Faster** — fewer database queries and more caching.
+- 🎮 **Game and editor** — monsters stay in their area, more responsive controls, interface hidden during dialogues, dungeons no longer reset when you change party, editor commands kept in the chosen order, complete language switching.
+- 📚 **Documentation** — step-by-step install guides (PC, Mac, Linux and online server) and 28 screenshots. Dependencies updated.
 
-> Second beta of **Brindiwanko 1.0**: hardened security, a sturdier server, fixed events and guilds, and complete install guides. It gathers the 4 batches below.
+### ⚠️ Before upgrading
 
-> [!WARNING]
-> **Read before updating**
-> - 🔌 **Socket.io protocol `v4`**: open game pages reload by themselves.
-> - 🗄️ **`001_init.sql` schema changed**: a database created with beta 1 must be recreated, and its backups can no longer be restored. Until the final 1.0, the schema stays in this single file, so a new beta may require a fresh database.
-> - 🔑 **Password resets from the admin panel**: the administrator starting one must type their own password.
+- 🗄️ **Recreate the database**: a database created with beta 1 does not work with beta 2, and its backups can no longer be restored. Until the final 1.0, a new beta may still require a fresh database.
+- 🔌 Open game pages reload by themselves (the network protocol moves to `v4`).
+- 🔑 To reset an account's password from the administration panel, the administrator must type their own password.
 
 ### 🆕 New settings
 
@@ -555,17 +506,16 @@
 | `guildMaxMembers` | System settings | `100` | Largest guild size. |
 | `instanceLockMinutes` | System settings | `5` | Wait before reopening a copy of the same dungeon. |
 
+### 🔎 Full detail
+
+Beta 2 was prepared in 4 batches of fixes, newest first. Click a batch to open it.
+
 <a id="en-batch-4"></a>
 
-### 🩹 Batch 4 — Fixes after a full read of the repository &nbsp;<sub>2026-11-27</sub>
+<details>
+<summary><b>🩹 Batch 4 — Fixes after a full read of the code</b> &nbsp;<sub>2026-11-27 · 🔴 1 <code>P1</code> + 🟠 3 <code>P2</code> · 359 tests</sub></summary>
 
-<div align="center">
-
-| 🎯 Kind | 🐞 Issues fixed | 🧪 New tests | 🧪 Tests |
-| :---: | :---: | :---: | :---: |
-| All 386 files read | 🔴 **1** `P1` · 🟠 **3** `P2` | **5** | **359** ✅ |
-
-</div>
+<br />
 
 > Every one of the 386 files of the repository was read, then the issues found were fixed. No urgent security flaw was found.
 
@@ -599,22 +549,14 @@
 
 <sub>📁 `tests/events.test.ts` · `tests/guild.test.ts` · `tests/audit.test.ts` · `tests/ux-additions.test.ts`</sub>
 
-#### 🗂️ Previous batches &nbsp;<sub>click a batch to expand it</sub>
+</details>
 
 <a id="en-batch-3"></a>
 
 <details>
-<summary><b>🔍 Batch 3 — Test campaign on a blank database</b> &nbsp;<sub>2026-11-26 · 3 minor issues · click to expand</sub></summary>
+<summary><b>🔍 Batch 3 — Full test on a fresh install</b> &nbsp;<sub>2026-11-26 · 3 minor issues · 6 dependencies updated · 354 tests</sub></summary>
 
 <br />
-
-<div align="center">
-
-| 🎯 Kind | 🐞 Issues fixed | 📦 Dependencies | 🧪 Tests |
-| :---: | :---: | :---: | :---: |
-| Run on a blank database | **3** minor | **6** updated | **354** ✅ |
-
-</div>
 
 > Full run on a fresh install, first in the editor then as a player: new village, two-way portals, 2 monsters, 4 NPCs, a 3-step quest, a server restart and FR/EN switching. No blocking bug; 3 minor issues fixed.
 
@@ -645,7 +587,7 @@
 <a id="en-batch-2"></a>
 
 <details>
-<summary><b>🛠️ Batch 2 — Second opinion on the 360° audit</b> &nbsp;<sub>2026-11-25 · 1 <code>P1</code> · click to expand</sub></summary>
+<summary><b>🛠️ Batch 2 — Second opinion on the code audit</b> &nbsp;<sub>2026-11-25 · 🔴 1 <code>P1</code> · 12 tests added</sub></summary>
 
 <br />
 
@@ -723,7 +665,7 @@
 <a id="en-batch-1"></a>
 
 <details>
-<summary><b>🧱 Batch 1 — AppSec, performance & beta UX stabilization</b> &nbsp;<sub>2026-11-20 · 2 <code>P1</code> + 22 <code>P2</code> · click to expand</sub></summary>
+<summary><b>🧱 Batch 1 — Security, performance and comfort</b> &nbsp;<sub>2026-11-20 · 🔴 2 <code>P1</code> + 🟠 22 <code>P2</code></sub></summary>
 
 <br />
 
@@ -783,19 +725,11 @@
 
 <a id="en-beta-1"></a>
 
-## 🧪 1.0.0-beta.1 &nbsp;<sub>2026-11-11</sub>
+## ✅ 1.0.0-beta.1 &nbsp;<sub>2026-11-11</sub>
 
-<div align="center">
+> First beta of **Brindiwanko 1.0**: a browser-based 2D MMORPG engine with a live world editor. It runs in a single Node.js process (`>= 24`, `26 LTS` recommended) with an SQLite database, and ships with a playable demo world.
 
-| 🏷️ Kind | 🧩 Areas | ⚙️ Engine | 💥 Breaking |
-| :---: | :---: | :---: | :---: |
-| First beta | **12** | Node.js `>= 24` + SQLite | `001_init.sql` schema |
-
-</div>
-
-> First beta of **Brindiwanko 1.0**: a browser-based 2D MMORPG engine with a live world editor, in a single Node.js process (`>= 24`, `26 LTS` recommended) backed by SQLite, shipped with a playable demo world.
-
-### ✨ What the beta includes
+### ⭐ Highlights
 
 | | Area | Capabilities |
 | :---: | :--- | :--- |
@@ -812,20 +746,20 @@
 | 📱 | **Mobile** | Touch joystick, Action and Cancel buttons, skill arc, fullscreen, installable PWA. |
 | 🌍 | **Bilingual** | Game, systems and editor fully in **English** and **French**. |
 
-### 🔒 Security & database
+### ⚠️ Before upgrading
+
+- 🗄️ **New database**: the schema starts again from a single migration (`001_init.sql`) that replaces the `22` earlier ones. Databases and backups from `0.x` releases are **not compatible**: start from a fresh database.
+
+### 🔎 Full detail
 
 - **Confirmed file restore** — restoring an uploaded backup from `/admin` asks for the administrator password again.
 
-> [!IMPORTANT]
-> **Schema reset (`001_init.sql`)**: the schema starts from a single base migration matching the `22` earlier ones. Databases and backups from `0.x` are **not compatible**: start from a fresh database.
-
-> [!TIP]
-> **Nothing goes unrecorded.** Every change to the project, however small (a one-line fix, an interface string, a dependency update, documentation), is logged in this changelog, with the files it touches.
+<p align="right"><a href="#en-top">⬆️ Back to top</a></p>
 
 ---
 
 <div align="center">
 
-📄 Released under the **[Apache 2.0 License](LICENSE)** &nbsp;·&nbsp; [⬆️ Back to top](#en-top) &nbsp;·&nbsp; [🇫🇷 Journal en français](#fr-top)
+📄 Released under the **[Apache 2.0 License](LICENSE)** &nbsp;·&nbsp; [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format &nbsp;·&nbsp; [SemVer](https://semver.org/) version numbers &nbsp;·&nbsp; [🇫🇷 Journal en français](#fr-top)
 
 </div>
