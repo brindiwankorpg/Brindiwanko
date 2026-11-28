@@ -10,6 +10,12 @@
  * edge goes to column 0 while `realX` goes from the last column to one past
  * it (-1 on the other side), so the step is drawn smoothly across the edge.
  *
+ * Characters moved by the server (other players, monsters) follow the positions it sends with
+ * {@link MapCharacter.follow}: the server sends them 20 times a second while a step lasts 266 ms, so they
+ * arrive at uneven times (250 then 300 ms, plus the network). The steps are queued and walked one after the
+ * other, starting a little late, so that the walk neither jumps (a position arriving before the step it
+ * follows is over) nor stops (one arriving after).
+ *
  * Animation: sheets have 3 patterns per direction, played 0-1-2-1; pattern 1
  * is the standing pose. The pattern advances every (9 - speed) × 3 frames,
  * 1.5 × faster while walking.
@@ -23,6 +29,14 @@
 import { directionOffset } from '../../shared/map.js';
 import type { Direction } from '../../shared/settings.js';
 import type { Bitmap } from './assets.js';
+
+/**
+ * Frames (1/60 s) a character moved by the server waits before the first step of a walk: the next position
+ * then arrives before the step under way ends, even 100 ms late (uneven sending times and network).
+ */
+export const FOLLOW_DELAY_FRAMES = 6;
+/** Steps a character moved by the server may have waiting; one more and it jumps to the last position. */
+export const FOLLOW_MAX_QUEUE = 4;
 
 /** Where a character's frames come from. */
 export interface SpriteSource {
@@ -69,9 +83,15 @@ export class MapCharacter {
   loopW = 0;
   loopH = 0;
   private animationCount = 0;
+  /** Positions received from the server and not walked yet (see {@link follow}). */
+  private readonly queue: { x: number; y: number; direction: Direction }[] = [];
+  /** Frames left before the first queued step starts. */
+  private holdFrames = 0;
 
   /** Places the character on a cell instantly. */
   locate(x: number, y: number): void {
+    this.queue.length = 0;
+    this.holdFrames = 0;
     this.x = x;
     this.y = y;
     this.realX = x;
@@ -127,6 +147,58 @@ export class MapCharacter {
     }
   }
 
+  /**
+   * Walks to a position sent by the server (another player, a monster). A step received while another is
+   * under way is queued, then started as soon as the previous one ends, with no stop in between; the first
+   * step of a walk waits {@link FOLLOW_DELAY_FRAMES} frames, and a queue that grows is walked faster. A
+   * position that is not one step from the last one (teleport), or too many steps behind, is jumped to.
+   * @param isStep - Tells whether a cell is one step from another (through the edges of a looping map).
+   */
+  follow(x: number, y: number, direction: Direction, isStep: (fromX: number, fromY: number, toX: number, toY: number) => boolean): void {
+    const last = this.queue.at(-1);
+    const fromX = last ? last.x : this.x;
+    const fromY = last ? last.y : this.y;
+    if (fromX === x && fromY === y) {
+      // Turning on the spot: after the steps still to walk, or at once.
+      if (last) last.direction = direction;
+      else this.direction = direction;
+      return;
+    }
+    if (!isStep(fromX, fromY, x, y) || this.queue.length >= FOLLOW_MAX_QUEUE) {
+      this.locate(x, y);
+      this.direction = direction;
+      return;
+    }
+    if (this.queue.length === 0 && !this.isMoving()) this.holdFrames = FOLLOW_DELAY_FRAMES;
+    this.queue.push({ x, y, direction });
+  }
+
+  /** Steps received from the server and not started yet. */
+  get queuedSteps(): number {
+    return this.queue.length;
+  }
+
+  /** Starts the next queued step. */
+  private nextStep(): void {
+    const next = this.queue.shift()!;
+    this.direction = next.direction;
+    this.stepTo(next.x, next.y);
+  }
+
+  /**
+   * Moves the drawn position towards the destination cell.
+   * @returns The part of `distance` left once the cell is reached.
+   */
+  private advance(distance: number): number {
+    const before = Math.abs(this.x - this.realX) + Math.abs(this.y - this.realY);
+    if (this.x < this.realX) this.realX = Math.max(this.realX - distance, this.x);
+    if (this.x > this.realX) this.realX = Math.min(this.realX + distance, this.x);
+    if (this.y < this.realY) this.realY = Math.max(this.realY - distance, this.y);
+    if (this.y > this.realY) this.realY = Math.min(this.realY + distance, this.y);
+    const after = Math.abs(this.x - this.realX) + Math.abs(this.y - this.realY);
+    return after > 0 ? 0 : Math.max(0, distance - before);
+  }
+
   /** Distance covered per frame, in tiles. */
   distancePerFrame(): number {
     return 2 ** this.moveSpeed / 256;
@@ -136,13 +208,20 @@ export class MapCharacter {
   update(): void {
     this.prevX = this.realX;
     this.prevY = this.realY;
+    if (this.queue.length > 0 && !this.isMoving()) {
+      if (this.holdFrames > 0) this.holdFrames--;
+      else this.nextStep();
+    }
     const moving = this.isMoving();
     if (moving) {
-      const step = this.distancePerFrame();
-      if (this.x < this.realX) this.realX = Math.max(this.realX - step, this.x);
-      if (this.x > this.realX) this.realX = Math.min(this.realX + step, this.x);
-      if (this.y < this.realY) this.realY = Math.max(this.realY - step, this.y);
-      if (this.y > this.realY) this.realY = Math.min(this.realY + step, this.y);
+      // Steps waiting beyond the next one are caught up on: half as fast again per extra step.
+      const step = this.distancePerFrame() * (1 + Math.max(0, this.queue.length - 1) / 2);
+      const left = this.advance(step);
+      // The next step goes on in the same frame: no stop between two cells.
+      if (left > 0 && this.queue.length > 0) {
+        this.nextStep();
+        this.advance(left);
+      }
     }
     if (moving && this.walkAnime) this.animationCount += 1.5;
     else if (this.stepAnime || this.pattern !== 1) this.animationCount += 1;

@@ -228,6 +228,14 @@ export class MapScene {
     else c.locate(x, y);
   }
 
+  /**
+   * Walks a character moved by the server (another player, a monster) to the position it sent: steps are
+   * queued and chained without jumps nor stops (see {@link MapCharacter.follow}).
+   */
+  followCharacter(c: MapCharacter, x: number, y: number, direction: Direction): void {
+    c.follow(x, y, direction, (fromX, fromY, toX, toY) => Math.abs(deltaX(this.map, fromX, toX)) + Math.abs(deltaY(this.map, fromY, toY)) === 1);
+  }
+
   /** Shortest offset between two cells (through the edges of a looping map). */
   delta(fromX: number, fromY: number, toX: number, toY: number): { dx: number; dy: number } {
     return { dx: deltaX(this.map, fromX, toX), dy: deltaY(this.map, fromY, toY) };
@@ -354,13 +362,11 @@ export class MapScene {
     if (image && this.monsters.get(view.id)?.character === character) character.sprite = { image, ...sheetFlags(view.characterName), index: view.characterIndex };
   }
 
-  /** Moves or turns a monster (one-cell steps are interpolated). */
+  /** Moves or turns a monster (one-cell steps are walked one after the other, see {@link followCharacter}). */
   moveMonster(id: number, x: number, y: number, direction: Direction): void {
     const m = this.monsters.get(id) ?? moveEntry(this.unseenMonsters, this.monsters, id);
     if (!m || m.dying) return;
-    const c = m.character;
-    c.direction = direction;
-    this.moveCharacter(c, x, y);
+    this.followCharacter(m.character, x, y, direction);
   }
 
   /** Removes a monster, fading it out when it was defeated. */
@@ -488,16 +494,14 @@ export class MapScene {
   }
 
   /**
-   * Applies a position update of another player. One-cell steps are
-   * interpolated; anything else (teleport, lag spike) snaps.
+   * Applies a position update of another player. One-cell steps are walked one
+   * after the other (see {@link followCharacter}); anything else (teleport) snaps.
    */
   moveRemote(id: number, x: number, y: number, direction: Direction): void {
     const remote = this.remotes.get(id) ?? moveEntry(this.unseenRemotes, this.remotes, id);
     if (!remote) return;
-    const c = remote.character;
-    c.direction = direction;
     remote.info = { ...remote.info, x, y, direction };
-    this.moveCharacter(c, x, y);
+    this.followCharacter(remote.character, x, y, direction);
   }
 
   /** Adds or replaces an event. */

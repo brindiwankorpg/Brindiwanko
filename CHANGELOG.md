@@ -9,7 +9,7 @@
 #### Ce qui change dans Brindiwanko, de la version la plus récente à la plus ancienne
 
 [![Version](https://img.shields.io/badge/version-1.0.0--beta.2-2563eb?style=for-the-badge)](package.json)
-[![Tests](https://img.shields.io/badge/tests-362%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/tests-364%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
 
 **🇫🇷 Français** &nbsp;·&nbsp; [🇬🇧 English version](#en-top) &nbsp;·&nbsp; [📖 README](README.md)
@@ -44,6 +44,7 @@
 
 ### ⭐ L'essentiel
 
+- 🚶 **Les autres joueurs se déplacent de façon fluide.** On ne les voit plus sauter ni s'arrêter un court instant à chaque case ; les monstres non plus.
 - 🖼️ **Les fichiers ajoutés dans l'éditeur servent tout de suite.** Une image, un son ou une musique ajoutés pendant que des joueurs sont connectés peuvent être utilisés par un évènement sans que personne ne recharge la page.
 - ⚔️ **Plus de faux dégâts à l'arrivée sur une carte.** Un joueur qui arrive est protégé quelques secondes ; ceux qui l'attaquent voient maintenant « Miss » au lieu de dégâts qu'il ne subit pas.
 - 🎯 **Plus de barre de vie vide** sous le nom d'un autre joueur que l'on cible.
@@ -57,17 +58,23 @@
 <a id="fr-lot-5"></a>
 
 <details>
-<summary><b>🧭 Lot 5 — Campagne de tests en navigateur</b> &nbsp;<sub>28/11/2026 · 3 anomalies corrigées · 362 tests</sub></summary>
+<summary><b>🧭 Lot 5 — Campagne de tests en navigateur</b> &nbsp;<sub>28/11/2026 · 4 anomalies corrigées · 364 tests</sub></summary>
 
 <br />
 
-> Parcours de la bêta 2 dans un vrai navigateur avec deux comptes, administrateur et joueur : comptes, cartes, évènements, quêtes, économie, combat, social et guildes. Aucun bug bloquant ; 3 anomalies corrigées.
+> Parcours de la bêta 2 dans un vrai navigateur avec deux comptes, administrateur et joueur : comptes, cartes, évènements, quêtes, économie, combat, social et guildes. Aucun bug bloquant ; 3 anomalies corrigées. Une 4e, vue par l'auteur en jouant en multijoueur, est corrigée dans le même lot.
 
 #### 🗺️ Éditeur & ressources
 
 - **Fichiers ajoutés en cours de partie** — une image, un son ou une musique ajoutés, remplacés ou supprimés dans l'éditeur sont maintenant connus des joueurs déjà connectés, sans recharger la page : un évènement peut s'en servir tout de suite.
 
 <sub>📁 `shared/protocol.ts` · `server/db/resources.ts` · `server/game/world.ts` · `client/game.ts`</sub>
+
+#### 🚶 Déplacements
+
+- **Autres joueurs et monstres fluides** — le serveur envoie les positions 20 fois par seconde alors qu'un pas dure 266 ms : elles arrivaient à intervalles irréguliers, et chaque nouvelle position plaçait le personnage d'un coup au bout de son pas (saut) ou le laissait attendre (arrêt). Les pas reçus sont maintenant mis en file et enchaînés, avec un départ retardé d'environ 0,1 s qui absorbe ces écarts. Un retard qui s'accumule est rattrapé en marchant plus vite ; au-delà de 4 pas de retard, le personnage est replacé directement.
+
+<sub>📁 `client/engine/character.ts` · `client/engine/scene.ts`</sub>
 
 #### ⚔️ Combat & interface
 
@@ -78,7 +85,7 @@
 
 #### 🧪 Tests
 
-- `3` tests de régression, un par anomalie. Suite portée à **362** tests.
+- `5` tests de régression : un par anomalie, et deux pour la marche des autres joueurs (rythme réel du serveur, téléportation, demi-tour, retard). Suite portée à **364** tests.
 
 <sub>📁 `tests/qa-campaign-fixes.test.ts`</sub>
 
@@ -395,7 +402,7 @@ La bêta 2 a été préparée en 4 lots de corrections, du plus récent au plus 
 #### What changes in Brindiwanko, from the newest release to the oldest
 
 [![Version](https://img.shields.io/badge/version-1.0.0--beta.2-2563eb?style=for-the-badge)](package.json)
-[![Tests](https://img.shields.io/badge/tests-362%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/tests-364%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
 
 [🇫🇷 Version française](#fr-top) &nbsp;·&nbsp; **🇬🇧 English** &nbsp;·&nbsp; [📖 README](README.md#en-top)
@@ -430,6 +437,7 @@ La bêta 2 a été préparée en 4 lots de corrections, du plus récent au plus 
 
 ### ⭐ Highlights
 
+- 🚶 **Other players move smoothly.** They no longer seem to jump or pause for a moment on every cell; monsters neither.
 - 🖼️ **Files added in the editor work right away.** An image, sound or music added while players are connected can be used by an event without anyone reloading the page.
 - ⚔️ **No more fake damage when arriving on a map.** A player who arrives is protected for a few seconds; their attackers now see "Miss" instead of damage the player does not take.
 - 🎯 **No more empty health bar** under the name of another player you target.
@@ -443,17 +451,23 @@ La bêta 2 a été préparée en 4 lots de corrections, du plus récent au plus 
 <a id="en-batch-5"></a>
 
 <details>
-<summary><b>🧭 Batch 5 — Browser test campaign</b> &nbsp;<sub>2026-11-28 · 3 issues fixed · 362 tests</sub></summary>
+<summary><b>🧭 Batch 5 — Browser test campaign</b> &nbsp;<sub>2026-11-28 · 4 issues fixed · 364 tests</sub></summary>
 
 <br />
 
-> Beta 2 played in a real browser with two accounts, an administrator and a player: accounts, maps, events, quests, economy, combat, social features and guilds. No blocking bug; 3 issues fixed.
+> Beta 2 played in a real browser with two accounts, an administrator and a player: accounts, maps, events, quests, economy, combat, social features and guilds. No blocking bug; 3 issues fixed. A 4th one, seen by the author while playing in multiplayer, is fixed in the same batch.
 
 #### 🗺️ Editor & resources
 
 - **Files added during play** — an image, sound or music added, replaced or deleted in the editor now reaches the players already connected, without reloading the page: an event can use it right away.
 
 <sub>📁 `shared/protocol.ts` · `server/db/resources.ts` · `server/game/world.ts` · `client/game.ts`</sub>
+
+#### 🚶 Movement
+
+- **Smooth other players and monsters** — the server sends positions 20 times a second while a step lasts 266 ms: they arrived at uneven times, and each new position put the character at the end of its step at once (a jump) or left it waiting (a stop). The steps received are now queued and chained, starting about 0.1 s late to absorb these gaps. A delay that builds up is caught up by walking faster; more than 4 steps behind, the character is moved straight to its position.
+
+<sub>📁 `client/engine/character.ts` · `client/engine/scene.ts`</sub>
 
 #### ⚔️ Combat & interface
 
@@ -464,7 +478,7 @@ La bêta 2 a été préparée en 4 lots de corrections, du plus récent au plus 
 
 #### 🧪 Tests
 
-- `3` regression tests, one per issue. Suite raised to **362** tests.
+- `5` regression tests: one per issue, and two for the walk of other players (real server pace, teleport, turning, falling behind). Suite raised to **364** tests.
 
 <sub>📁 `tests/qa-campaign-fixes.test.ts`</sub>
 

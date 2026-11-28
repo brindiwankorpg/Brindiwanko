@@ -1,18 +1,19 @@
 /**
  * @file Regression tests of the anomalies found by the browser test campaign of 1.0.0-beta.2: a file uploaded
  * in the editor that the players already in game never received (3.6), the empty HP bar of another player
- * in the target frame (6.2), and the damage numbers shown to an attacker while its target was still under the
- * arrival protection (6.2).
+ * in the target frame (6.2), the damage numbers shown to an attacker while its target was still under the
+ * arrival protection (6.2), and the jerky walk of the other players (seen by the author in multiplayer).
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { after, before, test } from 'node:test';
 import { io as connect, type Socket } from 'socket.io-client';
+import { FOLLOW_DELAY_FRAMES, FOLLOW_MAX_QUEUE, MapCharacter } from '../client/engine/character.js';
 import type { DamageView } from '../shared/combat.js';
 import type { ClientToServerEvents, ServerToClientEvents } from '../shared/protocol.js';
 import { DEMO_MAPS } from '../server/db/demo-map.js';
-import type { PlayerSession } from '../server/game/world.js';
+import { STEP_MS, TICK_HZ, type PlayerSession } from '../server/game/world.js';
 import { PATHS } from '../server/paths.js';
 import { startTestServer, TestClient, type TestServer } from './helpers/server.js';
 
@@ -138,4 +139,58 @@ test('on a PvP map, a player under the arrival protection is missed: no damage n
     map.mmo.pvp = false;
     for (const p of [ann, cal]) p.socket.close();
   }
+});
+
+/**
+ * Plays the positions of another player walking right as the server sends them (one step every `STEP_MS`, sent at
+ * the next tick of the world, then delayed by the network) on a client drawing at 60 frames a second, and returns
+ * the drawn position after each frame.
+ */
+function walkSeenByAnotherPlayer(steps: number, jitterMs: (step: number) => number): number[] {
+  const c = new MapCharacter();
+  c.locate(0, 0);
+  const tickMs = 1000 / TICK_HZ;
+  const arrivals = [...Array(steps).keys()].map((k) => ({ at: Math.ceil((k * STEP_MS) / tickMs) * tickMs + jitterMs(k), x: k + 1 }));
+  const drawn: number[] = [];
+  for (let frame = 0; frame < 600 && (drawn.at(-1) ?? 0) < steps; frame++) {
+    const now = (frame * 1000) / 60;
+    while (arrivals.length && arrivals[0]!.at <= now) c.follow(arrivals.shift()!.x, 0, 6, (fx, fy, tx, ty) => Math.abs(tx - fx) + Math.abs(ty - fy) === 1);
+    c.update();
+    drawn.push(c.realX);
+  }
+  return drawn;
+}
+
+test('another player walks smoothly: positions sent at uneven times are chained without jumps nor stops (multiplayer)', () => {
+  const perFrame = new MapCharacter().distancePerFrame();
+  // Network delay that changes from one message to the next (0 to 40 ms), always the same for the test.
+  for (const jitter of [() => 0, (k: number) => (k * 37) % 41]) {
+    const drawn = walkSeenByAnotherPlayer(12, jitter);
+    assert.equal(drawn.at(-1), 12, 'the walk reaches the last cell');
+    const start = drawn.findIndex((x) => x > 0);
+    assert.ok(start <= FOLLOW_DELAY_FRAMES + 2, 'the walk starts a few frames after the first position');
+    const moves = drawn.slice(start).map((x, i, all) => x - (i === 0 ? 0 : all[i - 1]!));
+    // Before: a position arriving early made the drawn player jump to the end of its step, one arriving late stopped it.
+    assert.ok(moves.every((d) => d > 0), 'never stops in the middle of the walk');
+    assert.ok(moves.every((d) => d <= perFrame * 1.5 + 1e-9), 'never jumps');
+  }
+});
+
+test('another player who teleports, turns or falls far behind is shown where the server says', () => {
+  const isStep = (fx: number, fy: number, tx: number, ty: number) => Math.abs(tx - fx) + Math.abs(ty - fy) === 1;
+  const c = new MapCharacter();
+  c.locate(5, 5);
+  // A teleport is shown at once.
+  c.follow(9, 9, 2, isStep);
+  assert.deepEqual([c.x, c.y, c.realX, c.realY, c.direction], [9, 9, 9, 9, 2]);
+  // A turn on the spot comes after the steps still to walk.
+  c.follow(10, 9, 6, isStep);
+  c.follow(10, 9, 8, isStep);
+  assert.equal(c.direction, 2, 'not turned before the step');
+  for (let i = 0; i < 40; i++) c.update();
+  assert.deepEqual([c.x, c.realX, c.direction], [10, 10, 8], 'stepped right, then turned up');
+  // Far behind (a hidden tab, a long freeze): the player is put on the last position instead of running after it.
+  for (let i = 1; i <= FOLLOW_MAX_QUEUE + 1; i++) c.follow(10 + i, 9, 6, isStep);
+  assert.equal(c.queuedSteps, 0);
+  assert.deepEqual([c.x, c.realX], [10 + FOLLOW_MAX_QUEUE + 1, 10 + FOLLOW_MAX_QUEUE + 1]);
 });
