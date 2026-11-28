@@ -2177,7 +2177,8 @@
   },
   "combat": {
     "knocked_out": "Vous êtes K.O. !",
-    "respawn_in": "Retour au point de réapparition dans"
+    "respawn_in": "Retour au point de réapparition dans",
+    "miss": "Raté"
   },
   "skills": {
     "title": "Compétences",

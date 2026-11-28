@@ -389,9 +389,10 @@ export class MapScene {
 
   /**
    * Shows the result of a hit as a floating number (and updates the monster's bar).
+   * @param missText - Word shown for a missed hit, in the player's language (the engine has no translations).
    * @param popup - `false` only updates the bar (floating numbers turned off in the options).
    */
-  showDamage(anchor: Anchor, view: DamageView, popup = true): void {
+  showDamage(anchor: Anchor, view: DamageView, missText: string, popup = true): void {
     if (view.target.kind === 'monster') {
       const m = this.monsters.get(view.target.id) ?? this.unseenMonsters.get(view.target.id);
       if (m) {
@@ -401,7 +402,7 @@ export class MapScene {
       }
     }
     if (!popup) return;
-    const text = view.kind === 'miss' ? 'Miss' : `${view.kind.endsWith('recover') ? '+' : ''}${view.amount}`;
+    const text = view.kind === 'miss' ? missText : `${view.kind.endsWith('recover') ? '+' : ''}${view.amount}`;
     const color = view.kind === 'miss' ? '#d8d8d8' : view.kind === 'hp_recover' ? '#7dff8a' : view.kind === 'mp_recover' ? '#7fc4ff' : view.kind === 'mp_damage' ? '#c690ff' : view.target.kind === 'player' ? '#ff6a5a' : '#ffffff';
     this.popups.push({ anchor: { realX: anchor.realX, realY: anchor.realY }, text: view.critical ? `${text}!` : text, color: view.critical ? '#ffd23a' : color, big: view.critical, age: 0 });
   }

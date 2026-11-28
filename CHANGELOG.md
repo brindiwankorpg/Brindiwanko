@@ -46,8 +46,9 @@
 
 - 🚶 **Les autres joueurs se déplacent de façon fluide.** On ne les voit plus sauter ni s'arrêter un court instant à chaque case ; les monstres non plus.
 - 🖼️ **Les fichiers ajoutés dans l'éditeur servent tout de suite.** Une image, un son ou une musique ajoutés pendant que des joueurs sont connectés peuvent être utilisés par un évènement sans que personne ne recharge la page.
-- ⚔️ **Plus de faux dégâts à l'arrivée sur une carte.** Un joueur qui arrive est protégé quelques secondes ; ceux qui l'attaquent voient maintenant « Miss » au lieu de dégâts qu'il ne subit pas.
+- ⚔️ **Plus de faux dégâts à l'arrivée sur une carte.** Un joueur qui arrive est protégé quelques secondes ; ceux qui l'attaquent voient maintenant « Raté » au lieu de dégâts qu'il ne subit pas.
 - 🎯 **Plus de barre de vie vide** sous le nom d'un autre joueur que l'on cible.
+- 🌍 **Coups ratés traduits** : « Raté » en français, au lieu de « Miss » dans toutes les langues.
 
 ### ⚠️ Avant de mettre à jour
 
@@ -58,11 +59,11 @@
 <a id="fr-lot-5"></a>
 
 <details>
-<summary><b>🧭 Lot 5 — Campagne de tests en navigateur</b> &nbsp;<sub>28/11/2026 · 4 anomalies corrigées · 364 tests</sub></summary>
+<summary><b>🧭 Lot 5 — Campagne de tests en navigateur</b> &nbsp;<sub>28/11/2026 · 5 anomalies corrigées · 364 tests</sub></summary>
 
 <br />
 
-> Parcours de la bêta 2 dans un vrai navigateur avec deux comptes, administrateur et joueur : comptes, cartes, évènements, quêtes, économie, combat, social et guildes. Aucun bug bloquant ; 3 anomalies corrigées. Une 4e, vue par l'auteur en jouant en multijoueur, est corrigée dans le même lot.
+> Parcours de la bêta 2 dans un vrai navigateur avec deux comptes, administrateur et joueur : comptes, cartes, évènements, quêtes, économie, combat, social et guildes. Aucun bug bloquant ; 3 anomalies corrigées. Une 4e, vue par l'auteur en jouant en multijoueur, et un texte resté en anglais sont corrigés dans le même lot.
 
 #### 🗺️ Éditeur & ressources
 
@@ -78,10 +79,11 @@
 
 #### ⚔️ Combat & interface
 
-- **Protection d'arrivée** — un joueur qui vient d'arriver ne peut pas être blessé pendant quelques secondes : les coups qu'il reçoit s'affichent maintenant « Miss », au lieu de faux chiffres de dégâts, et n'appliquent aucun état.
+- **Protection d'arrivée** — un joueur qui vient d'arriver ne peut pas être blessé pendant quelques secondes : les coups qu'il reçoit s'affichent maintenant « Raté », au lieu de faux chiffres de dégâts, et n'appliquent aucun état.
 - **Cible** — la jauge de PV vide ne s'affiche plus sous le nom d'un autre joueur ciblé.
+- **Coups ratés traduits** — le mot affiché au-dessus d'un personnage pour un coup raté était écrit en anglais dans toutes les langues ; il suit maintenant la langue du joueur (« Raté » en français, « Miss » en anglais). Nouvelle clé `combat.miss` (2 392 clés).
 
-<sub>📁 `server/game/combat.ts` · `client/styles/game.css`</sub>
+<sub>📁 `server/game/combat.ts` · `client/styles/game.css` · `client/engine/scene.ts` · `client/game.ts` · `locales/*.json` · `README.md`</sub>
 
 #### 🧪 Tests
 
@@ -441,6 +443,7 @@ La bêta 2 a été préparée en 4 lots de corrections, du plus récent au plus 
 - 🖼️ **Files added in the editor work right away.** An image, sound or music added while players are connected can be used by an event without anyone reloading the page.
 - ⚔️ **No more fake damage when arriving on a map.** A player who arrives is protected for a few seconds; their attackers now see "Miss" instead of damage the player does not take.
 - 🎯 **No more empty health bar** under the name of another player you target.
+- 🌍 **Missed hits translated**: French players now see « Raté » instead of "Miss".
 
 ### ⚠️ Before upgrading
 
@@ -451,11 +454,11 @@ La bêta 2 a été préparée en 4 lots de corrections, du plus récent au plus 
 <a id="en-batch-5"></a>
 
 <details>
-<summary><b>🧭 Batch 5 — Browser test campaign</b> &nbsp;<sub>2026-11-28 · 4 issues fixed · 364 tests</sub></summary>
+<summary><b>🧭 Batch 5 — Browser test campaign</b> &nbsp;<sub>2026-11-28 · 5 issues fixed · 364 tests</sub></summary>
 
 <br />
 
-> Beta 2 played in a real browser with two accounts, an administrator and a player: accounts, maps, events, quests, economy, combat, social features and guilds. No blocking bug; 3 issues fixed. A 4th one, seen by the author while playing in multiplayer, is fixed in the same batch.
+> Beta 2 played in a real browser with two accounts, an administrator and a player: accounts, maps, events, quests, economy, combat, social features and guilds. No blocking bug; 3 issues fixed. A 4th one, seen by the author while playing in multiplayer, and a text left in English are fixed in the same batch.
 
 #### 🗺️ Editor & resources
 
@@ -473,8 +476,9 @@ La bêta 2 a été préparée en 4 lots de corrections, du plus récent au plus 
 
 - **Arrival protection** — a player who just arrived cannot be hurt for a few seconds: the blows they take now show "Miss" instead of fake damage numbers, and apply no state.
 - **Target** — the empty HP gauge no longer shows under the name of another targeted player.
+- **Missed hits translated** — the word shown above a character for a missed hit was written in English in every language; it now follows the player's language (« Raté » in French, "Miss" in English). New key `combat.miss` (2,392 keys).
 
-<sub>📁 `server/game/combat.ts` · `client/styles/game.css`</sub>
+<sub>📁 `server/game/combat.ts` · `client/styles/game.css` · `client/engine/scene.ts` · `client/game.ts` · `locales/*.json` · `README.md`</sub>
 
 #### 🧪 Tests
 

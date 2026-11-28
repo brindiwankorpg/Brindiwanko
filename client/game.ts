@@ -923,7 +923,7 @@ export class Game implements MenuHost {
       this.sceneChanges.apply(() => {
         for (const view of views) {
           const who = this.scene.combatant(view.target, this.character.id);
-          if (who) this.scene.showDamage(who, view, this.options.values.showDamage);
+          if (who) this.scene.showDamage(who, view, t('combat.miss'), this.options.values.showDamage);
           if (view.kind === 'hp_damage' && view.target.kind === 'player' && view.target.id === this.character.id) this.audio.play('buzzer');
         }
       });

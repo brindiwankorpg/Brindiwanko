@@ -2177,7 +2177,8 @@
   },
   "combat": {
     "knocked_out": "You are knocked out!",
-    "respawn_in": "Back to your respawn point in"
+    "respawn_in": "Back to your respawn point in",
+    "miss": "Miss"
   },
   "skills": {
     "title": "Skills",

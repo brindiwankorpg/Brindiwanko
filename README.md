@@ -88,7 +88,7 @@ Brindiwanko/
 ├── shared/       # Contrats partagés (protocole Socket.io typé, schémas, formules, i18n)
 ├── assets/       # Générateurs procéduraux SVG de pixel art et ressources compilées
 ├── views/        # Gabarits EJS des pages web (authentification, personnages, compte, admin)
-├── locales/      # Dictionnaires de traduction fr.json et en.json (2 391 clés)
+├── locales/      # Dictionnaires de traduction fr.json et en.json (2 392 clés)
 ├── scripts/      # Pipeline de build, serveur dev, load-test, export démo, vérifications CI
 └── tests/        # Suite de 364 tests automatisés (node --test)
 ```
@@ -747,7 +747,7 @@ Brindiwanko/
 ├── shared/       # Shared contracts (typed Socket.io protocol, schemas, formulas, i18n)
 ├── assets/       # Procedural SVG pixel-art generators and compiled asset targets
 ├── views/        # EJS templates for account, auth, character, and admin pages
-├── locales/      # Bilingual dictionaries en.json and fr.json (2,391 keys)
+├── locales/      # Bilingual dictionaries en.json and fr.json (2,392 keys)
 ├── scripts/      # Build pipeline, dev watcher, load tester, demo export, CI checks
 └── tests/        # Automated suite of 364 tests (node --test)
 ```
