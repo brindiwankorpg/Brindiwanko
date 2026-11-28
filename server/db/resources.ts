@@ -43,6 +43,8 @@ export class ResourceRepository {
   private readonly allStmt: Statement<[], ResourceRow>;
   private readonly upsertStmt: Statement<[string, string, string, string, string, string, number | null, number | null, string, string]>;
   private readonly deleteStmt: Statement<[string]>;
+  /** Called after every change of the manifest (see {@link onChange}). */
+  private readonly listeners: (() => void)[] = [];
 
   constructor(private readonly db: Db) {
     this.allStmt = db.prepare('SELECT id, kind, name, path, format, mime, width, height, hash, origin FROM resources ORDER BY kind, name');
@@ -71,18 +73,27 @@ export class ResourceRepository {
   }
 
   /**
+   * Calls `listener` after every change of the manifest (a file uploaded, replaced, deleted or imported),
+   * so that the players in game can read it again.
+   */
+  onChange(listener: () => void): void {
+    this.listeners.push(listener);
+  }
+
+  /** Adds or replaces the entry of one resource (a file just uploaded), without touching the others. */
+  upsert(r: ScannedResource): void {
+    this.upsertStmt.run(r.id, r.kind, r.name, r.path, r.format, r.mime, r.width, r.height, r.hash, r.origin);
+    this.changed();
+  }
+
+  /**
    * Replaces the manifest content with what was found on disk, in one transaction:
    * new files are added, changed ones updated, missing ones removed.
    * @param scanned - Resources currently present on disk.
    * @returns Counts of changes.
    */
-  /** Adds or replaces the entry of one resource (a file just uploaded), without touching the others. */
-  upsert(r: ScannedResource): void {
-    this.upsertStmt.run(r.id, r.kind, r.name, r.path, r.format, r.mime, r.width, r.height, r.hash, r.origin);
-  }
-
   sync(scanned: readonly ScannedResource[]): { added: number; removed: number; total: number } {
-    return this.db.transaction(() => {
+    const counts = this.db.transaction(() => {
       const existing = new Set(this.allStmt.all().map((r) => r.id));
       let added = 0;
       for (const r of scanned) {
@@ -92,5 +103,12 @@ export class ResourceRepository {
       for (const id of existing) this.deleteStmt.run(id);
       return { added, removed: existing.size, total: scanned.length };
     })();
+    this.changed();
+    return counts;
+  }
+
+  /** Tells the listeners that the manifest changed. */
+  private changed(): void {
+    for (const listener of this.listeners) listener();
   }
 }

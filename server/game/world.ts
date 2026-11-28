@@ -247,6 +247,7 @@ export class World {
     this.instances = new InstanceService(this);
     this.raids = new RaidService(this);
     this.loadScopes();
+    ctx.resources.onChange(() => this.resourcesChanged());
     // A failing round is logged and skipped: one bad map or monster must not stop the world.
     const every = (ms: number, name: string, run: () => void) =>
       setInterval(() => {
@@ -435,6 +436,15 @@ export class World {
     for (const p of this.players.values()) this.refreshEvents(p);
     // The skill type names are part of the skills list.
     this.skillsContentChanged();
+  }
+
+  /**
+   * Graphics or sounds were uploaded, replaced, deleted or imported: the players in game read the resource
+   * manifest again (it is loaded once when the game page opens), so that an event can show or play a file
+   * added after they connected.
+   */
+  resourcesChanged(): void {
+    for (const p of this.players.values()) p.socket.emit('resourcesChanged');
   }
 
   /**

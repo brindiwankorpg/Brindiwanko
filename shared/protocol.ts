@@ -20,7 +20,7 @@ import type { QuestJournalPayload } from './quests.js';
 import type { Direction } from './settings.js';
 
 /** Version of the wire protocol. Bumped whenever an event payload changes shape. */
-export const PROTOCOL_VERSION = 4;
+export const PROTOCOL_VERSION = 5;
 
 /** Events emitted by the server and received by the client. */
 export interface ServerToClientEvents {
@@ -63,6 +63,11 @@ export interface ServerToClientEvents {
   playerUpdate: (payload: Partial<PlayerCharacterInfo>) => void;
   /** The account's role was changed by an administrator: the interface adapts at once. */
   roleChanged: (payload: { role: AccountRole }) => void;
+  /**
+   * Graphics or sounds were uploaded, replaced, deleted or imported in the editor: the client reads the
+   * resource manifest again, so that an event can show or play a file added after it connected.
+   */
+  resourcesChanged: () => void;
   /** Short notification for the player (item obtained, level up...); `key` is a translation key. */
   notify: (payload: { key: string; params?: Record<string, string | number>; icon?: number }) => void;
   /** Announcement of the staff shown in a window the player closes (see {@link AnnounceMode}). */

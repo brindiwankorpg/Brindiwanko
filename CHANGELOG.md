@@ -9,7 +9,7 @@
 #### Toutes les évolutions de Brindiwanko, version après version
 
 [![Version](https://img.shields.io/badge/version-1.0.0--beta.2-2563eb?style=for-the-badge)](package.json)
-[![Tests](https://img.shields.io/badge/tests-359%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/tests-362%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
 [![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/fr/1.1.0/)
 [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/lang/fr/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
@@ -18,6 +18,7 @@
 
 <table>
   <tr>
+    <td align="center" width="200"><a href="#fr-unreleased"><b>🚧 Non publié</b></a><br /><sub>28/11/2026 · 1 lot</sub></td>
     <td align="center" width="200"><a href="#fr-beta-2"><b>🧪 1.0.0-beta.2</b></a><br /><sub>27/11/2026 · deuxième bêta</sub></td>
     <td align="center" width="200"><a href="#fr-beta-1"><b>🧪 1.0.0-beta.1</b></a><br /><sub>11/11/2026 · première bêta</sub></td>
     <td align="center" width="200"><a href="README.md"><b>📖 README</b></a><br /><sub>Installation & guide</sub></td>
@@ -37,6 +38,8 @@
 
 | Statut | Étape | Date | Thème | En bref |
 | :---: | :--- | :---: | :--- | :--- |
+| 🚧 | [**🚧 Non publié**](#fr-unreleased) | 28/11/2026 | Après la bêta 2 | 1 lot · 💥 1 rupture |
+| 🚧 | [**↳ 🧭 Lot 5**](#fr-lot-5) | 28/11/2026 | Campagne de tests en navigateur | 3 anomalies corrigées · 3 tests de régression |
 | ✅ | [**🧪 1.0.0-beta.2**](#fr-beta-2) | 27/11/2026 | Deuxième bêta | 4 lots · 🔴 4 `P1` · 💥 3 ruptures |
 | ✅ | [**↳ 🩹 Lot 4**](#fr-lot-4) | 27/11/2026 | Corrections après l'analyse complète du dépôt | 🔴 1 `P1` · 🟠 3 `P2` · 5 tests de régression |
 | ✅ | [**↳ 🔍 Lot 3**](#fr-lot-3) | 26/11/2026 | Campagne de test sur base vierge | 3 anomalies corrigées · 6 dépendances à jour |
@@ -47,6 +50,59 @@
 <sub>🚧 non publié &nbsp;·&nbsp; ✅ publié &nbsp;·&nbsp; ↳ lot de la version au-dessus</sub>
 
 </div>
+
+---
+
+<a id="fr-unreleased"></a>
+
+## 🚧 Non publié
+
+<div align="center">
+
+| 🔴 `P1` corrigés | 🧪 Tests | 💥 Ruptures | 🆕 Réglages | 📦 Lots |
+| :---: | :---: | :---: | :---: | :---: |
+| **0** | **362** ✅ | **1** | **0** | **1** |
+
+</div>
+
+> Corrections faites depuis la bêta 2. La campagne de tests en navigateur n'est pas encore terminée : ce lot sera complété.
+
+> [!WARNING]
+> **À lire avant de mettre à jour**
+> - 🔌 **Protocole Socket.io `v5`** : les pages de jeu ouvertes se rechargent d'elles-mêmes.
+
+<a id="fr-lot-5"></a>
+
+### 🧭 Lot 5 — Campagne de tests en navigateur &nbsp;<sub>28/11/2026</sub>
+
+<div align="center">
+
+| 🎯 Nature | 🐞 Anomalies corrigées | 🧪 Nouveaux tests | 🧪 Tests |
+| :---: | :---: | :---: | :---: |
+| Recette de la bêta 2 dans un navigateur | **3** | **3** | **362** ✅ |
+
+</div>
+
+> Parcours de la bêta 2 dans un vrai navigateur avec deux comptes, administrateur et joueur : comptes, cartes, évènements, quêtes, économie, combat, social et guildes. Aucun bug bloquant ; 3 anomalies corrigées.
+
+#### 🗺️ Éditeur & ressources
+
+- **Fichiers ajoutés en cours de partie** — une image, un son ou une musique ajoutés, remplacés ou supprimés dans l'éditeur sont maintenant connus des joueurs déjà connectés, sans recharger la page : un évènement peut s'en servir tout de suite.
+
+<sub>📁 `shared/protocol.ts` · `server/db/resources.ts` · `server/game/world.ts` · `client/game.ts`</sub>
+
+#### ⚔️ Combat & interface
+
+- **Protection d'arrivée** — un joueur qui vient d'arriver ne peut pas être blessé pendant quelques secondes : les coups qu'il reçoit s'affichent maintenant « Miss », au lieu de faux chiffres de dégâts, et n'appliquent aucun état.
+- **Cible** — la jauge de PV vide ne s'affiche plus sous le nom d'un autre joueur ciblé.
+
+<sub>📁 `server/game/combat.ts` · `client/styles/game.css`</sub>
+
+#### 🧪 Tests
+
+- `3` tests de régression, un par anomalie. Suite portée à **362** tests.
+
+<sub>📁 `tests/qa-campaign-fixes.test.ts`</sub>
 
 ---
 
@@ -372,7 +428,7 @@
 #### Every change to Brindiwanko, release after release
 
 [![Version](https://img.shields.io/badge/version-1.0.0--beta.2-2563eb?style=for-the-badge)](package.json)
-[![Tests](https://img.shields.io/badge/tests-359%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/tests-362%20passed-15803d?style=for-the-badge&logo=node.js&logoColor=white)](tests/)
 [![Format](https://img.shields.io/badge/Keep_a_Changelog-1.1.0-f59e0b?style=for-the-badge)](https://keepachangelog.com/en/1.1.0/)
 [![SemVer](https://img.shields.io/badge/SemVer-2.0.0-0ea5e9?style=for-the-badge)](https://semver.org/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-475569?style=for-the-badge)](LICENSE)
@@ -381,6 +437,7 @@
 
 <table>
   <tr>
+    <td align="center" width="200"><a href="#en-unreleased"><b>🚧 Unreleased</b></a><br /><sub>2026-11-28 · 1 batch</sub></td>
     <td align="center" width="200"><a href="#en-beta-2"><b>🧪 1.0.0-beta.2</b></a><br /><sub>2026-11-27 · second beta</sub></td>
     <td align="center" width="200"><a href="#en-beta-1"><b>🧪 1.0.0-beta.1</b></a><br /><sub>2026-11-11 · first beta</sub></td>
     <td align="center" width="200"><a href="README.md#en-top"><b>📖 README</b></a><br /><sub>Setup & guide</sub></td>
@@ -400,6 +457,8 @@
 
 | Status | Step | Date | Theme | Highlights |
 | :---: | :--- | :---: | :--- | :--- |
+| 🚧 | [**🚧 Unreleased**](#en-unreleased) | 2026-11-28 | After beta 2 | 1 batch · 💥 1 breaking change |
+| 🚧 | [**↳ 🧭 Batch 5**](#en-batch-5) | 2026-11-28 | Browser test campaign | 3 issues fixed · 3 regression tests |
 | ✅ | [**🧪 1.0.0-beta.2**](#en-beta-2) | 2026-11-27 | Second beta | 4 batches · 🔴 4 `P1` · 💥 3 breaking changes |
 | ✅ | [**↳ 🩹 Batch 4**](#en-batch-4) | 2026-11-27 | Fixes after a full read of the repository | 🔴 1 `P1` · 🟠 3 `P2` · 5 regression tests |
 | ✅ | [**↳ 🔍 Batch 3**](#en-batch-3) | 2026-11-26 | Test campaign on a blank database | 3 issues fixed · 6 dependencies updated |
@@ -410,6 +469,59 @@
 <sub>🚧 unreleased &nbsp;·&nbsp; ✅ released &nbsp;·&nbsp; ↳ batch of the release above</sub>
 
 </div>
+
+---
+
+<a id="en-unreleased"></a>
+
+## 🚧 Unreleased
+
+<div align="center">
+
+| 🔴 `P1` fixed | 🧪 Tests | 💥 Breaking | 🆕 Settings | 📦 Batches |
+| :---: | :---: | :---: | :---: | :---: |
+| **0** | **362** ✅ | **1** | **0** | **1** |
+
+</div>
+
+> Fixes made since beta 2. The browser test campaign is not over yet: this batch will grow.
+
+> [!WARNING]
+> **Read before upgrading**
+> - 🔌 **Socket.io protocol `v5`**: open game pages reload by themselves.
+
+<a id="en-batch-5"></a>
+
+### 🧭 Batch 5 — Browser test campaign &nbsp;<sub>2026-11-28</sub>
+
+<div align="center">
+
+| 🎯 Scope | 🐞 Issues fixed | 🧪 New tests | 🧪 Tests |
+| :---: | :---: | :---: | :---: |
+| Beta 2 played in a browser | **3** | **3** | **362** ✅ |
+
+</div>
+
+> Beta 2 played in a real browser with two accounts, an administrator and a player: accounts, maps, events, quests, economy, combat, social features and guilds. No blocking bug; 3 issues fixed.
+
+#### 🗺️ Editor & resources
+
+- **Files added during play** — an image, sound or music added, replaced or deleted in the editor now reaches the players already connected, without reloading the page: an event can use it right away.
+
+<sub>📁 `shared/protocol.ts` · `server/db/resources.ts` · `server/game/world.ts` · `client/game.ts`</sub>
+
+#### ⚔️ Combat & interface
+
+- **Arrival protection** — a player who just arrived cannot be hurt for a few seconds: the blows they take now show "Miss" instead of fake damage numbers, and apply no state.
+- **Target** — the empty HP gauge no longer shows under the name of another targeted player.
+
+<sub>📁 `server/game/combat.ts` · `client/styles/game.css`</sub>
+
+#### 🧪 Tests
+
+- `3` regression tests, one per issue. Suite raised to **362** tests.
+
+<sub>📁 `tests/qa-campaign-fixes.test.ts`</sub>
 
 ---
 

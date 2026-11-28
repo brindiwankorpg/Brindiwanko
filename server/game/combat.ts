@@ -775,6 +775,11 @@ export class CombatSystem {
     const b = this.statsOf(target);
     const hostile = damage.type === 'hp_damage' || damage.type === 'mp_damage';
     const maxHp = b.params.mhp;
+    // A player still arriving (login, new map) or editing the map cannot be hurt by monsters or other players
+    // (see `applyVitals`): the hit misses, so the attacker sees no damage number and no state is added.
+    if (hostile && target.kind === 'player' && (user.kind === 'monster' || user.p !== target.p) && this.protectedOnArrival(target.p)) {
+      return { target: this.actor(target), amount: 0, kind: 'miss', critical: false, hp: this.vitals(target).hp, maxHp };
+    }
     if (hostile) {
       const hitRate = COMBAT.hitRate + traitSum(a.traits, 'hit_rate');
       const evasion = COMBAT.evasionRate + traitSum(b.traits, 'evasion') + Math.max(0, (b.params.agi - a.params.agi) / 1000);

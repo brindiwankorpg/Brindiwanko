@@ -158,6 +158,8 @@ html, body.game {
 /* ---- Gauges ----------------------------------------------------------------- */
 /* The label is the game's own term (System terms): a short one keeps the 26px column, a longer one widens it up to a cap. */
 .gauge { display: grid; grid-template-columns: minmax(26px, max-content) 1fr auto; align-items: center; gap: 6px; font-size: 0.72rem; }
+/* `display: grid` would otherwise win over the `hidden` attribute (the HP of another player are not shown). */
+.gauge[hidden] { display: none; }
 .gauge-label { font-weight: 700; color: var(--tc-16, #84aaff); max-width: 7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gauge-track { height: 8px; border-radius: 2px; background: var(--tc-19, #202040); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6); overflow: hidden; }
 .gauge-fill { height: 100%; width: 0; transition: width 0.3s ease-out; }

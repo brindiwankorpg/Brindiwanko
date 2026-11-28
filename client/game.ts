@@ -48,6 +48,12 @@ import { OptionsStore, audibleVolume } from './ui/options.js';
 import { WindowManager, setWindowStorageKey } from './ui/windows.js';
 
 const FRAME_MS = 1000 / 60;
+/**
+ * Delay before reading the resource manifest again after the editor changed it, plus a random spread: several
+ * uploads in a row make one request, and the players do not all ask at the same moment.
+ */
+const RESOURCES_REFRESH_MS = 500;
+const RESOURCES_REFRESH_SPREAD_MS = 1000;
 
 /** The editor's style sheet, added to the page the first time the editor opens. */
 let editorStyle: Promise<void> | null = null;
@@ -869,6 +875,12 @@ export class Game implements MenuHost {
       this.buildMenuBar();
       this.hud.notify(t('notify.role_changed', { role: tDynamic(`auth.role.${role}`) }));
       this.audio.play('ok');
+    });
+    let resourcesTimer = 0;
+    this.socket.on('resourcesChanged', () => {
+      // A file uploaded in the editor after this page loaded: an event may show or play it now.
+      window.clearTimeout(resourcesTimer);
+      resourcesTimer = window.setTimeout(() => void this.assets.refresh().catch(() => undefined), RESOURCES_REFRESH_MS + Math.random() * RESOURCES_REFRESH_SPREAD_MS);
     });
     this.socket.on('skills', (payload) => {
       this.skills = payload;
